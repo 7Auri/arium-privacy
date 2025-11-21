@@ -10,10 +10,10 @@ import SwiftUI
 import WatchConnectivity
 
 @MainActor
-class HabitStore: ObservableObject {
+class HabitStore: NSObject, ObservableObject {
     @Published var habits: [Habit] = []
     @AppStorage("isPremium") var isPremium: Bool = false
-    @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = true
+    @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = false // Disabled for free Apple account
     
     private let saveKey = "SavedHabits"
     private let maxFreeHabits = 3
@@ -21,7 +21,9 @@ class HabitStore: ObservableObject {
     private let cloudSync = CloudSyncManager.shared
     private let notificationManager = NotificationManager.shared
     
-    init() {
+    override init() {
+        super.init()
+        
         if let session = session {
             session.delegate = self
             session.activate()
@@ -30,8 +32,10 @@ class HabitStore: ObservableObject {
         loadHabits()
         updateTodayStatus()
         
-        // Request notification authorization
-        notificationManager.requestAuthorization()
+        // Request notification authorization (non-blocking)
+        Task {
+            _ = await notificationManager.requestAuthorization()
+        }
     }
     
     var canAddMoreHabits: Bool {
@@ -46,9 +50,11 @@ class HabitStore: ObservableObject {
         guard canAddMoreHabits else { return }
         habits.append(habit)
         
-        // Schedule notification if enabled
+        // Schedule notification if enabled (non-blocking)
         if habit.isReminderEnabled {
-            notificationManager.scheduleDailyReminder(for: habit)
+            Task {
+                await notificationManager.scheduleDailyReminder(for: habit)
+            }
         }
         
         saveHabits()
@@ -58,11 +64,13 @@ class HabitStore: ObservableObject {
         if let index = habits.firstIndex(where: { $0.id == habit.id }) {
             habits[index] = habit
             
-            // Update notifications
-            if habit.isReminderEnabled {
-                notificationManager.scheduleDailyReminder(for: habit)
-            } else {
-                notificationManager.cancelNotifications(for: habit.id.uuidString)
+            // Update notifications (non-blocking)
+            Task {
+                if habit.isReminderEnabled {
+                    await notificationManager.scheduleDailyReminder(for: habit)
+                } else {
+                    await notificationManager.cancelNotifications(for: habit.id.uuidString)
+                }
             }
             
             saveHabits()
@@ -72,8 +80,10 @@ class HabitStore: ObservableObject {
     func deleteHabit(_ habit: Habit) {
         habits.removeAll { $0.id == habit.id }
         
-        // Cancel notifications
-        notificationManager.cancelNotifications(for: habit.id.uuidString)
+        // Cancel notifications (non-blocking)
+        Task {
+            await notificationManager.cancelNotifications(for: habit.id.uuidString)
+        }
         
         // Delete from iCloud
         if iCloudSyncEnabled {
@@ -95,11 +105,14 @@ class HabitStore: ObservableObject {
                 habits[index].setNote(note, for: Date())
             }
             
-            // Check for milestones
+            // Check for milestones (non-blocking)
             if !wasCompleted && habits[index].isCompletedToday {
                 let streak = habits[index].streak
                 if [7, 21, 30, 100].contains(streak) {
-                    notificationManager.scheduleMilestoneNotification(for: habits[index], milestone: streak)
+                    let currentHabit = habits[index]
+                    Task {
+                        await notificationManager.scheduleMilestoneNotification(for: currentHabit, milestone: streak)
+                    }
                 }
             }
             
