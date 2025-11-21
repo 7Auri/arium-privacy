@@ -35,6 +35,9 @@ struct HabitDetailView: View {
                         // Goal Days Selector
                         goalDaysView
                         
+                        // Reminder Settings
+                        reminderView
+                        
                         // Completion Button
                         completionButton
                         
@@ -322,6 +325,48 @@ struct HabitDetailView: View {
                 .stroke(Color(.separator), lineWidth: 0.5)
         )
         .opacity(habitStore.isPremium ? 1.0 : 0.7)
+    }
+    
+    private var reminderView: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text(L10n.t("settings.notifications"))
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.secondary)
+                
+                Spacer()
+                
+                Toggle("", isOn: $viewModel.habit.isReminderEnabled)
+                    .labelsHidden()
+                    .tint(viewModel.habit.theme.accent)
+                    .onChange(of: viewModel.habit.isReminderEnabled) { _, newValue in
+                        viewModel.toggleReminder(newValue, store: habitStore)
+                    }
+            }
+            
+            if viewModel.habit.isReminderEnabled {
+                DatePicker(
+                    L10n.t("notification.reminder.title"),
+                    selection: $viewModel.editableReminderTime,
+                    displayedComponents: .hourAndMinute
+                )
+                .datePickerStyle(.compact)
+                .tint(viewModel.habit.theme.accent)
+                .onChange(of: viewModel.editableReminderTime) { _, newValue in
+                    viewModel.updateReminderTime(newValue, store: habitStore)
+                }
+                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+            }
+        }
+        .padding(16)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(16)
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(Color(.separator), lineWidth: 0.5)
+        )
+        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.habit.isReminderEnabled)
     }
     
     private var completionButton: some View {

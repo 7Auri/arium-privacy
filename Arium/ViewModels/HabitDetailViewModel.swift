@@ -16,10 +16,14 @@ class HabitDetailViewModel: ObservableObject {
     @Published var showingDeleteAlert = false
     @Published var showingStartDatePicker = false
     @Published var editableStartDate: Date
+    @Published var editableReminderTime: Date
+    
+    private let notificationManager = NotificationManager.shared
     
     init(habit: Habit) {
         self.habit = habit
         self.editableStartDate = habit.effectiveStartDate
+        self.editableReminderTime = habit.reminderTime ?? Date()
     }
     
     func refreshCompletionForNewDay() {
@@ -66,6 +70,44 @@ class HabitDetailViewModel: ObservableObject {
     
     func updateGoalDays(_ days: Int, store: HabitStore) {
         habit.goalDays = days
+        store.updateHabit(habit)
+    }
+    
+    func toggleReminder(_ enabled: Bool, store: HabitStore) {
+        habit.isReminderEnabled = enabled
+        
+        if enabled {
+            // Set default time if not set
+            if habit.reminderTime == nil {
+                let calendar = Calendar.current
+                habit.reminderTime = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date())
+                editableReminderTime = habit.reminderTime!
+            }
+            
+            // Schedule notification
+            Task {
+                await notificationManager.scheduleHabitReminder(for: habit, at: habit.reminderTime!)
+            }
+        } else {
+            // Cancel notification
+            notificationManager.cancelHabitReminder(for: habit.id)
+        }
+        
+        store.updateHabit(habit)
+    }
+    
+    func updateReminderTime(_ time: Date, store: HabitStore) {
+        habit.reminderTime = time
+        editableReminderTime = time
+        
+        // Reschedule notification
+        if habit.isReminderEnabled {
+            notificationManager.cancelHabitReminder(for: habit.id)
+            Task {
+                await notificationManager.scheduleHabitReminder(for: habit, at: time)
+            }
+        }
+        
         store.updateHabit(habit)
     }
 }

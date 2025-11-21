@@ -137,6 +137,31 @@ enum L10n {
             "theme.green": "Forest Green",
             "theme.pink": "Soft Pink",
             "theme.orange": "Sunset Orange",
+            
+            // Notifications
+            "notification.reminder.title": "⏰ Habit Reminder",
+            "notification.reminder.body": "Time to complete: %@",
+            "notification.streak.warning.title": "🔥 Don't Break Your Streak!",
+            "notification.streak.warning.body": "You have a %d-day streak for '%@'. Complete it today!",
+            "notification.milestone.title": "🎉 Milestone Achieved!",
+            "notification.milestone.body": "%d days completed for '%@'! Keep going!",
+            "notification.motivation.title": "✨ Daily Motivation",
+            "notification.motivation.quote1": "Small steps lead to big changes.",
+            "notification.motivation.quote2": "Today is a great day to build better habits!",
+            "notification.motivation.quote3": "Consistency is the key to success.",
+            "notification.motivation.quote4": "You're doing amazing! Keep it up!",
+            "notification.motivation.quote5": "Every day is a new opportunity.",
+            "settings.notifications": "Notifications",
+            "settings.notifications.enable": "Enable Notifications",
+            "settings.notifications.daily": "Daily Motivation",
+            "settings.notifications.streaks": "Streak Warnings",
+            
+            // iCloud
+            "settings.icloud.title": "iCloud Sync",
+            "settings.icloud.sync": "Sync with iCloud",
+            "settings.icloud.sync.description": "Keep your habits in sync across all your devices",
+            "settings.icloud.syncNow": "Sync Now",
+            "settings.icloud.lastSync": "Last synced",
         ],
         "tr": [
             // Home
@@ -253,6 +278,31 @@ enum L10n {
             "theme.green": "Orman Yeşili",
             "theme.pink": "Yumuşak Pembe",
             "theme.orange": "Gün Batımı",
+            
+            // Notifications
+            "notification.reminder.title": "⏰ Alışkanlık Hatırlatıcısı",
+            "notification.reminder.body": "Tamamlama zamanı: %@",
+            "notification.streak.warning.title": "🔥 Serini Kaybetme!",
+            "notification.streak.warning.body": "'%2$@' için %1$d günlük serin var. Bugün tamamla!",
+            "notification.milestone.title": "🎉 Kilometre Taşına Ulaştın!",
+            "notification.milestone.body": "'%2$@' için %1$d gün tamamlandı! Devam et!",
+            "notification.motivation.title": "✨ Günlük Motivasyon",
+            "notification.motivation.quote1": "Küçük adımlar büyük değişimlere yol açar.",
+            "notification.motivation.quote2": "Bugün daha iyi alışkanlıklar oluşturmak için harika bir gün!",
+            "notification.motivation.quote3": "Tutarlılık başarının anahtarıdır.",
+            "notification.motivation.quote4": "Harikasın! Böyle devam et!",
+            "notification.motivation.quote5": "Her gün yeni bir fırsattır.",
+            "settings.notifications": "Bildirimler",
+            "settings.notifications.enable": "Bildirimleri Aç",
+            "settings.notifications.daily": "Günlük Motivasyon",
+            "settings.notifications.streaks": "Seri Uyarıları",
+            
+            // iCloud
+            "settings.icloud.title": "iCloud Senkronizasyonu",
+            "settings.icloud.sync": "iCloud ile Senkronize Et",
+            "settings.icloud.sync.description": "Alışkanlıklarınızı tüm cihazlarınızda senkronize edin",
+            "settings.icloud.syncNow": "Şimdi Senkronize Et",
+            "settings.icloud.lastSync": "Son senkronizasyon",
         ]
     ]
 }

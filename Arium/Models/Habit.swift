@@ -20,6 +20,8 @@ struct Habit: Identifiable, Codable, Equatable {
     var completionNotes: [String: String] // Date string (yyyy-MM-dd) : note
     var startDate: Date? // Kullanıcının seçtiği takip başlangıç tarihi
     var goalDays: Int // Hedef gün sayısı (örn: 21 günlük challenge)
+    var reminderTime: Date? // Hatırlatıcı zamanı
+    var isReminderEnabled: Bool // Hatırlatıcı açık mı
     
     init(
         id: UUID = UUID(),
@@ -32,7 +34,9 @@ struct Habit: Identifiable, Codable, Equatable {
         completionDates: [Date] = [],
         completionNotes: [String: String] = [:],
         startDate: Date? = nil,
-        goalDays: Int = 21
+        goalDays: Int = 21,
+        reminderTime: Date? = nil,
+        isReminderEnabled: Bool = false
     ) {
         self.id = id
         self.title = title
@@ -45,6 +49,8 @@ struct Habit: Identifiable, Codable, Equatable {
         self.completionNotes = completionNotes
         self.startDate = startDate
         self.goalDays = goalDays
+        self.reminderTime = reminderTime
+        self.isReminderEnabled = isReminderEnabled
     }
     
     var theme: HabitTheme {

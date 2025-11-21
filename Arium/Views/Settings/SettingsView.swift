@@ -12,7 +12,10 @@ struct SettingsView: View {
     @EnvironmentObject var habitStore: HabitStore
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = true
     @AppStorage("appLanguage") private var appLanguage = "en"
+    @AppStorage("isDailyMotivationEnabled") private var isDailyMotivationEnabled = false
+    @AppStorage("isStreakWarningEnabled") private var isStreakWarningEnabled = true
     @State private var showingStatistics = false
+    @StateObject private var notificationManager = NotificationManager.shared
     
     var body: some View {
         NavigationStack {
@@ -72,6 +75,133 @@ struct SettingsView: View {
                         .font(.footnote)
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)
+                }
+                
+                // Notifications Section
+                Section {
+                    Toggle(isOn: $notificationManager.isAuthorized) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "bell.fill")
+                                .font(.body)
+                                .foregroundStyle(.orange.opacity(0.8))
+                                .frame(width: 28, alignment: .center)
+                            
+                            Text(L10n.t("settings.notifications.enable"))
+                                .foregroundStyle(.primary)
+                        }
+                    }
+                    .tint(.orange)
+                    .onChange(of: notificationManager.isAuthorized) { _, newValue in
+                        if newValue {
+                            Task {
+                                _ = await notificationManager.requestAuthorization()
+                            }
+                        }
+                    }
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
+                    if notificationManager.isAuthorized {
+                        Toggle(isOn: $isDailyMotivationEnabled) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "sparkles")
+                                    .font(.body)
+                                    .foregroundStyle(.yellow.opacity(0.8))
+                                    .frame(width: 28, alignment: .center)
+                                
+                                Text(L10n.t("settings.notifications.daily"))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .tint(.yellow)
+                        .onChange(of: isDailyMotivationEnabled) { _, newValue in
+                            Task {
+                                if newValue {
+                                    await notificationManager.scheduleDailyMotivation()
+                                } else {
+                                    notificationManager.cancelDailyMotivation()
+                                }
+                            }
+                        }
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        
+                        Toggle(isOn: $isStreakWarningEnabled) {
+                            HStack(spacing: 12) {
+                                Image(systemName: "flame.fill")
+                                    .font(.body)
+                                    .foregroundStyle(.red.opacity(0.8))
+                                    .frame(width: 28, alignment: .center)
+                                
+                                Text(L10n.t("settings.notifications.streaks"))
+                                    .foregroundStyle(.primary)
+                            }
+                        }
+                        .tint(.red)
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    }
+                } header: {
+                    Text(L10n.t("settings.notifications"))
+                        .font(.footnote)
+                        .textCase(.uppercase)
+                        .foregroundStyle(.secondary)
+                }
+                
+                // iCloud Sync Section
+                Section {
+                    Toggle(isOn: $habitStore.iCloudSyncEnabled) {
+                        HStack(spacing: 12) {
+                            Image(systemName: "icloud.fill")
+                                .font(.body)
+                                .foregroundStyle(.blue.opacity(0.8))
+                                .frame(width: 28, alignment: .center)
+                            
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text(L10n.t("settings.icloud.sync"))
+                                    .foregroundStyle(.primary)
+                                
+                                Text(L10n.t("settings.icloud.sync.description"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                    .tint(.blue)
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
+                    if habitStore.iCloudSyncEnabled {
+                        Button {
+                            Task {
+                                await habitStore.syncWithiCloud()
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "arrow.clockwise.circle.fill")
+                                    .font(.body)
+                                    .foregroundStyle(.blue.opacity(0.8))
+                                    .frame(width: 28, alignment: .center)
+                                
+                                Text(L10n.t("settings.icloud.syncNow"))
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                                
+                                if CloudSyncManager.shared.isSyncing {
+                                    ProgressView()
+                                }
+                            }
+                        }
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    }
+                } header: {
+                    Text(L10n.t("settings.icloud.title"))
+                        .font(.footnote)
+                        .textCase(.uppercase)
+                        .foregroundStyle(.secondary)
+                } footer: {
+                    if let lastSync = CloudSyncManager.shared.lastSyncDate {
+                        Text("\(L10n.t("settings.icloud.lastSync")): \(lastSync.formatted())")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
                 
                 // Statistics Section
