@@ -68,7 +68,7 @@ struct HabitDetailWatchView: View {
                         .foregroundColor(.secondary)
                 }
                 .padding()
-                .background(Color(.systemGray6))
+                .background(Color.gray.opacity(0.2))
                 .cornerRadius(12)
             }
             .padding()
