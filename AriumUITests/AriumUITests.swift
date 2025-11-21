@@ -22,199 +22,245 @@ final class AriumUITests: XCTestCase {
         app = nil
     }
     
-    // MARK: - Onboarding Flow Tests
+    // MARK: - Onboarding Tests
     
     func testOnboardingFlow() throws {
-        // Reset onboarding for fresh test
-        app.launchArguments = ["UI-Testing", "Reset-Onboarding"]
+        // Skip onboarding if already seen
+        app.launchArguments.append("reset-onboarding")
         app.launch()
         
-        // Check if onboarding is shown
-        let continueButton = app.buttons["Continue"]
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 2))
+        // Check first onboarding page
+        XCTAssertTrue(app.staticTexts["Welcome to Arium"].exists)
         
-        // Navigate through onboarding
-        continueButton.tap()
+        // Tap Continue
+        app.buttons["Continue"].tap()
         
-        XCTAssertTrue(continueButton.waitForExistence(timeout: 1))
-        continueButton.tap()
+        // Check second page
+        XCTAssertTrue(app.staticTexts["Build Momentum"].exists)
         
-        // On last page, should see Start Journey button
-        let startButton = app.buttons["Start Your Journey"]
-        XCTAssertTrue(startButton.waitForExistence(timeout: 1))
-        startButton.tap()
+        // Tap Continue
+        app.buttons["Continue"].tap()
         
-        // Should reach home screen
-        let homeTitle = app.staticTexts["Arium"]
-        XCTAssertTrue(homeTitle.waitForExistence(timeout: 2))
+        // Check third page
+        XCTAssertTrue(app.staticTexts["Make It Yours"].exists)
+        
+        // Tap Start
+        app.buttons["Start Your Journey"].tap()
+        
+        // Should now be on home screen
+        XCTAssertTrue(app.navigationBars["Arium"].exists)
     }
     
     func testOnboardingSkip() throws {
-        app.launchArguments = ["UI-Testing", "Reset-Onboarding"]
+        app.launchArguments.append("reset-onboarding")
         app.launch()
         
-        let skipButton = app.buttons["Skip"]
-        XCTAssertTrue(skipButton.waitForExistence(timeout: 2))
+        // Tap Skip
+        app.buttons["Skip"].tap()
         
-        skipButton.tap()
-        
-        // Should reach home screen
-        let homeTitle = app.staticTexts["Arium"]
-        XCTAssertTrue(homeTitle.waitForExistence(timeout: 2))
+        // Should go directly to home screen
+        XCTAssertTrue(app.navigationBars["Arium"].exists)
     }
     
-    // MARK: - Add Habit Flow Tests
+    // MARK: - Add Habit Tests
     
-    func testAddHabitSuccess() throws {
-        // Tap add button
-        let addButton = app.buttons["add_habit_button"]
-        XCTAssertTrue(addButton.waitForExistence(timeout: 2))
-        addButton.tap()
+    func testAddNewHabit() throws {
+        // Tap Add button
+        app.buttons["Add Habit"].tap()
         
-        // Fill in title
-        let titleField = app.textFields["habit.title"]
-        XCTAssertTrue(titleField.waitForExistence(timeout: 1))
+        // Wait for sheet to appear
+        let titleField = app.textFields["Habit Title"]
+        XCTAssertTrue(titleField.waitForExistence(timeout: 2))
+        
+        // Enter habit details
         titleField.tap()
-        titleField.typeText("Test Habit")
+        titleField.typeText("Read Books")
         
-        // Tap save
-        let saveButton = app.buttons["Save"]
-        saveButton.tap()
+        let notesField = app.textViews["Habit Notes"]
+        notesField.tap()
+        notesField.typeText("Read 30 pages daily")
         
-        // Verify habit was added
-        let habitCard = app.staticTexts["Test Habit"]
-        XCTAssertTrue(habitCard.waitForExistence(timeout: 2))
+        // Select a theme
+        app.buttons["Ocean Blue"].tap()
+        
+        // Save habit
+        app.buttons["Save"].tap()
+        
+        // Verify habit appears in list
+        XCTAssertTrue(app.staticTexts["Read Books"].exists)
     }
     
-    func testAddHabitCancel() throws {
-        let addButton = app.buttons["add_habit_button"]
-        addButton.tap()
+    func testAddHabitValidation() throws {
+        // Tap Add button
+        app.buttons["Add Habit"].tap()
         
-        let cancelButton = app.buttons["Cancel"]
-        XCTAssertTrue(cancelButton.waitForExistence(timeout: 1))
-        cancelButton.tap()
+        // Try to save without title
+        app.buttons["Save"].tap()
         
-        // Should be back on home screen
-        XCTAssertTrue(addButton.exists)
+        // Should show alert
+        XCTAssertTrue(app.alerts.element.exists)
+        XCTAssertTrue(app.alerts.staticTexts["Please enter a habit title"].exists)
+        
+        // Dismiss alert
+        app.alerts.buttons["OK"].tap()
     }
     
-    // MARK: - Habit Completion Tests
+    // MARK: - Complete Habit Tests
     
     func testCompleteHabit() throws {
-        // First add a habit
-        testAddHabitSuccess()
+        // First, add a habit
+        addTestHabit(title: "Morning Exercise")
         
-        // Find and tap completion button
-        let completionButton = app.buttons.matching(identifier: "completion_button").firstMatch
-        XCTAssertTrue(completionButton.waitForExistence(timeout: 2))
-        completionButton.tap()
+        // Find and tap the habit completion button
+        let habitRow = app.buttons["Morning Exercise Completion"]
+        XCTAssertTrue(habitRow.exists)
         
-        // For premium users, note sheet should appear
-        // For free users, habit should complete directly
-        sleep(1) // Wait for animation
+        habitRow.tap()
+        
+        // Verify completion (streak should update)
+        XCTAssertTrue(app.staticTexts["1"].exists) // Streak count
     }
     
-    // MARK: - Settings Navigation Tests
-    
-    func testNavigateToSettings() throws {
-        let settingsButton = app.buttons["settings_button"]
-        XCTAssertTrue(settingsButton.waitForExistence(timeout: 2))
-        settingsButton.tap()
+    func testUncompleteHabit() throws {
+        // Add and complete a habit
+        addTestHabit(title: "Evening Reading")
+        app.buttons["Evening Reading Completion"].tap()
         
-        let settingsTitle = app.navigationBars["Settings"]
-        XCTAssertTrue(settingsTitle.waitForExistence(timeout: 1))
+        // Tap again to uncomplete
+        app.buttons["Evening Reading Completion"].tap()
+        
+        // Verify streak is 0
+        XCTAssertTrue(app.staticTexts["0"].exists)
     }
     
-    func testTogglePremiumInSettings() throws {
-        // Navigate to settings
-        testNavigateToSettings()
-        
-        // Find premium toggle
-        let premiumToggle = app.switches.matching(identifier: "premium_toggle").firstMatch
-        if premiumToggle.waitForExistence(timeout: 1) {
-            premiumToggle.tap()
-            
-            // Verify toggle changed state
-            sleep(1)
-        }
-    }
-    
-    // MARK: - Habit Detail Navigation Tests
+    // MARK: - Habit Detail Tests
     
     func testNavigateToHabitDetail() throws {
-        // First add a habit
-        testAddHabitSuccess()
+        addTestHabit(title: "Meditation")
         
-        // Tap on habit card
-        let habitCard = app.staticTexts["Test Habit"]
-        habitCard.tap()
+        // Tap on habit title to open detail
+        app.staticTexts["Meditation"].tap()
         
-        // Should show habit detail
-        let detailView = app.navigationBars.matching(identifier: "Test Habit").firstMatch
-        XCTAssertTrue(detailView.waitForExistence(timeout: 2))
+        // Verify detail view opened
+        XCTAssertTrue(app.navigationBars["Meditation"].exists)
+        XCTAssertTrue(app.staticTexts["Day Streak"].exists)
     }
     
-    // MARK: - Statistics Navigation Tests
-    
-    func testNavigateToStatistics() throws {
-        // First add a habit and open detail
-        testNavigateToHabitDetail()
+    func testCompleteHabitFromDetailView() throws {
+        addTestHabit(title: "Yoga Practice")
         
-        // Find statistics button
-        let statsButton = app.buttons["View Statistics"]
-        if statsButton.waitForExistence(timeout: 1) {
-            statsButton.tap()
-            
-            // Verify statistics view opened
-            let statsTitle = app.navigationBars["Statistics"]
-            XCTAssertTrue(statsTitle.waitForExistence(timeout: 1))
-        }
+        // Open detail view
+        app.staticTexts["Yoga Practice"].tap()
+        
+        // Tap complete button
+        app.buttons["Complete Habit"].tap()
+        
+        // Verify completed status
+        XCTAssertTrue(app.staticTexts["Completed"].exists)
     }
     
     // MARK: - Delete Habit Tests
     
-    func testDeleteHabit() throws {
-        // First add a habit
-        testAddHabitSuccess()
+    func testDeleteHabitFromDetail() throws {
+        addTestHabit(title: "Test Habit")
         
-        // Tap on habit to open detail
-        let habitCard = app.staticTexts["Test Habit"]
-        habitCard.tap()
+        // Open detail view
+        app.staticTexts["Test Habit"].tap()
         
-        // Scroll to find delete button
-        let deleteButton = app.buttons["Delete Habit"]
-        if deleteButton.waitForExistence(timeout: 2) {
-            deleteButton.tap()
+        // Scroll to bottom and tap delete
+        app.buttons["Delete Habit"].tap()
+        
+        // Confirm deletion
+        XCTAssertTrue(app.alerts.element.exists)
+        app.alerts.buttons["Delete"].tap()
+        
+        // Verify habit is gone
+        XCTAssertFalse(app.staticTexts["Test Habit"].exists)
+    }
+    
+    func testDeleteHabitSwipeAction() throws {
+        addTestHabit(title: "Swipeable Habit")
+        
+        // Swipe left on habit
+        let habitCell = app.cells.containing(.staticText, identifier: "Swipeable Habit").element
+        habitCell.swipeLeft()
+        
+        // Tap delete button
+        app.buttons["Delete"].tap()
+        
+        // Verify habit is gone
+        XCTAssertFalse(app.staticTexts["Swipeable Habit"].exists)
+    }
+    
+    // MARK: - Settings Tests
+    
+    func testOpenSettings() throws {
+        // Tap settings button
+        app.buttons["Settings"].tap()
+        
+        // Verify settings view opened
+        XCTAssertTrue(app.navigationBars["Settings"].exists)
+        XCTAssertTrue(app.staticTexts["Language"].exists)
+    }
+    
+    func testTogglePremium() throws {
+        app.buttons["Settings"].tap()
+        
+        // Find and toggle premium switch (debug mode)
+        let premiumToggle = app.switches["Premium Toggle"]
+        if premiumToggle.exists {
+            premiumToggle.tap()
             
-            // Confirm deletion
-            let confirmButton = app.buttons["Delete Habit"]
-            if confirmButton.waitForExistence(timeout: 1) {
-                confirmButton.tap()
-                
-                // Should return to home
-                sleep(1)
-                XCTAssertFalse(app.staticTexts["Test Habit"].exists)
-            }
+            // Verify toggle state changed
+            XCTAssertTrue(premiumToggle.value as? String == "1")
         }
     }
     
-    // MARK: - Premium Feature Lock Tests
+    // MARK: - Statistics Tests
     
-    func testPremiumFeatureLocked() throws {
-        // Ensure premium is off
-        app.launchArguments = ["UI-Testing", "Free-Tier"]
+    func testOpenStatistics() throws {
+        addTestHabit(title: "Running")
+        
+        app.buttons["Settings"].tap()
+        app.buttons["View Statistics"].tap()
+        
+        // Verify statistics view opened
+        XCTAssertTrue(app.navigationBars["Statistics"].exists)
+        XCTAssertTrue(app.staticTexts["Current Streak"].exists)
+    }
+    
+    // MARK: - Free Tier Limit Tests
+    
+    func testFreeTierHabitLimit() throws {
+        // Make sure premium is OFF
+        app.launchArguments.append("free-tier")
         app.launch()
         
-        // Try to add habit
-        let addButton = app.buttons["add_habit_button"]
-        addButton.tap()
+        // Add 3 habits (max for free tier)
+        addTestHabit(title: "Habit 1")
+        addTestHabit(title: "Habit 2")
+        addTestHabit(title: "Habit 3")
         
-        // Try to access goal days (should be locked)
-        let goalDaysLabel = app.staticTexts["Goal Challenge"]
-        if goalDaysLabel.waitForExistence(timeout: 1) {
-            // Should see crown icon indicating premium feature
-            let crownIcon = app.images["crown.fill"]
-            XCTAssertTrue(crownIcon.exists)
-        }
+        // Try to add 4th habit
+        app.buttons["Add Habit"].tap()
+        
+        // Should show premium alert
+        XCTAssertTrue(app.alerts.element.exists)
+        XCTAssertTrue(app.alerts.staticTexts["Free tier allows up to 3 habits"].exists)
+    }
+    
+    // MARK: - Helper Methods
+    
+    private func addTestHabit(title: String) {
+        app.buttons["Add Habit"].tap()
+        
+        let titleField = app.textFields["Habit Title"]
+        titleField.tap()
+        titleField.typeText(title)
+        
+        app.buttons["Save"].tap()
+        
+        // Wait for habit to appear
+        _ = app.staticTexts[title].waitForExistence(timeout: 2)
     }
 }
