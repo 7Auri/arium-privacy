@@ -12,6 +12,11 @@ struct HabitDetailWatchView: View {
     @ObservedObject var viewModel: WatchHabitViewModel
     @Environment(\.dismiss) var dismiss
     
+    private var completionPercentage: Int {
+        let percentage = (Double(habit.streak) / Double(habit.goalDays)) * 100
+        return Int(percentage)
+    }
+    
     var body: some View {
         ScrollView {
             VStack(spacing: 20) {
@@ -58,7 +63,7 @@ struct HabitDetailWatchView: View {
                     ProgressView(value: Double(habit.streak), total: Double(habit.goalDays))
                         .tint(Color(hex: habit.theme.accentColor))
                     
-                    Text("\(Int((Double(habit.streak) / Double(habit.goalDays)) * 100))% Complete")
+                    Text("\(completionPercentage)% Complete")
                         .font(.caption2)
                         .foregroundColor(.secondary)
                 }
