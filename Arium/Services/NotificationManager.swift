@@ -224,6 +224,22 @@ class NotificationManager: NSObject, ObservableObject {
         UNUserNotificationCenter.current().setBadgeCount(0)
         print("🗑️ Removed all notifications")
     }
+    
+    // MARK: - Alias Methods (for compatibility)
+    
+    func scheduleDailyReminder(for habit: Habit) async {
+        guard let reminderTime = habit.reminderTime else { return }
+        await scheduleHabitReminder(for: habit, at: reminderTime)
+    }
+    
+    func cancelNotifications(for habitIdentifier: String) async {
+        guard let habitId = UUID(uuidString: habitIdentifier) else { return }
+        cancelHabitReminder(for: habitId)
+    }
+    
+    func scheduleMilestoneNotification(for habit: Habit, milestone: Int) async {
+        await scheduleMilestoneCelebration(for: habit, milestone: milestone)
+    }
 }
 
 // MARK: - UNUserNotificationCenterDelegate
