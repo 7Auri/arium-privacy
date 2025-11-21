@@ -18,7 +18,10 @@ class HabitStore: NSObject, ObservableObject {
     private let saveKey = "SavedHabits"
     private let maxFreeHabits = 3
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
-    private let cloudSync = CloudSyncManager.shared
+    private lazy var cloudSync: CloudSyncManager? = {
+        guard iCloudSyncEnabled else { return nil }
+        return CloudSyncManager.shared
+    }()
     private let notificationManager = NotificationManager.shared
     
     override init() {
@@ -86,7 +89,7 @@ class HabitStore: NSObject, ObservableObject {
         }
         
         // Delete from iCloud
-        if iCloudSyncEnabled {
+        if iCloudSyncEnabled, let cloudSync = cloudSync {
             Task {
                 try? await cloudSync.deleteHabit(id: habit.id)
             }
@@ -139,7 +142,7 @@ class HabitStore: NSObject, ObservableObject {
             }
             
             // Sync to iCloud
-            if iCloudSyncEnabled {
+            if iCloudSyncEnabled, let cloudSync = cloudSync {
                 Task {
                     try? await cloudSync.uploadHabits(habits)
                 }
@@ -158,7 +161,7 @@ class HabitStore: NSObject, ObservableObject {
         }
         
         // Sync with iCloud if enabled
-        if iCloudSyncEnabled {
+        if iCloudSyncEnabled, let cloudSync = cloudSync {
             Task {
                 do {
                     let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
@@ -182,7 +185,7 @@ class HabitStore: NSObject, ObservableObject {
     }
     
     func syncWithiCloud() async {
-        guard iCloudSyncEnabled else { return }
+        guard iCloudSyncEnabled, let cloudSync = cloudSync else { return }
         
         do {
             let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)

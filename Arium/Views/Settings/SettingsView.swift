@@ -183,10 +183,6 @@ struct SettingsView: View {
                                     .foregroundStyle(.primary)
                                 
                                 Spacer()
-                                
-                                if CloudSyncManager.shared.isSyncing {
-                                    ProgressView()
-                                }
                             }
                         }
                         .listRowBackground(Color(.secondarySystemGroupedBackground))
@@ -196,12 +192,6 @@ struct SettingsView: View {
                         .font(.footnote)
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)
-                } footer: {
-                    if let lastSync = CloudSyncManager.shared.lastSyncDate {
-                        Text("\(L10n.t("settings.icloud.lastSync")): \(lastSync.formatted())")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                    }
                 }
                 
                 // Statistics Section
