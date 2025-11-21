@@ -96,16 +96,6 @@
 		6C67187C2ED11E2800E3660F /* AriumWatch Watch AppUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "AriumWatch Watch AppUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		6C6718562ED11D0A00E3660F /* Exceptions for "AriumWidget" folder in "AriumWidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 6C6718402ED11D0900E3660F /* AriumWidgetExtension */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		6C6717B92ED0FC7800E3660F /* Arium */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -124,9 +114,6 @@
 		};
 		6C6718472ED11D0900E3660F /* AriumWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				6C6718562ED11D0A00E3660F /* Exceptions for "AriumWidget" folder in "AriumWidgetExtension" target */,
-			);
 			path = AriumWidget;
 			sourceTree = "<group>";
 		};

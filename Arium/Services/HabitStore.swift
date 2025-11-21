@@ -121,7 +121,7 @@ class HabitStore: ObservableObject {
             UserDefaults.standard.set(encoded, forKey: saveKey)
             
             // Save to shared UserDefaults (for Widget & Watch)
-            if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+            if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") {
                 sharedDefaults.set(encoded, forKey: saveKey)
             }
             

@@ -27,7 +27,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     
     func loadHabits() {
         // Load from shared UserDefaults (App Groups)
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
             print("⚠️ Failed to load habits on Watch")
@@ -49,7 +49,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     }
     
     private func saveHabits() {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
               let data = try? JSONEncoder().encode(habits) else {
             print("❌ Failed to save habits on Watch")
             return
