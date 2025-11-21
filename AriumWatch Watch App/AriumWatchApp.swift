@@ -2,7 +2,7 @@
 //  AriumWatchApp.swift
 //  AriumWatch Watch App
 //
-//  Created by Zorbey on 21.11.2025.
+//  Created by Zorbey on 22.11.2025.
 //
 
 import SwiftUI
@@ -15,4 +15,3 @@ struct AriumWatch_Watch_AppApp: App {
         }
     }
 }
-
