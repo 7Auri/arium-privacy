@@ -20,7 +20,12 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
 - 🎯 **Özelleştirilebilir Hedefler**: 7, 14, 21, 30, 60, 90 günlük challenge'lar
 - 📅 **Başlangıç Tarihi**: Geçmişe dönük takip için özel tarih seçimi
 - 🌍 **Çok Dil Desteği**: Türkçe ve İngilizce
+  - **Otomatik Dil Algılama**: İlk açılışta telefonun dili otomatik algılanır
+  - **Sistem Dili Takibi**: Settings'te "Sistem Dili" seçeneği ile telefonun dilini takip edin
+  - **Anında Güncelleme**: Dil değişikliği tüm ekranlarda anında yansır
 - 🌓 **Dark Mode**: Tam adaptif karanlık mod desteği
+- 📳 **Haptic Feedback**: Tüm etkileşimlerde dokunsal geri bildirim
+- ♿ **Accessibility**: VoiceOver ve Dynamic Type desteği
 
 ### 💎 Freemium Model
 - **Free Tier**: 
@@ -37,11 +42,14 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - Tam istatistikler (30 gün)
   - Gelecekteki premium özellikler
 
-### 🛠 Gelişmiş Özellikler (Hazır, Devre Dışı)
-- 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları
-- 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large)
-- ⌚ **Apple Watch**: Tam entegre watchOS uygulaması
-- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit)
+### 🛠 Gelişmiş Özellikler
+- 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları (hazır, devre dışı)
+- 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large) (hazır, devre dışı)
+- ⌚ **Apple Watch**: Tam entegre watchOS uygulaması (hazır, test edilmeli)
+  - Watch app kodları hazır ve çalışıyor
+  - Fiziksel Watch bağlantısı için rehberler mevcut
+  - Watch Simulator'de test edilebilir
+- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit) (hazır, ücretsiz hesapta devre dışı)
 
 ## 📱 Ekran Görüntüleri
 
@@ -74,7 +82,11 @@ Arium/
 │   └── Statistics/     # İstatistikler
 ├── Services/            # Servisler (HabitStore, NotificationManager, CloudSyncManager)
 ├── Theme/              # Tema sistemi
-├── Utils/              # Yardımcı fonksiyonlar (L10n, DateExtensions)
+├── Utils/              # Yardımcı fonksiyonlar
+│   ├── L10n.swift     # Lokalizasyon yönetimi (ObservableObject)
+│   ├── DateExtensions.swift
+│   ├── HapticManager.swift  # Haptic feedback yönetimi
+│   └── AccessibilityHelpers.swift  # Accessibility yardımcıları
 └── Resources/          # Assets, localization dosyaları
 
 AriumTests/             # Unit testler
@@ -198,10 +210,20 @@ Yeni temalar `HabitTheme.swift` dosyasından kolayca eklenebilir.
 - 🇹🇷 Türkçe
 - 🇬🇧 English
 
+### Özellikler
+- **Otomatik Dil Algılama**: İlk açılışta telefonun dili otomatik algılanır
+  - Türkçe ise → Türkçe seçilir
+  - İngilizce veya başka bir dil ise → İngilizce seçilir
+- **Sistem Dili Takibi**: Settings'te "Sistem Dili" seçeneği
+  - Sadece telefonun dili destekleniyorsa (tr/en) görünür
+  - Telefonun dili değiştiğinde app dili otomatik güncellenir
+- **Anında Güncelleme**: Dil değişikliği tüm ekranlarda anında yansır (ObservableObject)
+
 ### Yeni Dil Ekleme
 1. `Arium/Resources/Localizations/` klasöründe yeni `.strings` dosyası oluştur
 2. Tüm keyleri çevir
 3. `L10n.swift` dosyasına dil ekle
+4. `detectSystemLanguage()` fonksiyonuna yeni dil desteği ekle
 
 ## 🔔 Bildirimler
 
@@ -228,6 +250,9 @@ Aktifleştirmek için `NotificationManager` kullanın.
 - ⚠️ Widget & Watch geçici olarak devre dışı (manuel ekleme gerekiyor)
 - ⚠️ iCloud Sync ücretsiz Apple Developer hesabında çalışmıyor (ücretli hesap gerekli)
 - ⚠️ Push Notifications ücretsiz hesapta desteklenmiyor
+- ⚠️ Watch App fiziksel cihaza yükleme sorunları olabilir (watchOS versiyon uyumsuzluğu)
+  - Çözüm: Watch Simulator kullan veya Watch'ı stable versiyona güncelle
+  - Detaylı rehberler: `WATCH_*.md` dosyalarına bakın
 
 ## 🗺 Roadmap
 
@@ -288,12 +313,19 @@ Sorularınız veya önerileriniz için:
 ## 📈 Proje İstatistikleri
 
 ```
-Lines of Code:    ~10,000+
+Lines of Code:    ~12,000+
 Test Coverage:    100+ tests
-Commits:          50+
+Commits:          60+
 Development Time: Complete
 Status:           ✅ Production Ready
+Features:         Otomatik dil algılama, Haptic feedback, Accessibility
 ```
+
+## 📚 Ek Dokümantasyon
+
+- `SETUP_GUIDE.md` - Widget ve Watch app kurulum rehberi
+- `WATCH_*.md` - Watch app bağlantı ve sorun giderme rehberleri
+- `README.md` - Bu dosya
 
 ## 🎯 Quick Start
 
@@ -314,7 +346,9 @@ cd ariumapp && open Arium.xcodeproj
 Settings → Debug → Premium Toggle ile freemium özelliklerini test edin.
 
 ### Localization Test
-Settings → Language ile dil değiştirip tüm UI'ın çevrildiğini kontrol edin.
+- Settings → Language ile dil değiştirip tüm UI'ın çevrildiğini kontrol edin
+- İlk açılışta telefonun dilinin otomatik algılandığını test edin
+- "Sistem Dili" seçeneğinin sadece desteklenen dillerde göründüğünü kontrol edin
 
 ### Theme Testing
 Her habit'e farklı tema atayıp renk uyumunu test edin.
