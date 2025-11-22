@@ -63,6 +63,17 @@ enum L10n {
             "habit.stats.7days": "7 Days",
             "habit.stats.30days": "30 Days",
             "habit.stats.total": "Total",
+            "habit.category": "Category",
+            "habit.filterByCategory": "Filter by Category",
+            "habit.allCategories": "All Categories",
+            
+            // Categories
+            "category.work": "Work",
+            "category.health": "Health",
+            "category.learning": "Learning",
+            "category.personal": "Personal",
+            "category.finance": "Finance",
+            "category.social": "Social",
             
             // Buttons
             "button.save": "Save",
@@ -79,6 +90,7 @@ enum L10n {
             "premium.limit": "slots remaining",
             "premium.featureMessage": "This feature is only available for Premium members. Upgrade to unlock!",
             "premium.goalDaysLocked": "Goal customization is available for Premium members only",
+            "premium.categoryLocked": "Category selection is available for Premium members only",
             
             // Settings
             "settings.title": "Settings",
@@ -204,6 +216,17 @@ enum L10n {
             "habit.stats.7days": "7 Gün",
             "habit.stats.30days": "30 Gün",
             "habit.stats.total": "Toplam",
+            "habit.category": "Kategori",
+            "habit.filterByCategory": "Kategoriye Göre Filtrele",
+            "habit.allCategories": "Tüm Kategoriler",
+            
+            // Categories
+            "category.work": "İş",
+            "category.health": "Sağlık",
+            "category.learning": "Öğrenme",
+            "category.personal": "Kişisel",
+            "category.finance": "Finans",
+            "category.social": "Sosyal",
             
             // Buttons
             "button.save": "Kaydet",
@@ -220,6 +243,7 @@ enum L10n {
             "premium.limit": "slot kaldı",
             "premium.featureMessage": "Bu özellik sadece Premium üyeler için kullanılabilir. Kilidi açmak için yükseltin!",
             "premium.goalDaysLocked": "Hedef özelleştirme sadece Premium üyeler için kullanılabilir",
+            "premium.categoryLocked": "Kategori seçimi sadece Premium üyeler için kullanılabilir",
             
             // Settings
             "settings.title": "Ayarlar",

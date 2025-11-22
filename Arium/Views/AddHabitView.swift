@@ -49,6 +49,76 @@ struct AddHabitView: View {
                             )
                     }
                     
+                    // Category Selector (Premium)
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(L10n.t("habit.category"))
+                                .font(.footnote)
+                                .textCase(.uppercase)
+                                .foregroundStyle(.secondary)
+                            
+                            if !habitStore.isPremium {
+                                Image(systemName: "crown.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        
+                        if habitStore.isPremium {
+                            // Premium: Tüm kategoriler
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    ForEach(HabitCategory.allCases) { category in
+                                        CategoryButton(
+                                            category: category,
+                                            isSelected: viewModel.selectedCategory == category
+                                        ) {
+                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                                viewModel.selectedCategory = category
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            // Free: Sadece Personal kategorisi (görünür ama değiştirilemez)
+                            ScrollView(.horizontal, showsIndicators: false) {
+                                HStack(spacing: 12) {
+                                    CategoryButton(
+                                        category: .personal,
+                                        isSelected: true,
+                                        isLocked: true
+                                    ) {
+                                        showingPremiumAlert = true
+                                    }
+                                    
+                                    // Diğer kategoriler kilitli olarak göster
+                                    ForEach(HabitCategory.allCases.filter { $0 != .personal }) { category in
+                                        CategoryButton(
+                                            category: category,
+                                            isSelected: false,
+                                            isLocked: true
+                                        ) {
+                                            showingPremiumAlert = true
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Premium upgrade mesajı
+                            HStack(spacing: 6) {
+                                Image(systemName: "lock.fill")
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                
+                                Text(L10n.t("premium.categoryLocked"))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .padding(.top, 4)
+                        }
+                    }
+                    
                     // Theme Selector
                     VStack(alignment: .leading, spacing: 12) {
                         Text(L10n.t("habit.theme"))
@@ -229,6 +299,12 @@ struct AddHabitView: View {
             } message: {
                 Text(L10n.t("premium.featureMessage"))
             }
+            .onAppear {
+                // Free kullanıcılar için kategoriyi Personal olarak sabitle
+                if !habitStore.isPremium {
+                    viewModel.selectedCategory = .personal
+                }
+            }
         }
     }
     
@@ -300,6 +376,75 @@ struct ModernThemeButton: View {
 }
 
 // MARK: - Goal Day Button
+
+// MARK: - Category Button Component
+
+struct CategoryButton: View {
+    let category: HabitCategory
+    let isSelected: Bool
+    var isLocked: Bool = false
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                // Icon with background
+                ZStack {
+                    Circle()
+                        .fill(isSelected ? category.color.opacity(0.2) : Color(.tertiarySystemBackground))
+                        .frame(width: 56, height: 56)
+                    
+                    Image(systemName: category.icon)
+                        .font(.system(size: 24))
+                        .foregroundStyle(isSelected ? category.color : .secondary)
+                        .opacity(isLocked ? 0.5 : 1.0)
+                    
+                    // Lock icon overlay
+                    if isLocked && !isSelected {
+                        Image(systemName: "lock.fill")
+                            .font(.system(size: 12))
+                            .foregroundStyle(.secondary)
+                            .offset(x: 20, y: 20)
+                    }
+                }
+                .overlay(
+                    Circle()
+                        .stroke(
+                            isSelected ? category.color : Color(.separator),
+                            lineWidth: isSelected ? 2 : 1
+                        )
+                )
+                
+                // Category name
+                Text(category.localizedName)
+                    .font(.caption)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundStyle(isSelected ? category.color : .secondary)
+                    .opacity(isLocked ? 0.6 : 1.0)
+                    .lineLimit(1)
+            }
+            .frame(width: 90)
+            .padding(.vertical, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? category.lightColor : Color.clear)
+            )
+            .opacity(isLocked ? 0.6 : 1.0)
+            .shadow(
+                color: isSelected ? category.color.opacity(0.2) : Color.clear,
+                radius: isSelected ? 8 : 0,
+                x: 0,
+                y: isSelected ? 4 : 0
+            )
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(isLocked && !isSelected)
+    }
+}
+
+// MARK: - Goal Day Button Component
 
 struct GoalDayButton: View {
     let days: Int

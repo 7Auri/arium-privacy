@@ -50,6 +50,13 @@ struct HomeView: View {
                         )
                         .padding(.horizontal, 20)
                         .padding(.top, 20)
+                        
+                        // Category Filter (Premium only)
+                        if habitStore.isPremium {
+                            CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                        }
                     }
                     
                     // Habits List or Empty State
@@ -58,7 +65,7 @@ struct HomeView: View {
                     } else {
                         ScrollView(showsIndicators: false) {
                             LazyVStack(spacing: 16) {
-                                ForEach(habitStore.habits) { habit in
+                                ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
                                     ModernHabitCard(
                                         habit: habit,
                                         onTap: { viewModel.selectedHabit = habit },
@@ -142,6 +149,18 @@ struct HomeView: View {
                 }
             } message: {
                 Text(L10n.t("premium.message"))
+            }
+            .onAppear {
+                // Free kullanıcılar için kategori filtresini sıfırla
+                if !habitStore.isPremium {
+                    viewModel.selectedCategory = nil
+                }
+            }
+            .onChange(of: habitStore.isPremium) { oldValue, newValue in
+                // Premium durumu değiştiğinde kategori filtresini sıfırla
+                if !newValue {
+                    viewModel.selectedCategory = nil
+                }
             }
         }
     }
@@ -572,6 +591,86 @@ struct ModernEmptyStateView: View {
             Spacer()
             Spacer()
         }
+    }
+}
+
+// MARK: - Category Filter View
+
+struct CategoryFilterView: View {
+    @Binding var selectedCategory: HabitCategory?
+    
+    var body: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                // All Categories button
+                CategoryFilterChip(
+                    title: L10n.t("habit.allCategories"),
+                    icon: "square.grid.2x2",
+                    color: .purple,
+                    isSelected: selectedCategory == nil
+                ) {
+                    withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                        selectedCategory = nil
+                    }
+                }
+                
+                // Category chips
+                ForEach(HabitCategory.allCases) { category in
+                    CategoryFilterChip(
+                        title: category.localizedName,
+                        icon: category.icon,
+                        color: category.color,
+                        isSelected: selectedCategory == category
+                    ) {
+                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                            selectedCategory = category
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+// MARK: - Category Filter Chip
+
+struct CategoryFilterChip: View {
+    let title: String
+    let icon: String
+    let color: Color
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 6) {
+                Image(systemName: icon)
+                    .font(.system(size: 14, weight: .medium))
+                
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+            }
+            .foregroundStyle(isSelected ? .white : color)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(isSelected ? color : color.opacity(0.15))
+            )
+            .overlay(
+                Capsule()
+                    .stroke(color, lineWidth: isSelected ? 0 : 1)
+            )
+            .shadow(
+                color: isSelected ? color.opacity(0.3) : Color.clear,
+                radius: isSelected ? 8 : 0,
+                x: 0,
+                y: isSelected ? 4 : 0
+            )
+            .scaleEffect(isSelected ? 1.02 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

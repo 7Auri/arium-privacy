@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		6C6718442ED11D0900E3660F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718432ED11D0900E3660F /* WidgetKit.framework */; };
 		6C6718462ED11D0900E3660F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718452ED11D0900E3660F /* SwiftUI.framework */; };
-		6C6718552ED11D0A00E3660F /* AriumWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C6718412ED11D0900E3660F /* AriumWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
-		6C6718642ED11E2700E3660F /* AriumWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 6C6718632ED11E2700E3660F /* AriumWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -27,13 +25,6 @@
 			proxyType = 1;
 			remoteGlobalIDString = 6C6717B62ED0FC7800E3660F;
 			remoteInfo = Arium;
-		};
-		6C6718532ED11D0A00E3660F /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 6C6717AF2ED0FC7800E3660F /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 6C6718402ED11D0900E3660F;
-			remoteInfo = AriumWidgetExtension;
 		};
 		6C6718652ED11E2700E3660F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -59,16 +50,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		6C67185A2ED11D0A00E3660F /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		6C6718872ED11E2800E3660F /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -236,12 +217,10 @@
 				6C6717B32ED0FC7800E3660F /* Sources */,
 				6C6717B42ED0FC7800E3660F /* Frameworks */,
 				6C6717B52ED0FC7800E3660F /* Resources */,
-				6C67185A2ED11D0A00E3660F /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				6C6718542ED11D0A00E3660F /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6C6717B92ED0FC7800E3660F /* Arium */,
@@ -595,11 +574,6 @@
 			isa = PBXTargetDependency;
 			target = 6C6717B62ED0FC7800E3660F /* Arium */;
 			targetProxy = 6C6717CF2ED0FC7900E3660F /* PBXContainerItemProxy */;
-		};
-		6C6718542ED11D0A00E3660F /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 6C6718402ED11D0900E3660F /* AriumWidgetExtension */;
-			targetProxy = 6C6718532ED11D0A00E3660F /* PBXContainerItemProxy */;
 		};
 		6C6718662ED11E2700E3660F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

@@ -26,6 +26,9 @@ struct HabitDetailView: View {
                         // Header with Progress Ring
                         headerView
                         
+                        // Notes
+                        notesView
+                        
                         // Stats Cards
                         statsView
                         
@@ -129,10 +132,36 @@ struct HabitDetailView: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .padding(.vertical, 20)
-            .frame(maxWidth: .infinity)
-            .cardStyle()
             
+            // Category Badge
+            HStack(spacing: 6) {
+                Image(systemName: viewModel.habit.category.icon)
+                    .font(.caption)
+                Text(viewModel.habit.category.localizedName)
+                    .font(.caption)
+                    .fontWeight(.medium)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 6)
+            .background(
+                Capsule()
+                    .fill(viewModel.habit.category.color)
+            )
+            .shadow(
+                color: viewModel.habit.category.color.opacity(0.3),
+                radius: 4,
+                x: 0,
+                y: 2
+            )
+        }
+        .padding(.vertical, 20)
+        .frame(maxWidth: .infinity)
+        .cardStyle()
+    }
+    
+    private var notesView: some View {
+        Group {
             if !viewModel.habit.notes.isEmpty {
                 VStack(alignment: .leading, spacing: 8) {
                     Text(L10n.t("habit.notes"))

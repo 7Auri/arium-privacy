@@ -14,24 +14,32 @@ class CloudSyncManager: ObservableObject {
     
     @Published var isSyncing = false
     @Published var lastSyncDate: Date?
-    @Published var syncEnabled = true
+    @Published var syncEnabled = false
     
-    private let container: CKContainer
-    private let privateDatabase: CKDatabase
+    private var container: CKContainer?
+    private var privateDatabase: CKDatabase?
     private let recordType = "Habit"
     
     private init() {
-        container = CKContainer(identifier: "iCloud.com.zorbeyteam.arium")
-        privateDatabase = container.privateCloudDatabase
+        // ⚠️ iCloud CloudKit ücretsiz Apple Developer hesabında çalışmaz
+        // Bu yüzden tüm CloudSync özellikleri devre dışı
+        print("⚠️ CloudSyncManager initialized but disabled (requires paid Apple Developer account)")
+        syncEnabled = false
         
-        Task {
-            await checkAccountStatus()
-        }
+        // CloudKit'i initialize etmeye çalışma - crash olur
+        // container = CKContainer(identifier: "iCloud.com.zorbeyteam.arium")
+        // privateDatabase = container?.privateCloudDatabase
     }
     
     // MARK: - Account Status
     
     func checkAccountStatus() async -> Bool {
+        guard let container = container else {
+            print("⚠️ CloudKit not available")
+            syncEnabled = false
+            return false
+        }
+        
         do {
             let status = try await container.accountStatus()
             await MainActor.run {
@@ -50,7 +58,7 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Upload Habits
     
     func uploadHabits(_ habits: [Habit]) async throws {
-        guard syncEnabled else {
+        guard syncEnabled, let privateDatabase = privateDatabase else {
             print("⚠️ iCloud sync is disabled")
             return
         }
@@ -81,7 +89,7 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Download Habits
     
     func downloadHabits() async throws -> [Habit] {
-        guard syncEnabled else {
+        guard syncEnabled, let privateDatabase = privateDatabase else {
             print("⚠️ iCloud sync is disabled")
             return []
         }
@@ -125,7 +133,7 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Delete Habit from iCloud
     
     func deleteHabit(id: UUID) async throws {
-        guard syncEnabled else { return }
+        guard syncEnabled, let privateDatabase = privateDatabase else { return }
         
         let recordID = CKRecord.ID(recordName: id.uuidString)
         
@@ -141,7 +149,7 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Sync (Merge Strategy)
     
     func syncHabits(localHabits: [Habit]) async throws -> [Habit] {
-        guard syncEnabled else { return localHabits }
+        guard syncEnabled, privateDatabase != nil else { return localHabits }
         
         // Download from iCloud
         let cloudHabits = try await downloadHabits()

@@ -22,6 +22,7 @@ struct Habit: Identifiable, Codable, Equatable {
     var goalDays: Int // Hedef gün sayısı (örn: 21 günlük challenge)
     var reminderTime: Date? // Hatırlatıcı zamanı
     var isReminderEnabled: Bool // Hatırlatıcı açık mı
+    var category: HabitCategory // Alışkanlık kategorisi
     
     init(
         id: UUID = UUID(),
@@ -36,7 +37,8 @@ struct Habit: Identifiable, Codable, Equatable {
         startDate: Date? = nil,
         goalDays: Int = 21,
         reminderTime: Date? = nil,
-        isReminderEnabled: Bool = false
+        isReminderEnabled: Bool = false,
+        category: HabitCategory = .personal
     ) {
         self.id = id
         self.title = title
@@ -51,6 +53,7 @@ struct Habit: Identifiable, Codable, Equatable {
         self.goalDays = goalDays
         self.reminderTime = reminderTime
         self.isReminderEnabled = isReminderEnabled
+        self.category = category
     }
     
     var theme: HabitTheme {

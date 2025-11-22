@@ -13,6 +13,7 @@ class AddHabitViewModel: ObservableObject {
     @Published var title: String = ""
     @Published var notes: String = ""
     @Published var selectedTheme: HabitTheme = .purple
+    @Published var selectedCategory: HabitCategory = .personal
     @Published var startDate: Date = Date()
     @Published var showingDatePicker: Bool = false
     @Published var goalDays: Int = 21
@@ -29,7 +30,8 @@ class AddHabitViewModel: ObservableObject {
             notes: notes.trimmingCharacters(in: .whitespacesAndNewlines),
             themeId: selectedTheme.id,
             startDate: startDate,
-            goalDays: goalDays
+            goalDays: goalDays,
+            category: selectedCategory
         )
     }
     
@@ -37,6 +39,7 @@ class AddHabitViewModel: ObservableObject {
         title = ""
         notes = ""
         selectedTheme = .purple
+        selectedCategory = .personal
         startDate = Date()
         showingDatePicker = false
         goalDays = 21

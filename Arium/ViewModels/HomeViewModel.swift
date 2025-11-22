@@ -14,6 +14,14 @@ class HomeViewModel: ObservableObject {
     @Published var selectedHabit: Habit?
     @Published var showingPremiumAlert = false
     @Published var showingSettings = false
+    @Published var selectedCategory: HabitCategory? = nil // nil = all categories
+    
+    func filteredHabits(from habits: [Habit]) -> [Habit] {
+        guard let selectedCategory = selectedCategory else {
+            return habits
+        }
+        return habits.filter { $0.category == selectedCategory }
+    }
     
     func toggleHabitCompletion(_ habit: Habit, store: HabitStore) {
         withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
