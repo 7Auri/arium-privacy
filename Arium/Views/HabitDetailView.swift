@@ -402,10 +402,12 @@ struct HabitDetailView: View {
         Button {
             if viewModel.habit.isCompletedToday {
                 // If already completed, just toggle off
+                HapticManager.light()
                 habitStore.toggleHabitCompletion(viewModel.habit.id)
                 refreshHabit()
             } else {
                 // If not completed, check premium for notes
+                HapticManager.success()
                 if habitStore.isPremium {
                     noteText = ""
                     showingNoteAlert = true

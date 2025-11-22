@@ -12,6 +12,7 @@ struct SettingsView: View {
     @EnvironmentObject var habitStore: HabitStore
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = true
     @AppStorage("appLanguage") private var appLanguage = "en"
+    @State private var isSystemLanguage = false
     @AppStorage("isDailyMotivationEnabled") private var isDailyMotivationEnabled = false
     @AppStorage("isStreakWarningEnabled") private var isStreakWarningEnabled = true
     @State private var showingStatistics = false
@@ -22,11 +23,53 @@ struct SettingsView: View {
             List {
                 // Language Section
                 Section {
-                    Picker(L10n.t("settings.language"), selection: $appLanguage) {
+                    let systemLang = L10nManager.detectSystemLanguage()
+                    let hasSystemLanguage = systemLang != nil
+                    
+                    Picker(L10n.t("settings.language"), selection: Binding(
+                        get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
+                        set: { newValue in
+                            if newValue == "system" && hasSystemLanguage {
+                                isSystemLanguage = true
+                                if let systemLang = systemLang {
+                                    L10n.setLanguage(systemLang)
+                                }
+                            } else {
+                                isSystemLanguage = false
+                                appLanguage = newValue
+                                L10n.setLanguage(newValue)
+                            }
+                        }
+                    )) {
+                        if hasSystemLanguage {
+                            Text(L10n.t("settings.language.system")).tag("system")
+                        }
                         Text("English").tag("en")
                         Text("Türkçe").tag("tr")
                     }
                     .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    .onAppear {
+                        // İlk açılışta sistem dilini kontrol et
+                        if UserDefaults.standard.string(forKey: "appLanguage") == nil {
+                            if hasSystemLanguage {
+                                isSystemLanguage = true
+                                if let systemLang = systemLang {
+                                    L10n.setLanguage(systemLang)
+                                }
+                            } else {
+                                // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
+                                L10n.setLanguage("en")
+                            }
+                        } else {
+                            // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
+                            if hasSystemLanguage {
+                                let currentLang = L10nManager.shared.currentLanguage
+                                isSystemLanguage = (currentLang == systemLang)
+                            } else {
+                                isSystemLanguage = false
+                            }
+                        }
+                    }
                 } header: {
                     Text(L10n.t("settings.language"))
                         .font(.footnote)

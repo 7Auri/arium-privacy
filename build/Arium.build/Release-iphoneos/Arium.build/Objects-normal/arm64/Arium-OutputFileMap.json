@@ -1,0 +1,155 @@
+{
+  "" : {
+    "const-values" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master.swiftconstvalues",
+    "dependencies" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master.d",
+    "diagnostics" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master.dia",
+    "emit-module-dependencies" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master-emit-module.d",
+    "emit-module-diagnostics" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master-emit-module.dia",
+    "swift-dependencies" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Arium-master.swiftdeps"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/AriumApp.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumApp.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumApp.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumApp.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Models/DailyStat.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DailyStat.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DailyStat.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DailyStat.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Models/Habit.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Habit.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Habit.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/Habit.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Models/HabitLog.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitLog.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitLog.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitLog.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Models/HabitTheme.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitTheme.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitTheme.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitTheme.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Models/OnboardingPage.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPage.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPage.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPage.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Services/CloudSyncManager.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CloudSyncManager.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CloudSyncManager.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CloudSyncManager.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Services/HabitStore.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitStore.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitStore.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitStore.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Services/NotificationManager.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/NotificationManager.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/NotificationManager.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/NotificationManager.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Theme/AriumColors.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumColors.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumColors.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumColors.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Theme/AriumTheme.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumTheme.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumTheme.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AriumTheme.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Utils/DateExtensions.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DateExtensions.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DateExtensions.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/DateExtensions.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Utils/L10n.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/L10n.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/L10n.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/L10n.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/ViewModels/AddHabitViewModel.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitViewModel.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitViewModel.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitViewModel.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/ViewModels/HabitDetailViewModel.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailViewModel.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailViewModel.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailViewModel.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/ViewModels/HomeViewModel.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeViewModel.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeViewModel.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeViewModel.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/ViewModels/OnboardingViewModel.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingViewModel.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingViewModel.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingViewModel.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/ViewModels/StatisticsViewModel.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsViewModel.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsViewModel.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsViewModel.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/AddHabitView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/AddHabitView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/HabitDetailView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HabitDetailView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Home/HomeView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/HomeView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Onboarding/OnboardingData.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingData.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingData.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingData.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Onboarding/OnboardingPageView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPageView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPageView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingPageView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Onboarding/OnboardingView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/OnboardingView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Settings/SettingsView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/SettingsView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/SettingsView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/SettingsView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Statistics/Components/CompletionChartView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CompletionChartView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CompletionChartView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/CompletionChartView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Statistics/Components/StatisticCard.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticCard.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticCard.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticCard.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/Arium/Views/Statistics/StatisticsView.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsView.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsView.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/StatisticsView.o"
+  },
+  "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/DerivedSources/GeneratedAssetSymbols.swift" : {
+    "index-unit-output-path" : "/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/GeneratedAssetSymbols.o",
+    "llvm-bc" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/GeneratedAssetSymbols.bc",
+    "object" : "/Users/zorbey/Desktop/Repo/Arium/build/Arium.build/Release-iphoneos/Arium.build/Objects-normal/arm64/GeneratedAssetSymbols.o"
+  }
+}

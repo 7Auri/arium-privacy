@@ -1,0 +1,4 @@
+Target dependency graph (2 targets)
+Target 'Arium' in project 'Arium'
+➜ Explicit dependency on target 'AriumWidgetExtension' in project 'Arium'
+Target 'AriumWidgetExtension' in project 'Arium' (no dependencies)

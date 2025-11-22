@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel = HomeViewModel()
+    @ObservedObject private var l10nManager = L10nManager.shared
     
     @State private var showingNoteSheet = false
     @State private var noteText = ""
@@ -68,13 +69,18 @@ struct HomeView: View {
                                 ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
                                     ModernHabitCard(
                                         habit: habit,
-                                        onTap: { viewModel.selectedHabit = habit },
+                                        onTap: {
+                                            HapticManager.selection()
+                                            viewModel.selectedHabit = habit
+                                        },
                                         onToggle: {
                                             if habit.isCompletedToday {
                                                 // Already completed, just toggle off
+                                                HapticManager.light()
                                                 viewModel.toggleHabitCompletion(habit, store: habitStore)
                                             } else {
                                                 // Not completed, check premium for notes
+                                                HapticManager.success()
                                                 if habitStore.isPremium {
                                                     selectedHabitForNote = habit
                                                     noteText = ""
@@ -85,15 +91,23 @@ struct HomeView: View {
                                                 }
                                             }
                                         },
-                                        onDelete: { 
+                                        onDelete: {
+                                            HapticManager.warning()
                                             viewModel.deleteHabit(habit, store: habitStore)
                                         }
                                     )
+                                    .transition(.asymmetric(
+                                        insertion: .move(edge: .trailing).combined(with: .opacity),
+                                        removal: .move(edge: .leading).combined(with: .opacity)
+                                    ))
                                 }
                             }
                             .padding(.horizontal, 20)
                             .padding(.top, 20)
                             .padding(.bottom, 100)
+                        }
+                        .refreshable {
+                            await refreshHabits()
                         }
                     }
                 }
@@ -164,11 +178,22 @@ struct HomeView: View {
             }
         }
     }
+    
+    // MARK: - Helper Functions
+    
+    @MainActor
+    private func refreshHabits() async {
+        // Simulate refresh delay for better UX
+        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+        habitStore.updateTodayStatus()
+        HapticManager.light()
+    }
 }
 
 // MARK: - Modern Header
 
 struct ModernHeaderView: View {
+    @ObservedObject private var l10nManager = L10nManager.shared
     let greeting: String
     let remainingSlots: Int
     let isPremium: Bool
@@ -235,6 +260,7 @@ struct ModernHeaderView: View {
 // MARK: - Modern Stats View
 
 struct ModernStatsView: View {
+    @ObservedObject private var l10nManager = L10nManager.shared
     let totalCompletions: Int
     let longestStreak: Int
     let completionRate: Double
@@ -547,11 +573,16 @@ struct ModernStreakBadge: View {
 // MARK: - Modern Empty State
 
 struct ModernEmptyStateView: View {
+    @ObservedObject private var l10nManager = L10nManager.shared
+    @State private var isAnimating = false
+    @State private var sparkleRotation: Double = 0
+    
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
             
             ZStack {
+                // Pulsing background circle
                 Circle()
                     .fill(
                         LinearGradient(
@@ -564,7 +595,10 @@ struct ModernEmptyStateView: View {
                         )
                     )
                     .frame(width: 120, height: 120)
+                    .scaleEffect(isAnimating ? 1.1 : 1.0)
+                    .opacity(isAnimating ? 0.8 : 1.0)
                 
+                // Rotating sparkles
                 Image(systemName: "sparkles")
                     .font(.system(size: 50, weight: .light))
                     .foregroundStyle(
@@ -574,18 +608,38 @@ struct ModernEmptyStateView: View {
                             endPoint: .bottomTrailing
                         )
                     )
+                    .rotationEffect(.degrees(sparkleRotation))
+                    .scaleEffect(isAnimating ? 1.0 : 0.8)
+                    .opacity(isAnimating ? 1.0 : 0.5)
+            }
+            .onAppear {
+                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                    isAnimating = true
+                }
+                withAnimation(.linear(duration: 8.0).repeatForever(autoreverses: false)) {
+                    sparkleRotation = 360
+                }
             }
             
             VStack(spacing: 12) {
                 Text(L10n.t("home.empty.title"))
                     .font(.system(size: 24, weight: .bold, design: .rounded))
                     .foregroundStyle(AriumTheme.textPrimary)
+                    .opacity(isAnimating ? 1.0 : 0.0)
+                    .offset(y: isAnimating ? 0 : 10)
                 
                 Text(L10n.t("home.empty.subtitle"))
                     .font(.system(size: 16, weight: .regular))
                     .foregroundStyle(AriumTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
+                    .opacity(isAnimating ? 1.0 : 0.0)
+                    .offset(y: isAnimating ? 0 : 10)
+            }
+            .onAppear {
+                withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
+                    isAnimating = true
+                }
             }
             
             Spacer()
@@ -682,7 +736,10 @@ struct ModernAddButton: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: action) {
+        Button(action: {
+            HapticManager.medium()
+            action()
+        }) {
             Image(systemName: "plus")
                 .font(.system(size: 24, weight: .semibold))
                 .foregroundStyle(.white)

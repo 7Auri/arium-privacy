@@ -8,7 +8,7 @@
 import SwiftUI
 
 @main
-struct AriumWatch_Watch_AppApp: App {
+struct AriumWatchApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()

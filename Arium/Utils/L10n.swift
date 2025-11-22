@@ -8,17 +8,77 @@
 import Foundation
 import SwiftUI
 
+class L10nManager: ObservableObject {
+    static let shared = L10nManager()
+    
+    @Published var currentLanguage: String {
+        didSet {
+            UserDefaults.standard.set(currentLanguage, forKey: "appLanguage")
+        }
+    }
+    
+    private init() {
+        // Önce UserDefaults'tan oku
+        if let savedLanguage = UserDefaults.standard.string(forKey: "appLanguage") {
+            self.currentLanguage = savedLanguage
+        } else {
+            // Eğer kayıtlı dil yoksa, telefonun dilini algıla
+            // Desteklenmiyorsa varsayılan olarak İngilizce kullan
+            self.currentLanguage = Self.detectSystemLanguageWithFallback()
+            UserDefaults.standard.set(self.currentLanguage, forKey: "appLanguage")
+        }
+    }
+    
+    /// Telefonun dilini algılar ve desteklenen dillere göre app dilini döndürür
+    /// Eğer telefonun dili desteklenmiyorsa (tr veya en değilse), nil döndürür
+    static func detectSystemLanguage() -> String? {
+        // Önce preferred languages'ı kontrol et
+        let preferredLanguages = Locale.preferredLanguages
+        
+        for languageCode in preferredLanguages {
+            // "tr" veya "tr-TR" gibi formatları kontrol et
+            if languageCode.hasPrefix("tr") {
+                return "tr"
+            }
+            // "en" veya "en-US" gibi formatları kontrol et
+            if languageCode.hasPrefix("en") {
+                return "en"
+            }
+        }
+        
+        // Eğer preferred languages'da bulunamazsa, current locale'i kontrol et
+        if let languageCode = Locale.current.languageCode {
+            if languageCode == "tr" {
+                return "tr"
+            }
+            if languageCode == "en" {
+                return "en"
+            }
+        }
+        
+        // Telefonun dili desteklenmiyor
+        return nil
+    }
+    
+    /// Telefonun dilini algılar, desteklenmiyorsa varsayılan olarak İngilizce döndürür
+    static func detectSystemLanguageWithFallback() -> String {
+        return detectSystemLanguage() ?? "en"
+    }
+}
+
 enum L10n {
-    private static var currentLanguage: String {
-        UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
+    private static var manager = L10nManager.shared
+    
+    static var currentLanguage: String {
+        manager.currentLanguage
     }
     
     static func t(_ key: String) -> String {
-        return translations[currentLanguage]?[key] ?? translations["en"]?[key] ?? key
+        return translations[manager.currentLanguage]?[key] ?? translations["en"]?[key] ?? key
     }
     
     static func setLanguage(_ code: String) {
-        UserDefaults.standard.set(code, forKey: "appLanguage")
+        manager.currentLanguage = code
     }
     
     private static let translations: [String: [String: String]] = [
@@ -95,6 +155,7 @@ enum L10n {
             // Settings
             "settings.title": "Settings",
             "settings.language": "Language",
+            "settings.language.system": "System",
             "settings.premium": "Premium",
             "settings.about": "About",
             "settings.active": "Active",
@@ -248,6 +309,7 @@ enum L10n {
             // Settings
             "settings.title": "Ayarlar",
             "settings.language": "Dil",
+            "settings.language.system": "Sistem",
             "settings.premium": "Premium",
             "settings.about": "Hakkında",
             "settings.active": "Aktif",

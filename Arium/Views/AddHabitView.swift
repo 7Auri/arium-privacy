@@ -309,6 +309,7 @@ struct AddHabitView: View {
     }
     
     private func saveHabit() {
+        HapticManager.success()
         let habit = viewModel.createHabit()
         habitStore.addHabit(habit)
         viewModel.reset()

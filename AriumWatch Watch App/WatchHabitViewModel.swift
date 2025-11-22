@@ -27,7 +27,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     
     func loadHabits() {
         // Load from shared UserDefaults (App Groups)
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
             print("⚠️ Failed to load habits on Watch")
@@ -41,7 +41,9 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     func toggleHabit(_ habit: Habit) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
         
+        // Use Habit's built-in toggleCompletion method
         habits[index].toggleCompletion()
+        
         saveHabits()
         
         // Send update to iPhone
@@ -49,7 +51,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     }
     
     private func saveHabits() {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = try? JSONEncoder().encode(habits) else {
             print("❌ Failed to save habits on Watch")
             return
