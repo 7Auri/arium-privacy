@@ -17,15 +17,17 @@ struct Provider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (HabitEntry) -> ()) {
-        let entry = HabitEntry(date: Date(), habits: loadHabits())
+        let habits = loadHabits()
+        let entry = HabitEntry(date: Date(), habits: habits, isLoading: false, hasError: habits.isEmpty && !hasSampleData())
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
         let currentDate = Date()
         let habits = loadHabits()
+        let hasError = habits.isEmpty && !hasSampleData()
         
-        let entry = HabitEntry(date: currentDate, habits: habits)
+        let entry = HabitEntry(date: currentDate, habits: habits, isLoading: false, hasError: hasError)
         
         // Refresh every 15 minutes (production)
         // For testing, change value to 1 minute
@@ -45,9 +47,18 @@ struct Provider: TimelineProvider {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
-            return sampleHabits()
+            return []
         }
         return habits
+    }
+    
+    private func hasSampleData() -> Bool {
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+              let data = sharedDefaults.data(forKey: "SavedHabits"),
+              let _ = try? JSONDecoder().decode([Habit].self, from: data) else {
+            return false
+        }
+        return true
     }
     
     private func sampleHabits() -> [Habit] {
@@ -63,6 +74,15 @@ struct Provider: TimelineProvider {
 struct HabitEntry: TimelineEntry {
     let date: Date
     let habits: [Habit]
+    let isLoading: Bool
+    let hasError: Bool
+    
+    init(date: Date, habits: [Habit], isLoading: Bool = false, hasError: Bool = false) {
+        self.date = date
+        self.habits = habits
+        self.isLoading = isLoading
+        self.hasError = hasError
+    }
 }
 
 // MARK: - Widget Views
@@ -72,15 +92,21 @@ struct AriumWidgetEntryView : View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        switch family {
-        case .systemSmall:
-            SmallWidgetView(habits: entry.habits)
-        case .systemMedium:
-            MediumWidgetView(habits: entry.habits)
-        case .systemLarge:
-            LargeWidgetView(habits: entry.habits)
-        default:
-            SmallWidgetView(habits: entry.habits)
+        if entry.hasError {
+            WidgetErrorView()
+        } else if entry.habits.isEmpty {
+            WidgetEmptyView()
+        } else {
+            switch family {
+            case .systemSmall:
+                SmallWidgetView(habits: entry.habits)
+            case .systemMedium:
+                MediumWidgetView(habits: entry.habits)
+            case .systemLarge:
+                LargeWidgetView(habits: entry.habits)
+            default:
+                SmallWidgetView(habits: entry.habits)
+            }
         }
     }
 }
@@ -329,6 +355,68 @@ struct StatCard: View {
         .padding(.vertical, 8)
         .background(Color.white.opacity(0.5))
         .cornerRadius(12)
+    }
+}
+
+// MARK: - Widget Error View
+
+struct WidgetErrorView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "exclamationmark.triangle.fill")
+                .font(.system(size: 40))
+                .foregroundColor(.orange)
+            
+            Text(L10n.t("widget.error.title"))
+                .font(.headline)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+            
+            Text(L10n.t("widget.error.message"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.purple.opacity(0.1), Color.blue.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+    }
+}
+
+// MARK: - Widget Empty View
+
+struct WidgetEmptyView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            Image(systemName: "sparkles")
+                .font(.system(size: 40))
+                .foregroundColor(.purple)
+            
+            Text(L10n.t("widget.empty.title"))
+                .font(.headline)
+                .fontWeight(.semibold)
+                .multilineTextAlignment(.center)
+            
+            Text(L10n.t("widget.empty.message"))
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.purple.opacity(0.1), Color.blue.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
     }
 }
 

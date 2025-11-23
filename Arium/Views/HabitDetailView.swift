@@ -15,6 +15,8 @@ struct HabitDetailView: View {
     
     @State private var showingNoteAlert = false
     @State private var noteText = ""
+    @State private var showingShareSheet = false
+    @State private var shareImage: UIImage?
     
     init(habit: Habit) {
         _viewModel = StateObject(wrappedValue: HabitDetailViewModel(habit: habit))
@@ -23,55 +25,10 @@ struct HabitDetailView: View {
     var body: some View {
         NavigationStack {
             Group {
-                if habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
-                    ScrollView {
-                        VStack(spacing: 24) {
-                            // Header with Progress Ring
-                            headerView
-                            
-                            // Notes
-                            notesView
-                            
-                            // Stats Cards
-                            statsView
-                            
-                            // Start Date Selector
-                            startDateView
-                            
-                        // Goal Days Selector
-                        goalDaysView
-                        
-                        // Theme Selector
-                        themeView
-                        
-                        // Reminder Settings
-                        reminderView
-                            
-                            // Completion Button
-                            completionButton
-                            
-                            // Statistics Button
-                            statisticsButton
-                            
-                            // History
-                            historyView
-                            
-                            // Delete Button
-                            deleteButton
-                            
-                            Spacer(minLength: 40)
-                        }
-                        .padding(20)
-                    }
-                    .background(Color(.systemBackground))
+                if hasHabit {
+                    mainContentView
                 } else {
-                    // Habit not found - auto dismiss
-                    VStack {
-                        Text(L10n.t("habit.notFound"))
-                            .foregroundStyle(.secondary)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(Color(.systemBackground))
+                    habitNotFoundView
                 }
             }
             .navigationTitle(viewModel.habit.title)
@@ -85,59 +42,40 @@ struct HabitDetailView: View {
                     }
                     .foregroundColor(AriumTheme.accent)
                 }
+                
+                ToolbarItem(placement: .primaryAction) {
+                    Button {
+                        HapticManager.selection()
+                        Task {
+                            await generateShareImage()
+                            showingShareSheet = true
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .foregroundColor(AriumTheme.accent)
+                    }
+                }
+            }
+            .sheet(isPresented: $showingShareSheet) {
+                shareSheetContent
             }
             .sheet(isPresented: $viewModel.showingStatistics) {
                 StatisticsView(habit: viewModel.habit, isPremium: premiumManager.isPremium)
             }
             .sheet(isPresented: $showingNoteAlert) {
-                DailyNoteSheet(
-                    noteText: $noteText,
-                    themeColor: viewModel.habit.theme.accent,
-                    onComplete: {
-                        habitStore.toggleHabitCompletion(viewModel.habit.id, note: noteText)
-                        refreshHabit()
-                        showingNoteAlert = false
-                    },
-                    onSkip: {
-                        habitStore.toggleHabitCompletion(viewModel.habit.id)
-                        refreshHabit()
-                        showingNoteAlert = false
-                    }
-                )
-                .presentationDetents([.medium, .large])
-                .presentationDragIndicator(.visible)
-                .interactiveDismissDisabled(false)
+                noteSheetView
             }
             .alert(L10n.t("habit.delete.confirm"), isPresented: $viewModel.showingDeleteAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) { }
-                Button(L10n.t("habit.delete"), role: .destructive) {
-                    habitStore.deleteHabit(viewModel.habit)
-                    dismiss()
-                }
+                deleteAlertButtons
             } message: {
                 Text(L10n.t("habit.delete.message"))
             }
         }
         .onAppear {
-            // Check if habit still exists
-            if !habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
-                // Habit was deleted, dismiss immediately
-                DispatchQueue.main.async {
-                    dismiss()
-                }
-                return
-            }
-            
-            viewModel.refreshCompletionForNewDay()
-            refreshHabit()
+            handleAppear()
         }
         .onChange(of: habitStore.habits) { _, _ in
-            // If habit was deleted while viewing, dismiss
-            if !habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
-                dismiss()
-            } else {
-                refreshHabit()
-            }
+            handleHabitsChange()
         }
     }
     
@@ -602,9 +540,131 @@ struct HabitDetailView: View {
         }
     }
     
+    private var hasHabit: Bool {
+        habitStore.habits.contains(where: { $0.id == viewModel.habit.id })
+    }
+    
+    private var mainContentView: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                headerView
+                notesView
+                statsView
+                startDateView
+                goalDaysView
+                themeView
+                reminderView
+                completionButton
+                statisticsButton
+                historyView
+                deleteButton
+                Spacer(minLength: 40)
+            }
+            .padding(20)
+        }
+        .background(Color(.systemBackground))
+    }
+    
+    private var habitNotFoundView: some View {
+        VStack {
+            Text(L10n.t("habit.notFound"))
+                .foregroundStyle(.secondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(.systemBackground))
+    }
+    
+    private func handleAppear() {
+        let habitId = viewModel.habit.id
+        if !habitStore.habits.contains(where: { $0.id == habitId }) {
+            DispatchQueue.main.async {
+                dismiss()
+            }
+            return
+        }
+        viewModel.refreshCompletionForNewDay()
+        refreshHabit()
+    }
+    
+    private func handleHabitsChange() {
+        let habitId = viewModel.habit.id
+        if !habitStore.habits.contains(where: { $0.id == habitId }) {
+            dismiss()
+        } else {
+            refreshHabit()
+        }
+    }
+    
     private func refreshHabit() {
-        if let updated = habitStore.habits.first(where: { $0.id == viewModel.habit.id }) {
+        let habitId = viewModel.habit.id
+        if let updated = habitStore.habits.first(where: { $0.id == habitId }) {
             viewModel.habit = updated
+        }
+    }
+    
+    @ViewBuilder
+    private var shareSheetContent: some View {
+        if let image = shareImage {
+            ShareSheet(items: [image])
+        } else {
+            EmptyView()
+        }
+    }
+    
+    private var noteSheetView: some View {
+        let habitId = viewModel.habit.id
+        let themeColor = viewModel.habit.theme.accent
+        
+        return DailyNoteSheet(
+            noteText: $noteText,
+            themeColor: themeColor,
+            onComplete: {
+                handleNoteComplete(habitId: habitId)
+            },
+            onSkip: {
+                handleNoteSkip(habitId: habitId)
+            }
+        )
+        .presentationDetents([.medium, .large])
+        .presentationDragIndicator(.visible)
+        .interactiveDismissDisabled(false)
+    }
+    
+    private var deleteAlertButtons: some View {
+        Group {
+            Button(L10n.t("button.cancel"), role: .cancel) { }
+            Button(L10n.t("habit.delete"), role: .destructive) {
+                handleDeleteHabit()
+            }
+        }
+    }
+    
+    private func handleNoteComplete(habitId: UUID) {
+        habitStore.toggleHabitCompletion(habitId, note: noteText)
+        refreshHabit()
+        showingNoteAlert = false
+    }
+    
+    private func handleNoteSkip(habitId: UUID) {
+        habitStore.toggleHabitCompletion(habitId)
+        refreshHabit()
+        showingNoteAlert = false
+    }
+    
+    private func handleDeleteHabit() {
+        habitStore.deleteHabit(viewModel.habit)
+        dismiss()
+    }
+    
+    private func generateShareImage() async {
+        let habit = viewModel.habit
+        let shareView = HabitShareView(habit: habit)
+        let renderer = ImageRenderer(content: shareView)
+        // Use scale 2.0 for better performance while maintaining quality
+        renderer.scale = 2.0
+        // Render on main thread for better performance
+        await MainActor.run {
+            shareImage = renderer.uiImage
         }
     }
     
@@ -707,6 +767,170 @@ struct DailyNoteSheet: View {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
                 isFocused = true
             }
+        }
+    }
+}
+
+// MARK: - Habit Share View
+
+struct HabitShareView: View {
+    let habit: Habit
+    
+    private var accentColor: Color {
+        habit.theme.accent
+    }
+    
+    private var gradientColors: [Color] {
+        [
+            accentColor.opacity(0.25),
+            accentColor.opacity(0.08),
+            Color.white
+        ]
+    }
+    
+    private var daysSinceStart: Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let startDate = calendar.startOfDay(for: habit.effectiveStartDate)
+        return calendar.dateComponents([.day], from: startDate, to: today).day ?? 0
+    }
+    
+    private var completionRate: Int {
+        // Calculate completion rate based on goal days (more meaningful for sharing)
+        // Total completions / Goal days
+        let totalCompletions = habit.completionDates.count
+        let goalDays = habit.goalDays
+        guard goalDays > 0 else { return 0 }
+        
+        let rate = Double(totalCompletions) / Double(goalDays)
+        return min(100, Int(rate * 100))
+    }
+    
+    var body: some View {
+        ZStack {
+            backgroundGradient
+            contentView
+        }
+        .frame(width: 1200, height: 1200) // Higher resolution for better quality
+        .background(Color.white) // Ensure white background for sharing
+    }
+    
+    private var backgroundGradient: some View {
+        ZStack {
+            // Base gradient
+            LinearGradient(
+                colors: gradientColors,
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            // Decorative circles for visual interest
+            Circle()
+                .fill(accentColor.opacity(0.15))
+                .frame(width: 400, height: 400)
+                .offset(x: -200, y: -200)
+            
+            Circle()
+                .fill(accentColor.opacity(0.1))
+                .frame(width: 300, height: 300)
+                .offset(x: 250, y: 300)
+            
+            Circle()
+                .fill(accentColor.opacity(0.08))
+                .frame(width: 250, height: 250)
+                .offset(x: -150, y: 400)
+        }
+    }
+    
+    private var contentView: some View {
+        VStack(spacing: 28) {
+            appNameView
+            habitTitleView
+            daysTrackingView
+            streakView
+            statsView
+        }
+        .padding(60)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+    
+    private var daysTrackingView: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "calendar")
+                .font(.system(size: 20, weight: .medium))
+                .foregroundColor(accentColor)
+            
+            Text(String(format: L10n.t("share.daysTracking"), habit.goalDays))
+                .font(.system(size: 22, weight: .semibold, design: .rounded))
+                .foregroundColor(.gray)
+        }
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(
+            Capsule()
+                .fill(accentColor.opacity(0.1))
+        )
+    }
+    
+    private var appNameView: some View {
+        Text("Arium")
+            .font(.system(size: 40, weight: .bold, design: .rounded))
+            .foregroundColor(accentColor)
+    }
+    
+    private var habitTitleView: some View {
+        Text(habit.title)
+            .font(.system(size: 56, weight: .bold, design: .rounded))
+            .foregroundColor(.black)
+            .multilineTextAlignment(.center)
+            .lineLimit(2)
+            .minimumScaleFactor(0.8)
+            .padding(.horizontal, 60)
+    }
+    
+    private var streakView: some View {
+        HStack(spacing: 20) {
+            Image(systemName: "flame.fill")
+                .font(.system(size: 50, weight: .bold))
+                .foregroundColor(.orange)
+            
+            Text("\(habit.streak)")
+                .font(.system(size: 80, weight: .bold, design: .rounded))
+                .foregroundColor(.black)
+            
+            Text(L10n.t("habit.streak"))
+                .font(.system(size: 28, weight: .semibold, design: .rounded))
+                .foregroundColor(.gray)
+        }
+    }
+    
+    private var statsView: some View {
+        HStack(spacing: 32) {
+            completionCountView
+            completionRateView
+        }
+        .padding(.top, 16)
+    }
+    
+    private var completionCountView: some View {
+        VStack(spacing: 8) {
+            Text("\(habit.completionDates.count)")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .foregroundColor(accentColor)
+            Text(L10n.t("statistics.totalCompletions"))
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundColor(.gray)
+        }
+    }
+    
+    private var completionRateView: some View {
+        VStack(spacing: 8) {
+            Text("\(completionRate)%")
+                .font(.system(size: 40, weight: .bold, design: .rounded))
+                .foregroundColor(accentColor)
+            Text(L10n.t("statistics.completionRate"))
+                .font(.system(size: 16, weight: .medium, design: .rounded))
+                .foregroundColor(.gray)
         }
     }
 }

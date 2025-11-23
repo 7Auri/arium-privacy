@@ -14,9 +14,17 @@ struct OnboardingView: View {
     
     var body: some View {
         ZStack {
-            // Background
-            AriumTheme.background
-                .ignoresSafeArea()
+            // Gradient Background
+            LinearGradient(
+                colors: [
+                    AriumTheme.background,
+                    AriumTheme.background.opacity(0.95),
+                    AriumTheme.accent.opacity(0.05)
+                ],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            .ignoresSafeArea()
             
             VStack(spacing: 0) {
                 // Skip Button
@@ -25,11 +33,19 @@ struct OnboardingView: View {
                     
                     if viewModel.canSkip {
                         Button {
+                            HapticManager.selection()
                             viewModel.skipToEnd()
                         } label: {
                             Text(L10n.t("onboarding.skip"))
                                 .font(.system(size: 16, weight: .medium))
                                 .foregroundColor(AriumTheme.textSecondary)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 8)
+                                .background(
+                                    Capsule()
+                                        .fill(Color(.systemBackground).opacity(0.8))
+                                        .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                )
                         }
                         .padding(.trailing, 24)
                         .padding(.top, 16)
@@ -46,8 +62,8 @@ struct OnboardingView: View {
                         .tag(page.id)
                     }
                 }
-                .tabViewStyle(.page(indexDisplayMode: .always))
-                .indexViewStyle(.page(backgroundDisplayMode: .always))
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                .animation(.spring(response: 0.5, dampingFraction: 0.8), value: viewModel.currentPage)
                 
                 // Bottom Section
                 bottomSection
@@ -58,27 +74,32 @@ struct OnboardingView: View {
     }
     
     private var bottomSection: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: 20) {
             // Page Indicators (custom)
             HStack(spacing: 8) {
                 ForEach(viewModel.pages) { page in
                     Capsule()
-                        .fill(viewModel.currentPage == page.id ? AriumTheme.accent : AriumTheme.textTertiary)
-                        .frame(width: viewModel.currentPage == page.id ? 24 : 8, height: 8)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.currentPage)
+                        .fill(viewModel.currentPage == page.id ? 
+                              (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent) :
+                              AriumTheme.textTertiary.opacity(0.3))
+                        .frame(width: viewModel.currentPage == page.id ? 32 : 8, height: 8)
+                        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: viewModel.currentPage)
+                        .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.selectedTheme)
                 }
             }
-            .padding(.bottom, 8)
+            .padding(.bottom, 4)
             
             // Action Button
             Button {
+                HapticManager.medium()
                 if viewModel.isLastPage {
+                    HapticManager.success()
                     viewModel.completeOnboarding(hasSeenOnboarding: $hasSeenOnboarding)
                 } else {
                     viewModel.nextPage()
                 }
             } label: {
-                HStack {
+                HStack(spacing: 12) {
                     Text(viewModel.isLastPage ? 
                          L10n.t("onboarding.start") : 
                          L10n.t("onboarding.continue"))
@@ -87,15 +108,40 @@ struct OnboardingView: View {
                     if !viewModel.isLastPage {
                         Image(systemName: "arrow.right")
                             .font(.system(size: 16, weight: .semibold))
+                            .transition(.move(edge: .trailing).combined(with: .opacity))
+                    } else {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16, weight: .semibold))
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 56)
-                .background(AriumTheme.accent)
-                .cornerRadius(16)
-                .shadow(color: AriumTheme.accent.opacity(0.3), radius: 12, x: 0, y: 6)
+                .frame(height: 60)
+                .background(
+                    LinearGradient(
+                        colors: [
+                            viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent,
+                            (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.8)
+                        ],
+                        startPoint: .leading,
+                        endPoint: .trailing
+                    )
+                )
+                .cornerRadius(20)
+                .shadow(
+                    color: (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.4),
+                    radius: 16,
+                    x: 0,
+                    y: 8
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                )
             }
+            .buttonStyle(PlainButtonStyle())
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.selectedTheme)
         }
     }
 }

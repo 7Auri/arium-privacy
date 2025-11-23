@@ -92,6 +92,7 @@ enum L10n {
             "home.stats.rate": "Rate",
             "home.slots.title": "Remaining Slots",
             "home.slots.message": "You have %d free habit slots remaining. Upgrade to Premium for unlimited habits!",
+            "home.search.placeholder": "Search habits...",
             
             // Greetings
             "greeting.night": "Good Night",
@@ -171,6 +172,8 @@ enum L10n {
             "settings.version": "Version",
             "settings.totalHabits": "Total Habits",
             "settings.totalCompletions": "Total Completions",
+            "settings.privacyPolicy": "Privacy Policy",
+            "settings.termsOfService": "Terms of Service",
             "settings.resetOnboarding": "Reset Onboarding",
             "settings.clearAllHabits": "Clear All Habits",
             "settings.debug": "Debug",
@@ -183,6 +186,7 @@ enum L10n {
             "onboarding.continue": "Continue",
             "onboarding.start": "Start Your Journey",
             "onboarding.selectTheme": "Choose Your Theme",
+            "onboarding.selectTheme.subtitle": "Select a color that matches your style",
             "onboarding.page1.title": "Welcome to Arium",
             "onboarding.page1.subtitle": "Your calm space for growth, balance, and daily habits.",
             "onboarding.page2.title": "Build Momentum",
@@ -193,6 +197,10 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Today's Habits",
             "widget.pending": "Pending",
+            "widget.error.title": "Unable to Load",
+            "widget.error.message": "Please open the app to sync your habits",
+            "widget.empty.title": "No Habits Yet",
+            "widget.empty.message": "Add your first habit in the app",
             
             // Statistics
             "statistics.title": "Statistics",
@@ -217,6 +225,15 @@ enum L10n {
             "statistics.good": "Good",
             "statistics.fair": "Fair",
             "statistics.needsWork": "Needs Work",
+            "statistics.period.week": "Week",
+            "statistics.period.month": "Month",
+            "statistics.period.all": "All Time",
+            "statistics.averageStreak": "Average Streak",
+            "statistics.weeklyCompletions": "This Week",
+            "statistics.monthlyCompletions": "This Month",
+            
+            // Share
+            "share.daysTracking": "%d days tracking",
             
             // Themes
             "theme.purple": "Purple Dream",
@@ -346,6 +363,7 @@ enum L10n {
             "home.stats.rate": "Oran",
             "home.slots.title": "Kalan Slot",
             "home.slots.message": "%d ücretsiz alışkanlık slotunuz kaldı. Sınırsız alışkanlık için Premium'a yükseltin!",
+            "home.search.placeholder": "Alışkanlıklarda ara...",
             
             // Greetings
             "greeting.night": "İyi Geceler",
@@ -425,6 +443,8 @@ enum L10n {
             "settings.version": "Sürüm",
             "settings.totalHabits": "Toplam Alışkanlık",
             "settings.totalCompletions": "Toplam Tamamlama",
+            "settings.privacyPolicy": "Gizlilik Politikası",
+            "settings.termsOfService": "Kullanım Şartları",
             "settings.resetOnboarding": "Onboarding'i Sıfırla",
             "settings.clearAllHabits": "Tüm Alışkanlıkları Temizle",
             "settings.debug": "Hata Ayıklama",
@@ -437,6 +457,7 @@ enum L10n {
             "onboarding.continue": "Devam",
             "onboarding.start": "Yolculuğa Başla",
             "onboarding.selectTheme": "Temanı Seç",
+            "onboarding.selectTheme.subtitle": "Stilini yansıtan bir renk seç",
             "onboarding.page1.title": "Arium'a Hoş Geldin",
             "onboarding.page1.subtitle": "Büyüme, denge ve günlük alışkanlıklar için huzurlu alanın.",
             "onboarding.page2.title": "Momentum Oluştur",
@@ -447,6 +468,10 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Bugünün Alışkanlıkları",
             "widget.pending": "Bekleyen",
+            "widget.error.title": "Yüklenemedi",
+            "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
+            "widget.empty.title": "Henüz Alışkanlık Yok",
+            "widget.empty.message": "İlk alışkanlığınızı uygulamada ekleyin",
             
             // Statistics
             "statistics.title": "İstatistikler",
@@ -471,6 +496,15 @@ enum L10n {
             "statistics.good": "İyi",
             "statistics.fair": "Orta",
             "statistics.needsWork": "Gelişmeli",
+            "statistics.period.week": "Hafta",
+            "statistics.period.month": "Ay",
+            "statistics.period.all": "Tüm Zaman",
+            "statistics.averageStreak": "Ortalama Seri",
+            "statistics.weeklyCompletions": "Bu Hafta",
+            "statistics.monthlyCompletions": "Bu Ay",
+            
+            // Share
+            "share.daysTracking": "%d günlük alışkanlık",
             
             // Themes
             "theme.purple": "Mor Rüya",

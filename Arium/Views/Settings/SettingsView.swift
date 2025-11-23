@@ -549,6 +549,34 @@ struct SettingsView: View {
                             .foregroundStyle(.secondary)
                     }
                     .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
+                    Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
+                        HStack {
+                            Text(L10n.t("settings.privacyPolicy"))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
+                    Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
+                        HStack {
+                            Text(L10n.t("settings.termsOfService"))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                            
+                            Image(systemName: "arrow.up.right.square")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
                 } header: {
                     Text(L10n.t("settings.about"))
                         .font(.footnote)

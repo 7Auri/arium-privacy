@@ -15,14 +15,27 @@ class HomeViewModel: ObservableObject {
     @Published var showingPremiumAlert = false
     @Published var showingSettings = false
     @Published var selectedCategory: HabitCategory? = nil // nil = all categories
+    @Published var searchText: String = ""
     @Published var showingError = false
     @Published var currentError: AppError?
     
     func filteredHabits(from habits: [Habit]) -> [Habit] {
-        guard let selectedCategory = selectedCategory else {
-            return habits
+        var filtered = habits
+        
+        // Category filter
+        if let selectedCategory = selectedCategory {
+            filtered = filtered.filter { $0.category == selectedCategory }
         }
-        return habits.filter { $0.category == selectedCategory }
+        
+        // Search filter
+        if !searchText.isEmpty {
+            filtered = filtered.filter { habit in
+                habit.title.localizedCaseInsensitiveContains(searchText) ||
+                habit.notes.localizedCaseInsensitiveContains(searchText)
+            }
+        }
+        
+        return filtered
     }
     
     func toggleHabitCompletion(_ habit: Habit, store: HabitStore) {

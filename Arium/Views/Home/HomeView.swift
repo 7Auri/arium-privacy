@@ -59,54 +59,70 @@ struct HomeView: View {
                                 .padding(.horizontal, 20)
                                 .padding(.top, 16)
                         }
+                        
+                        // Search Bar
+                        if !habitStore.habits.isEmpty {
+                            SearchBarView(searchText: $viewModel.searchText)
+                                .padding(.horizontal, 20)
+                                .padding(.top, 16)
+                        }
                     }
                     
                     // Habits List or Empty State
                     if habitStore.habits.isEmpty {
                         ModernEmptyStateView()
                     } else {
-                        ScrollView(showsIndicators: false) {
-                            LazyVStack(spacing: 16) {
-                                ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
-                                    ModernHabitCard(
-                                        habit: habit,
-                                        onTap: {
-                                            HapticManager.selection()
-                                            viewModel.selectedHabit = habit
-                                        },
-                                        onToggle: {
-                                            if habit.isCompletedToday {
-                                                // Already completed, just toggle off
-                                                HapticManager.light()
-                                                viewModel.toggleHabitCompletion(habit, store: habitStore)
+                        List {
+                            ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
+                                ModernHabitCard(
+                                    habit: habit,
+                                    onTap: {
+                                        HapticManager.selection()
+                                        viewModel.selectedHabit = habit
+                                    },
+                                    onToggle: {
+                                        if habit.isCompletedToday {
+                                            // Already completed, just toggle off
+                                            HapticManager.light()
+                                            viewModel.toggleHabitCompletion(habit, store: habitStore)
+                                        } else {
+                                            // Not completed, check premium for notes
+                                            HapticManager.success()
+                                            if premiumManager.isPremium {
+                                                selectedHabitForNote = habit
+                                                noteText = ""
+                                                showingNoteSheet = true
                                             } else {
-                                                // Not completed, check premium for notes
-                                                HapticManager.success()
-                                                if premiumManager.isPremium {
-                                                    selectedHabitForNote = habit
-                                                    noteText = ""
-                                                    showingNoteSheet = true
-                                                } else {
-                                                    // Free users: just complete without notes
-                                                    viewModel.toggleHabitCompletion(habit, store: habitStore)
-                                                }
+                                                // Free users: just complete without notes
+                                                viewModel.toggleHabitCompletion(habit, store: habitStore)
                                             }
-                                        },
-                                        onDelete: {
-                                            HapticManager.warning()
-                                            viewModel.deleteHabit(habit, store: habitStore)
                                         }
-                                    )
-                                    .transition(.asymmetric(
-                                        insertion: .move(edge: .trailing).combined(with: .opacity),
-                                        removal: .move(edge: .leading).combined(with: .opacity)
-                                    ))
+                                    },
+                                    onDelete: {
+                                        HapticManager.warning()
+                                        viewModel.deleteHabit(habit, store: habitStore)
+                                    }
+                                )
+                                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                                .listRowBackground(Color.clear)
+                                .swipeActions(edge: .trailing, allowsFullSwipe: true) {
+                                    Button(role: .destructive) {
+                                        HapticManager.warning()
+                                        viewModel.deleteHabit(habit, store: habitStore)
+                                    } label: {
+                                        Label(L10n.t("button.delete"), systemImage: "trash.fill")
+                                    }
                                 }
+                                .transition(.asymmetric(
+                                    insertion: .move(edge: .trailing).combined(with: .opacity),
+                                    removal: .move(edge: .leading).combined(with: .opacity)
+                                ))
                             }
-                            .padding(.horizontal, 20)
-                            .padding(.top, 20)
-                            .padding(.bottom, 100)
                         }
+                        .listStyle(.plain)
+                        .scrollContentBackground(.hidden)
+                        .padding(.top, 20)
+                        .padding(.bottom, 100)
                         .refreshable {
                             await refreshHabits()
                         }
@@ -842,6 +858,54 @@ struct ModernAddButton: View {
                         isPressed = false
                     }
                 }
+        )
+    }
+}
+
+// MARK: - Search Bar View
+
+struct SearchBarView: View {
+    @Binding var searchText: String
+    @FocusState private var isSearchFocused: Bool
+    
+    var body: some View {
+        HStack(spacing: 12) {
+            Image(systemName: "magnifyingglass")
+                .font(.system(size: 16, weight: .medium))
+                .foregroundStyle(AriumTheme.textSecondary)
+            
+            TextField(L10n.t("home.search.placeholder"), text: $searchText)
+                .focused($isSearchFocused)
+                .font(.system(size: 16, weight: .regular))
+                .foregroundStyle(AriumTheme.textPrimary)
+                .submitLabel(.search)
+                .autocorrectionDisabled()
+                .textInputAutocapitalization(.never)
+            
+            if !searchText.isEmpty {
+                Button {
+                    withAnimation {
+                        searchText = ""
+                        isSearchFocused = false
+                    }
+                    HapticManager.light()
+                } label: {
+                    Image(systemName: "xmark.circle.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(AriumTheme.textSecondary)
+                }
+            }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(AriumTheme.cardBackground)
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(isSearchFocused ? AriumTheme.accent.opacity(0.5) : Color(.separator).opacity(0.3), lineWidth: isSearchFocused ? 2 : 1)
         )
     }
 }

@@ -59,7 +59,10 @@ class NotificationManager: NSObject, ObservableObject {
         let content = UNMutableNotificationContent()
         content.title = L10n.t("notification.reminder.title")
         content.body = String(format: L10n.t("notification.reminder.body"), habit.title)
-        content.sound = .default
+        // Use custom sound if available, otherwise default
+        // UNNotificationSound(named:) returns non-optional, so we use it directly
+        // If the sound file doesn't exist, system will fallback to default
+        content.sound = UNNotificationSound(named: UNNotificationSoundName("notification.wav"))
         content.badge = 1
         content.userInfo = ["habitId": habit.id.uuidString]
         

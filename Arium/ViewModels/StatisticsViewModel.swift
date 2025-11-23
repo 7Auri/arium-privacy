@@ -8,6 +8,28 @@
 import Foundation
 import SwiftUI
 
+enum StatisticsPeriod: String, CaseIterable {
+    case week = "week"
+    case month = "month"
+    case all = "all"
+    
+    var days: Int {
+        switch self {
+        case .week: return 7
+        case .month: return 30
+        case .all: return 365
+        }
+    }
+    
+    var localizedName: String {
+        switch self {
+        case .week: return L10n.t("statistics.period.week")
+        case .month: return L10n.t("statistics.period.month")
+        case .all: return L10n.t("statistics.period.all")
+        }
+    }
+}
+
 @MainActor
 class StatisticsViewModel: ObservableObject {
     @Published var dailyStats: [DailyStat] = []
@@ -15,18 +37,24 @@ class StatisticsViewModel: ObservableObject {
     @Published var bestStreak: Int = 0
     @Published var totalCompletions: Int = 0
     @Published var completionRate: Double = 0.0
+    @Published var selectedPeriod: StatisticsPeriod = .month
+    @Published var averageStreak: Double = 0.0
+    @Published var weeklyCompletions: Int = 0
+    @Published var monthlyCompletions: Int = 0
     
     let habit: Habit?
     let habits: [Habit]
     let isPremium: Bool
-    let daysToShow: Int
+    var daysToShow: Int {
+        selectedPeriod.days
+    }
     
     // Single habit statistics
     init(habit: Habit, isPremium: Bool) {
         self.habit = habit
         self.habits = []
         self.isPremium = isPremium
-        self.daysToShow = isPremium ? 30 : 7
+        self.selectedPeriod = isPremium ? .month : .week
         calculateStatistics()
     }
     
@@ -35,8 +63,17 @@ class StatisticsViewModel: ObservableObject {
         self.habit = nil
         self.habits = habits
         self.isPremium = isPremium
-        self.daysToShow = isPremium ? 30 : 7
+        self.selectedPeriod = isPremium ? .month : .week
         calculateAllHabitsStatistics()
+    }
+    
+    func updatePeriod(_ period: StatisticsPeriod) {
+        selectedPeriod = period
+        if habit != nil {
+            calculateStatistics()
+        } else {
+            calculateAllHabitsStatistics()
+        }
     }
     
     private func calculateStatistics() {
@@ -47,6 +84,9 @@ class StatisticsViewModel: ObservableObject {
         bestStreak = calculateBestStreak(for: habit)
         totalCompletions = habit.completionDates.count
         completionRate = calculateCompletionRate(for: habit)
+        averageStreak = Double(habit.streak)
+        weeklyCompletions = calculateCompletionsInPeriod(days: 7, for: habit)
+        monthlyCompletions = calculateCompletionsInPeriod(days: 30, for: habit)
     }
     
     private func calculateAllHabitsStatistics() {
@@ -55,6 +95,23 @@ class StatisticsViewModel: ObservableObject {
         bestStreak = calculateBestStreakForAllHabits()
         totalCompletions = habits.reduce(0) { $0 + $1.completionDates.count }
         completionRate = calculateCompletionRateForAllHabits()
+        averageStreak = habits.isEmpty ? 0 : Double(habits.map { $0.streak }.reduce(0, +)) / Double(habits.count)
+        weeklyCompletions = calculateCompletionsInPeriod(days: 7, for: habits)
+        monthlyCompletions = calculateCompletionsInPeriod(days: 30, for: habits)
+    }
+    
+    private func calculateCompletionsInPeriod(days: Int, for habit: Habit) -> Int {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        guard let startDate = calendar.date(byAdding: .day, value: -days, to: today) else { return 0 }
+        
+        return habit.completionDates.filter { date in
+            date >= startDate && date <= today
+        }.count
+    }
+    
+    private func calculateCompletionsInPeriod(days: Int, for habits: [Habit]) -> Int {
+        return habits.reduce(0) { $0 + calculateCompletionsInPeriod(days: days, for: $1) }
     }
     
     // MARK: - Single Habit Methods

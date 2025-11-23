@@ -27,21 +27,23 @@ struct OnboardingPageView: View {
             
             // Title
             Text(page.title)
-                .font(.system(size: 32, weight: .bold))
+                .font(.system(size: 36, weight: .bold))
                 .foregroundColor(AriumTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal, 40)
                 .opacity(isAnimating ? 1.0 : 0.0)
-                .offset(y: isAnimating ? 0 : 20)
+                .offset(y: isAnimating ? 0 : 30)
+                .scaleEffect(isAnimating ? 1.0 : 0.9)
             
             Spacer()
-                .frame(height: 16)
+                .frame(height: 20)
             
             // Subtitle
             Text(page.subtitle)
-                .font(.system(size: 18))
+                .font(.system(size: 18, weight: .regular))
                 .foregroundColor(AriumTheme.textSecondary)
                 .multilineTextAlignment(.center)
+                .lineSpacing(4)
                 .padding(.horizontal, 40)
                 .opacity(isAnimating ? 1.0 : 0.0)
                 .offset(y: isAnimating ? 0 : 20)
@@ -59,61 +61,98 @@ struct OnboardingPageView: View {
             Spacer()
         }
         .onAppear {
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
+            withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.15)) {
                 isAnimating = true
             }
         }
         .onChange(of: page.id) { _, _ in
             isAnimating = false
-            withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.1)) {
-                isAnimating = true
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                withAnimation(.spring(response: 0.7, dampingFraction: 0.8).delay(0.15)) {
+                    isAnimating = true
+                }
             }
         }
     }
     
     private var iconView: some View {
-        ZStack {
+        let accentColor = page.showThemeSelector ? selectedTheme.accent : page.accentColor
+        
+        return ZStack {
+            // Outer glow circle
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [
+                            accentColor.opacity(0.15),
+                            accentColor.opacity(0.05),
+                            Color.clear
+                        ],
+                        center: .center,
+                        startRadius: 50,
+                        endRadius: 120
+                    )
+                )
+                .frame(width: 240, height: 240)
+                .blur(radius: 20)
+            
             // Background circle with gradient
             Circle()
                 .fill(
                     LinearGradient(
                         colors: [
-                            page.accentColor.opacity(0.2),
-                            page.accentColor.opacity(0.05)
+                            accentColor.opacity(0.25),
+                            accentColor.opacity(0.1),
+                            accentColor.opacity(0.05)
                         ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
                 .frame(width: 200, height: 200)
+                .shadow(color: accentColor.opacity(0.3), radius: 20, x: 0, y: 10)
             
             // Icon
             Image(systemName: page.iconName)
-                .font(.system(size: 80, weight: .light))
+                .font(.system(size: 90, weight: .ultraLight))
                 .foregroundStyle(
                     LinearGradient(
-                        colors: [page.accentColor, page.accentColor.opacity(0.7)],
+                        colors: [
+                            accentColor,
+                            accentColor.opacity(0.8),
+                            accentColor.opacity(0.6)
+                        ],
                         startPoint: .topLeading,
                         endPoint: .bottomTrailing
                     )
                 )
+                .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
         }
+        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: selectedTheme)
     }
     
     private var themeSelectorView: some View {
-        VStack(spacing: 16) {
-            Text(L10n.t("onboarding.selectTheme"))
-                .font(.subheadline)
-                .fontWeight(.semibold)
-                .foregroundColor(AriumTheme.textSecondary)
+        VStack(spacing: 24) {
+            VStack(spacing: 8) {
+                Text(L10n.t("onboarding.selectTheme"))
+                    .font(.system(size: 20, weight: .bold))
+                    .foregroundColor(AriumTheme.textPrimary)
+                
+                Text(L10n.t("onboarding.selectTheme.subtitle"))
+                    .font(.system(size: 14, weight: .regular))
+                    .foregroundColor(AriumTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+            }
+            .padding(.horizontal, 20)
             
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                HStack(spacing: 20) {
                     ForEach(HabitTheme.allThemes) { theme in
                         OnboardingThemeButton(
                             theme: theme,
                             isSelected: selectedTheme.id == theme.id
                         ) {
+                            HapticManager.selection()
                             withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                 selectedTheme = theme
                             }
@@ -133,8 +172,26 @@ struct OnboardingThemeButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 10) {
+            VStack(spacing: 12) {
                 ZStack {
+                    // Outer glow
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    theme.accent.opacity(isSelected ? 0.3 : 0.1),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 30,
+                                endRadius: 50
+                            )
+                        )
+                        .frame(width: 100, height: 100)
+                        .blur(radius: 8)
+                        .opacity(isSelected ? 1 : 0)
+                    
+                    // Main circle
                     Circle()
                         .fill(
                             LinearGradient(
@@ -143,30 +200,58 @@ struct OnboardingThemeButton: View {
                                 endPoint: .bottomTrailing
                             )
                         )
-                        .frame(width: 60, height: 60)
+                        .frame(width: 80, height: 80)
                         .overlay(
                             Circle()
-                                .stroke(theme.accent.opacity(0.5), lineWidth: isSelected ? 3 : 0)
+                                .stroke(
+                                    isSelected ? Color.white : theme.accent.opacity(0.3),
+                                    lineWidth: isSelected ? 4 : 2
+                                )
                         )
                         .shadow(
-                            color: isSelected ? theme.accent.opacity(0.5) : Color.clear,
-                            radius: isSelected ? 12 : 0,
+                            color: isSelected ? theme.accent.opacity(0.6) : Color.black.opacity(0.1),
+                            radius: isSelected ? 16 : 8,
                             x: 0,
-                            y: isSelected ? 6 : 0
+                            y: isSelected ? 8 : 4
                         )
-                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                        .scaleEffect(isSelected ? 1.1 : 1.0)
                     
                     if isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 20, weight: .bold))
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.system(size: 28, weight: .bold))
                             .foregroundColor(.white)
-                            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
+                            .shadow(color: Color.black.opacity(0.3), radius: 4, x: 0, y: 2)
+                            .transition(.scale.combined(with: .opacity))
                     }
                 }
-                .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
+                .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+                
+                // Theme name
+                Text(theme.localizedName)
+                    .font(.system(size: 14, weight: isSelected ? .semibold : .medium))
+                    .foregroundColor(isSelected ? AriumTheme.textPrimary : AriumTheme.textSecondary)
+                    .animation(.easeInOut(duration: 0.2), value: isSelected)
             }
-            .padding(.vertical, 2)
-            .frame(width: 75)
+            .padding(.vertical, 8)
+            .padding(.horizontal, 12)
+            .frame(width: 110)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(isSelected ? theme.accent.opacity(0.1) : Color(.systemBackground).opacity(0.5))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(
+                                isSelected ? theme.accent.opacity(0.3) : Color.clear,
+                                lineWidth: 1
+                            )
+                    )
+            )
+            .shadow(
+                color: isSelected ? theme.accent.opacity(0.2) : Color.black.opacity(0.05),
+                radius: isSelected ? 12 : 4,
+                x: 0,
+                y: isSelected ? 6 : 2
+            )
         }
         .buttonStyle(PlainButtonStyle())
     }

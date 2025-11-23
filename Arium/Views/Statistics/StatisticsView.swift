@@ -70,15 +70,22 @@ struct StatisticsView: View {
     }
     
     private var headerView: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: 16) {
             Text(L10n.t("statistics.title"))
                 .font(.title2)
                 .fontWeight(.bold)
                 .foregroundColor(AriumTheme.textPrimary)
             
-            Text(L10n.t(viewModel.isPremium ? "statistics.last30Days" : "statistics.last7Days"))
-                .font(.subheadline)
-                .foregroundColor(AriumTheme.textSecondary)
+            // Period Selector (Premium only)
+            if viewModel.isPremium {
+                PeriodSelectorView(selectedPeriod: $viewModel.selectedPeriod) { period in
+                    viewModel.updatePeriod(period)
+                }
+            } else {
+                Text(L10n.t("statistics.last7Days"))
+                    .font(.subheadline)
+                    .foregroundColor(AriumTheme.textSecondary)
+            }
         }
         .frame(maxWidth: .infinity)
         .padding(.vertical, 16)
@@ -200,6 +207,41 @@ struct StatisticsView: View {
                     color: AriumTheme.success
                 )
                 .padding(.vertical, 4)
+                
+                if viewModel.isPremium {
+                    Divider()
+                        .padding(.leading, 44)
+                    
+                    StatRow(
+                        icon: "flame.fill",
+                        title: L10n.t("statistics.averageStreak"),
+                        value: String(format: "%.1f", viewModel.averageStreak),
+                        color: AriumTheme.warning
+                    )
+                    .padding(.vertical, 4)
+                    
+                    Divider()
+                        .padding(.leading, 44)
+                    
+                    StatRow(
+                        icon: "calendar.badge.clock",
+                        title: L10n.t("statistics.weeklyCompletions"),
+                        value: "\(viewModel.weeklyCompletions)",
+                        color: accentColor
+                    )
+                    .padding(.vertical, 4)
+                    
+                    Divider()
+                        .padding(.leading, 44)
+                    
+                    StatRow(
+                        icon: "calendar",
+                        title: L10n.t("statistics.monthlyCompletions"),
+                        value: "\(viewModel.monthlyCompletions)",
+                        color: AriumTheme.accent
+                    )
+                    .padding(.vertical, 4)
+                }
             }
             .padding(16)
             .cardStyle()
@@ -243,6 +285,37 @@ struct StatRow: View {
                 .font(.body)
                 .fontWeight(.semibold)
                 .foregroundColor(AriumTheme.textSecondary)
+        }
+    }
+}
+
+// MARK: - Period Selector View
+
+struct PeriodSelectorView: View {
+    @Binding var selectedPeriod: StatisticsPeriod
+    let onPeriodChange: (StatisticsPeriod) -> Void
+    
+    var body: some View {
+        HStack(spacing: 8) {
+            ForEach(StatisticsPeriod.allCases, id: \.self) { period in
+                Button {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                        selectedPeriod = period
+                        onPeriodChange(period)
+                    }
+                    HapticManager.selection()
+                } label: {
+                    Text(period.localizedName)
+                        .font(.system(size: 14, weight: selectedPeriod == period ? .semibold : .regular))
+                        .foregroundColor(selectedPeriod == period ? .white : AriumTheme.textSecondary)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(
+                            RoundedRectangle(cornerRadius: 12)
+                                .fill(selectedPeriod == period ? AriumTheme.accent : Color(.secondarySystemBackground))
+                        )
+                }
+            }
         }
     }
 }

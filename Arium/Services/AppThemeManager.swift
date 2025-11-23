@@ -96,10 +96,20 @@ class AppThemeManager: ObservableObject {
     }
     
     private init() {
+        // First, check if user has manually set an accent color in Settings
         if let savedColor = UserDefaults.standard.string(forKey: "appAccentColor"),
            let color = AppAccentColor(rawValue: savedColor) {
             self.accentColor = color
-        } else {
+        } 
+        // If not, check if user selected a theme during onboarding
+        else if let onboardingThemeId = UserDefaults.standard.string(forKey: "selectedOnboardingTheme"),
+                let onboardingColor = AppAccentColor(rawValue: onboardingThemeId) {
+            self.accentColor = onboardingColor
+            // Save it to appAccentColor so it persists
+            UserDefaults.standard.set(onboardingColor.rawValue, forKey: "appAccentColor")
+        }
+        // Default fallback
+        else {
             self.accentColor = .purple // Default
         }
         updateAriumTheme()
