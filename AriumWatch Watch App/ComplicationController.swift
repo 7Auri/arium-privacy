@@ -18,9 +18,6 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
                 identifier: "AriumHabits",
                 displayName: "Arium Habits",
                 supportedFamilies: [
-                    .accessoryCircular,
-                    .accessoryRectangular,
-                    .accessoryInline,
                     .graphicCircular,
                     .graphicRectangular,
                     .graphicCorner,
@@ -96,28 +93,13 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     
     private func createTemplate(for complication: CLKComplication, completed: Int, total: Int, sampleHabits: [Habit]) -> CLKComplicationTemplate {
         switch complication.family {
-        case .accessoryCircular:
-            return CLKComplicationTemplateGraphicCircularView(
-                AriumCircularComplicationView(completed: completed, total: total)
-            )
-            
-        case .accessoryRectangular:
-            return CLKComplicationTemplateGraphicRectangularView(
-                AriumRectangularComplicationView(habits: sampleHabits.prefix(2).map { $0 })
-            )
-            
-        case .accessoryInline:
-            return CLKComplicationTemplateGraphicInlineView(
-                AriumInlineComplicationView(completed: completed, total: total)
-            )
-            
         case .graphicCircular:
             return CLKComplicationTemplateGraphicCircularView(
                 AriumCircularComplicationView(completed: completed, total: total)
             )
             
         case .graphicRectangular:
-            return CLKComplicationTemplateGraphicRectangularView(
+            return CLKComplicationTemplateGraphicRectangularFullView(
                 AriumRectangularComplicationView(habits: sampleHabits.prefix(2).map { $0 })
             )
             
@@ -184,20 +166,6 @@ struct AriumRectangularComplicationView: View {
             }
         }
         .padding(4)
-    }
-}
-
-struct AriumInlineComplicationView: View {
-    let completed: Int
-    let total: Int
-    
-    var body: some View {
-        HStack(spacing: 4) {
-            Image(systemName: "sparkles")
-                .font(.caption2)
-            Text("\(completed)/\(total)")
-                .font(.caption)
-        }
     }
 }
 

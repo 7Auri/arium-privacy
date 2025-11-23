@@ -7,6 +7,7 @@
 
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 // MARK: - Timeline Provider
 
@@ -337,7 +338,7 @@ struct AriumWidget: Widget {
     let kind: String = "AriumWidget"
 
     var body: some WidgetConfiguration {
-        AppIntentConfiguration(kind: kind, intent: ConfigurationIntent.self, provider: Provider()) { entry in
+        StaticConfiguration(kind: kind, provider: Provider()) { entry in
             AriumWidgetEntryView(entry: entry)
                 .containerBackground(.fill.tertiary, for: .widget)
         }
@@ -345,13 +346,6 @@ struct AriumWidget: Widget {
         .description("Track your daily habits at a glance")
         .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
     }
-}
-
-// MARK: - Configuration Intent
-
-struct ConfigurationIntent: WidgetConfigurationIntent {
-    static var title: LocalizedStringResource = "Arium Widget Configuration"
-    static var description = IntentDescription("Configure your Arium widget")
 }
 
 // MARK: - Preview

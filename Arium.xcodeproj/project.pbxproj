@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6C3F9E512ED3BF2600C352F8 /* AriumStoreKit.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */; };
 		6C5C415D2ED39E0700332FC9 /* AriumWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C6718412ED11D0900E3660F /* AriumWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6C6718442ED11D0900E3660F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718432ED11D0900E3660F /* WidgetKit.framework */; };
 		6C6718462ED11D0900E3660F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718452ED11D0900E3660F /* SwiftUI.framework */; };
@@ -115,6 +116,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = AriumStoreKit.storekit; sourceTree = "<group>"; };
 		6C6717B72ED0FC7800E3660F /* Arium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Arium.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C6717C42ED0FC7900E3660F /* AriumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AriumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C6717CE2ED0FC7900E3660F /* AriumUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AriumUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -262,6 +264,7 @@
 		6C6717AE2ED0FC7800E3660F = {
 			isa = PBXGroup;
 			children = (
+				6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */,
 				6C6717B92ED0FC7800E3660F /* Arium */,
 				6C6717C72ED0FC7900E3660F /* AriumTests */,
 				6C6717D12ED0FC7900E3660F /* AriumUITests */,
@@ -492,7 +495,7 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1640;
-				LastUpgradeCheck = 1640;
+				LastUpgradeCheck = 2610;
 				TargetAttributes = {
 					6C6717B62ED0FC7800E3660F = {
 						CreatedOnToolsVersion = 16.4;
@@ -555,6 +558,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6C3F9E512ED3BF2600C352F8 /* AriumStoreKit.storekit in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -768,6 +772,7 @@
 				MTL_FAST_MATH = YES;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
@@ -824,6 +829,7 @@
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
 			};

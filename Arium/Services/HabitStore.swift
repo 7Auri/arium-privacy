@@ -12,7 +12,14 @@ import WatchConnectivity
 @MainActor
 class HabitStore: NSObject, ObservableObject {
     @Published var habits: [Habit] = []
-    @AppStorage("isPremium") var isPremium: Bool = false
+    @Published var isLoading: Bool = false
+    @Published var error: AppError?
+    
+    // Premium status from PremiumManager
+    var isPremium: Bool {
+        PremiumManager.shared.isPremium
+    }
+    
     @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = false // Disabled for free Apple account
     
     private let saveKey = "SavedHabits"
@@ -27,16 +34,20 @@ class HabitStore: NSObject, ObservableObject {
     override init() {
         super.init()
         
-        if let session = session {
-            session.delegate = self
-            session.activate()
+        // Load habits synchronously (fast, from UserDefaults)
+        loadHabits()
+        
+        // Initialize WatchConnectivity asynchronously (non-blocking)
+        Task { @MainActor in
+            if let session = session {
+                session.delegate = self
+                session.activate()
+            }
         }
         
-        loadHabits()
-        updateTodayStatus()
-        
-        // Request notification authorization (non-blocking)
-        Task {
+        // Update status and request notifications asynchronously (non-blocking)
+        Task { @MainActor in
+            updateTodayStatus()
             _ = await notificationManager.requestAuthorization()
         }
     }
@@ -49,8 +60,17 @@ class HabitStore: NSObject, ObservableObject {
         max(0, maxFreeHabits - habits.count)
     }
     
-    func addHabit(_ habit: Habit) {
-        guard canAddMoreHabits else { return }
+    func addHabit(_ habit: Habit) throws {
+        // Validate habit
+        try validateHabit(habit)
+        
+        guard canAddMoreHabits else {
+            throw HabitError.saveFailed
+        }
+        
+        isLoading = true
+        error = nil
+        
         habits.append(habit)
         
         // Schedule notification if enabled (non-blocking)
@@ -61,6 +81,26 @@ class HabitStore: NSObject, ObservableObject {
         }
         
         saveHabits()
+        isLoading = false
+    }
+    
+    // MARK: - Validation
+    
+    private func validateHabit(_ habit: Habit) throws {
+        // Validate title
+        if habit.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            throw HabitError.emptyTitle
+        }
+        
+        // Validate notes length (100 characters max)
+        if habit.notes.count > 100 {
+            throw HabitError.notesTooLong(maxLength: 100)
+        }
+        
+        // Validate start date (cannot be in the future)
+        if let startDate = habit.startDate, startDate > Date() {
+            throw HabitError.invalidStartDate
+        }
     }
     
     func updateHabit(_ habit: Habit) {
@@ -131,8 +171,10 @@ class HabitStore: NSObject, ObservableObject {
         saveHabits()
     }
     
-    private func saveHabits() {
-        if let encoded = try? JSONEncoder().encode(habits) {
+    func saveHabits() {
+        do {
+            let encoded = try JSONEncoder().encode(habits)
+            
             // Save to local UserDefaults
             UserDefaults.standard.set(encoded, forKey: saveKey)
             
@@ -150,25 +192,44 @@ class HabitStore: NSObject, ObservableObject {
             
             // Notify Watch
             sendUpdateToWatch()
+        } catch {
+            self.error = HabitError.saveFailed
+            print("❌ Failed to save habits: \(error)")
         }
     }
     
     private func loadHabits() {
+        isLoading = true
+        error = nil
+        
         // Load from local UserDefaults
-        if let data = UserDefaults.standard.data(forKey: saveKey),
-           let decoded = try? JSONDecoder().decode([Habit].self, from: data) {
-            habits = decoded
+        if let data = UserDefaults.standard.data(forKey: saveKey) {
+            do {
+                let decoded = try JSONDecoder().decode([Habit].self, from: data)
+                habits = decoded
+            } catch {
+                self.error = HabitError.loadFailed
+                isLoading = false
+                print("❌ Failed to load habits: \(error)")
+                return
+            }
         }
         
-        // Sync with iCloud if enabled
+        isLoading = false
+        
+        // Sync with iCloud if enabled (async, non-blocking)
+        // Note: iCloud sync is disabled by default (requires paid Apple Developer account)
         if iCloudSyncEnabled, let cloudSync = cloudSync {
-            Task {
+            Task { @MainActor in
+                // syncHabits is async throws and can throw errors from downloadHabits() or uploadHabits()
+                // Even though guard in syncHabits returns early, the try await calls can still throw
                 do {
                     let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
-                    await MainActor.run {
-                        habits = syncedHabits
-                    }
+                    habits = syncedHabits
                 } catch {
+                    // iCloud sync failed, but this is non-critical
+                    // Continue with local habits
+                    self.error = HabitError.loadFailed
                     print("❌ Failed to sync with iCloud: \(error)")
                 }
             }

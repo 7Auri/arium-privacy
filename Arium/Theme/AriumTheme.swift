@@ -18,9 +18,19 @@ struct AriumTheme {
     static let textSecondary = AriumColors.textSecondary
     static let textTertiary = AriumColors.textTertiary
     
-    // Accent Colors
-    static let accent = AriumColors.accent
-    static let accentLight = AriumColors.accentLight
+    // Accent Colors (Dynamic - managed by AppThemeManager)
+    // Note: These are accessed from main actor context in SwiftUI views
+    static var accent: Color {
+        // Access AppThemeManager - assume we're on main actor (SwiftUI views are)
+        return MainActor.assumeIsolated {
+            AppThemeManager.shared.accentColor.color
+        }
+    }
+    static var accentLight: Color {
+        return MainActor.assumeIsolated {
+            AppThemeManager.shared.accentColor.lightColor
+        }
+    }
     static let success = AriumColors.success
     static let warning = AriumColors.warning
     static let danger = AriumColors.danger

@@ -15,6 +15,8 @@ class HomeViewModel: ObservableObject {
     @Published var showingPremiumAlert = false
     @Published var showingSettings = false
     @Published var selectedCategory: HabitCategory? = nil // nil = all categories
+    @Published var showingError = false
+    @Published var currentError: AppError?
     
     func filteredHabits(from habits: [Habit]) -> [Habit] {
         guard let selectedCategory = selectedCategory else {

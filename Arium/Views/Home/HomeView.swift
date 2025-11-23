@@ -11,6 +11,7 @@ struct HomeView: View {
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel = HomeViewModel()
     @ObservedObject private var l10nManager = L10nManager.shared
+    @StateObject private var premiumManager = PremiumManager.shared
     
     @State private var showingNoteSheet = false
     @State private var noteText = ""
@@ -36,7 +37,7 @@ struct HomeView: View {
                     ModernHeaderView(
                         greeting: viewModel.getGreeting(),
                         remainingSlots: habitStore.remainingFreeSlots,
-                        isPremium: habitStore.isPremium,
+                        isPremium: premiumManager.isPremium,
                         onSettingsTap: { viewModel.showingSettings = true }
                     )
                     .padding(.horizontal, 20)
@@ -53,7 +54,7 @@ struct HomeView: View {
                         .padding(.top, 20)
                         
                         // Category Filter (Premium only)
-                        if habitStore.isPremium {
+                        if premiumManager.isPremium {
                             CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
                                 .padding(.horizontal, 20)
                                 .padding(.top, 16)
@@ -81,7 +82,7 @@ struct HomeView: View {
                                             } else {
                                                 // Not completed, check premium for notes
                                                 HapticManager.success()
-                                                if habitStore.isPremium {
+                                                if premiumManager.isPremium {
                                                     selectedHabitForNote = habit
                                                     noteText = ""
                                                     showingNoteSheet = true
@@ -152,25 +153,40 @@ struct HomeView: View {
                             showingNoteSheet = false
                         }
                     )
-                    .presentationDetents([.height(300)])
+                    .presentationDetents([.medium, .large])
                     .presentationDragIndicator(.visible)
+                    .interactiveDismissDisabled(false)
                 }
             }
             .alert(L10n.t("premium.title"), isPresented: $viewModel.showingPremiumAlert) {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
                 Button(L10n.t("premium.button")) {
-                    // TODO: Handle premium upgrade
+                    Task {
+                        do {
+                            try await premiumManager.purchasePremium()
+                        } catch {
+                            viewModel.showingError = true
+                            viewModel.currentError = error as? AppError ?? PremiumError.unknown
+                        }
+                    }
                 }
             } message: {
                 Text(L10n.t("premium.message"))
             }
+            .errorAlert(error: $viewModel.currentError)
+            .loadingOverlay(isLoading: habitStore.isLoading || premiumManager.isLoading)
+            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
+                Button(L10n.t("button.ok")) { }
+            } message: {
+                Text(L10n.t("premium.purchase.success.message"))
+            }
             .onAppear {
                 // Free kullanıcılar için kategori filtresini sıfırla
-                if !habitStore.isPremium {
+                if !premiumManager.isPremium {
                     viewModel.selectedCategory = nil
                 }
             }
-            .onChange(of: habitStore.isPremium) { oldValue, newValue in
+            .onChange(of: premiumManager.isPremium) { oldValue, newValue in
                 // Premium durumu değiştiğinde kategori filtresini sıfırla
                 if !newValue {
                     viewModel.selectedCategory = nil
@@ -194,10 +210,15 @@ struct HomeView: View {
 
 struct ModernHeaderView: View {
     @ObservedObject private var l10nManager = L10nManager.shared
+    @StateObject private var premiumManager = PremiumManager.shared
     let greeting: String
     let remainingSlots: Int
     let isPremium: Bool
     let onSettingsTap: () -> Void
+    
+    @State private var showingSlotsInfo = false
+    @State private var showingPremiumError = false
+    @State private var premiumError: AppError?
     
     var body: some View {
         HStack(alignment: .center, spacing: 16) {
@@ -221,25 +242,51 @@ struct ModernHeaderView: View {
             
             HStack(spacing: 12) {
                 if !isPremium {
-                    // Premium Badge
-                    HStack(spacing: 6) {
-                        Image(systemName: "sparkles")
-                            .font(.system(size: 12, weight: .semibold))
-                        Text("\(remainingSlots)")
-                            .font(.system(size: 16, weight: .bold))
-                    }
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(
-                        LinearGradient(
-                            colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.8)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                    // Remaining Slots Badge (Tıklanabilir)
+                    Button(action: {
+                        showingSlotsInfo = true
+                    }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "sparkles")
+                                .font(.system(size: 12, weight: .semibold))
+                            Text("\(remainingSlots)")
+                                .font(.system(size: 16, weight: .bold))
+                        }
+                        .foregroundStyle(.white)
+                        .padding(.horizontal, 14)
+                        .padding(.vertical, 8)
+                        .background(
+                            LinearGradient(
+                                colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.8)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
                         )
-                    )
-                    .clipShape(Capsule())
-                    .shadow(color: AriumTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                        .clipShape(Capsule())
+                        .shadow(color: AriumTheme.accent.opacity(0.3), radius: 8, x: 0, y: 4)
+                    }
+                    .alert(L10n.t("home.slots.title"), isPresented: $showingSlotsInfo) {
+                        Button(L10n.t("button.done"), role: .cancel) { }
+                        Button(L10n.t("premium.button")) {
+                            Task {
+                                do {
+                                    try await premiumManager.purchasePremium()
+                                } catch {
+                                    showingPremiumError = true
+                                    premiumError = error as? AppError ?? PremiumError.unknown
+                                }
+                            }
+                        }
+                    } message: {
+                        Text(String(format: L10n.t("home.slots.message"), remainingSlots))
+                    }
+                    .errorAlert(error: $premiumError)
+                    .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
+                    .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
+                        Button(L10n.t("button.ok")) { }
+                    } message: {
+                        Text(L10n.t("premium.purchase.success.message"))
+                    }
                 }
                 
                 // Settings Button
@@ -369,77 +416,90 @@ struct ModernHabitCard: View {
     @State private var isPressed = false
     
     var body: some View {
-        Button(action: onTap) {
-            HStack(spacing: 16) {
-                // Modern Completion Button
-                ModernCompletionButton(
-                    isCompleted: habit.isCompletedToday,
-                    color: habit.theme.accent,
-                    onToggle: onToggle
-                )
-                
-                // Content
-                VStack(alignment: .leading, spacing: 6) {
-                    Text(habit.title)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundStyle(AriumTheme.textPrimary)
-                        .lineLimit(1)
-                    
-                    if !habit.notes.isEmpty {
-                        Text(habit.notes)
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(AriumTheme.textSecondary)
-                            .lineLimit(1)
-                    }
-                }
-                
-                Spacer()
-                
-                // Streak Badge
-                if habit.streak > 0 {
-                    ModernStreakBadge(streak: habit.streak)
-                }
-            }
-            .padding(18)
-            .background(
-                ZStack {
-                    // Base card
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(AriumTheme.cardBackground)
-                    
-                    // Gradient overlay
-                    RoundedRectangle(cornerRadius: 22)
-                        .fill(
-                            LinearGradient(
-                                colors: [
-                                    habit.theme.primary.opacity(0.12),
-                                    habit.theme.secondary.opacity(0.08),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                }
+        HStack(spacing: 16) {
+            // Modern Completion Button
+            ModernCompletionButton(
+                isCompleted: habit.isCompletedToday,
+                color: habit.theme.accent,
+                onToggle: onToggle
             )
-            .overlay(
-                RoundedRectangle(cornerRadius: 22)
-                    .stroke(
+            
+            // Content
+            VStack(alignment: .leading, spacing: 8) {
+                Text(habit.title)
+                    .font(.system(size: 18, weight: .semibold, design: .rounded))
+                    .foregroundStyle(AriumTheme.textPrimary)
+                    .lineLimit(2)
+                
+                if !habit.notes.isEmpty {
+                    Text(habit.notes)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(AriumTheme.textSecondary)
+                        .lineLimit(2)
+                }
+                
+                // Category Badge
+                HStack(spacing: 4) {
+                    Image(systemName: habit.category.icon)
+                        .font(.caption2)
+                    Text(habit.category.localizedName)
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                }
+                .foregroundStyle(habit.category.color)
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(habit.category.color.opacity(0.15))
+                .cornerRadius(8)
+            }
+            
+            Spacer()
+            
+            // Streak Badge
+            if habit.streak > 0 {
+                ModernStreakBadge(streak: habit.streak)
+            }
+        }
+        .padding(20)
+        .background(
+            ZStack {
+                // Base card
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(AriumTheme.cardBackground)
+                
+                // Subtle gradient overlay
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(
                         LinearGradient(
                             colors: [
-                                habit.theme.primary.opacity(0.3),
-                                habit.theme.primary.opacity(0.1)
+                                habit.theme.accent.opacity(0.08),
+                                habit.theme.accent.opacity(0.03),
+                                Color.clear
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
-                        ),
-                        lineWidth: 1.5
+                        )
                     )
-            )
-            .shadow(color: habit.theme.accent.opacity(0.08), radius: 12, x: 0, y: 6)
-            .scaleEffect(isPressed ? 0.97 : 1.0)
+            }
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(
+                    habit.isCompletedToday ? habit.theme.accent.opacity(0.4) : Color(.separator).opacity(0.3),
+                    lineWidth: habit.isCompletedToday ? 2 : 1
+                )
+        )
+        .shadow(
+            color: habit.isCompletedToday ? habit.theme.accent.opacity(0.15) : Color.black.opacity(0.05),
+            radius: habit.isCompletedToday ? 16 : 8,
+            x: 0,
+            y: habit.isCompletedToday ? 8 : 4
+        )
+        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
         }
-        .buttonStyle(PlainButtonStyle())
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
                 Label(L10n.t("button.delete"), systemImage: "trash")
@@ -448,12 +508,12 @@ struct ModernHabitCard: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         isPressed = true
                     }
                 }
                 .onEnded { _ in
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    withAnimation(.spring(response: 0.15, dampingFraction: 0.8)) {
                         isPressed = false
                     }
                 }

@@ -29,10 +29,25 @@ class HabitExportImport: ObservableObject {
     
     func exportToFile(_ habits: [Habit]) throws -> URL {
         let data = try exportHabits(habits)
-        let fileName = "Arium_Habits_\(Date().formatted(date: .numeric, time: .omitted)).json"
-        let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(fileName)
-        try data.write(to: tempURL)
-        return tempURL
+        
+        // Create a safe filename
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd_HH-mm-ss"
+        let dateString = dateFormatter.string(from: Date())
+        let fileName = "Arium_Habits_\(dateString).json"
+        
+        // Use documents directory instead of temp (more reliable)
+        let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask)[0]
+        let fileURL = documentsURL.appendingPathComponent(fileName)
+        
+        // Remove existing file if it exists
+        if FileManager.default.fileExists(atPath: fileURL.path) {
+            try FileManager.default.removeItem(at: fileURL)
+        }
+        
+        try data.write(to: fileURL)
+        print("✅ Export file created at: \(fileURL.path)")
+        return fileURL
     }
 }
 

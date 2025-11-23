@@ -19,11 +19,11 @@ struct ContentView: View {
                         .font(.system(size: 40))
                         .foregroundStyle(.secondary)
                     
-                    Text("No Habits")
+                    Text(L10n.t("watch.empty.title"))
                         .font(.headline)
                         .foregroundStyle(.secondary)
                     
-                    Text("Add habits on your iPhone")
+                    Text(L10n.t("watch.empty.subtitle"))
                         .font(.caption)
                         .foregroundStyle(.tertiary)
                         .multilineTextAlignment(.center)
@@ -40,7 +40,7 @@ struct ContentView: View {
                         }
                     }
                 }
-                .navigationTitle("Arium")
+                .navigationTitle(L10n.t("watch.app.title"))
             }
         }
         .onAppear {

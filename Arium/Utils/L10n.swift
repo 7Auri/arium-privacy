@@ -90,6 +90,8 @@ enum L10n {
             "home.stats.total": "Total",
             "home.stats.streak": "Streak",
             "home.stats.rate": "Rate",
+            "home.slots.title": "Remaining Slots",
+            "home.slots.message": "You have %d free habit slots remaining. Upgrade to Premium for unlimited habits!",
             
             // Greetings
             "greeting.night": "Good Night",
@@ -111,6 +113,7 @@ enum L10n {
             "habit.delete": "Delete Habit",
             "habit.delete.confirm": "Are you sure?",
             "habit.delete.message": "This action cannot be undone.",
+            "habit.notFound": "Habit not found",
             "habit.note.add": "Add Daily Note",
             "habit.note.title": "How did it go today?",
             "habit.note.placeholder": "Write a short note about today's progress... (optional)",
@@ -128,6 +131,7 @@ enum L10n {
             "habit.allCategories": "All Categories",
             "habit.templates.title": "Habit Templates",
             "habit.templates.use": "Use Template",
+            "habit.templates.description": "Choose from pre-made habit templates",
             
             // Categories
             "category.work": "Work",
@@ -138,6 +142,7 @@ enum L10n {
             "category.social": "Social",
             
             // Buttons
+            "button.ok": "OK",
             "button.save": "Save",
             "button.cancel": "Cancel",
             "button.delete": "Delete",
@@ -153,6 +158,7 @@ enum L10n {
             "premium.featureMessage": "This feature is only available for Premium members. Upgrade to unlock!",
             "premium.goalDaysLocked": "Goal customization is available for Premium members only",
             "premium.categoryLocked": "Category selection is available for Premium members only",
+            "premium.templates.message": "Habit templates are available for Premium members only. Upgrade to unlock 10+ ready-to-use habit templates!",
             
             // Settings
             "settings.title": "Settings",
@@ -169,6 +175,8 @@ enum L10n {
             "settings.clearAllHabits": "Clear All Habits",
             "settings.debug": "Debug",
             "settings.debug.togglePremium": "Toggle Premium (Debug)",
+            "settings.appTheme": "App Theme",
+            "settings.appearance": "Appearance",
             
             // Onboarding
             "onboarding.skip": "Skip",
@@ -217,6 +225,16 @@ enum L10n {
             "theme.pink": "Soft Pink",
             "theme.orange": "Sunset Orange",
             
+            // App Themes
+            "appTheme.purple": "Purple",
+            "appTheme.blue": "Blue",
+            "appTheme.green": "Green",
+            "appTheme.pink": "Pink",
+            "appTheme.orange": "Orange",
+            "appTheme.teal": "Teal",
+            "appTheme.indigo": "Indigo",
+            "appTheme.red": "Red",
+            
             // Notifications
             "notification.reminder.title": "⏰ Habit Reminder",
             "notification.reminder.body": "Time to complete: %@",
@@ -244,6 +262,79 @@ enum L10n {
             "settings.data": "Data Management",
             "settings.export": "Export Habits",
             "settings.import": "Import Habits",
+            "export.title": "Export Habits",
+            "export.selectHabits": "Select Habits to Export",
+            "export.habits": "Habits",
+            "export.selectAll": "Select All",
+            "export.deselectAll": "Deselect All",
+            "export.selectedCount": "%d habit(s) selected",
+            "export.button": "Export",
+            "export.success.title": "Export Successful",
+            "export.success.message": "Successfully exported %d habit(s).",
+            "import.success.title": "Import Successful",
+            "import.success.message": "Successfully imported %d habit(s).",
+            
+            // Watch
+            "watch.empty.title": "No Habits",
+            "watch.empty.subtitle": "Add habits on your iPhone",
+            "watch.app.title": "Arium",
+            
+            // Errors
+            "error.title": "Error",
+            "error.retry": "Retry",
+            "error.habit.emptyTitle": "Habit title cannot be empty",
+            "error.habit.notesTooLong": "Notes cannot exceed %d characters",
+            "error.habit.invalidStartDate": "Start date cannot be in the future",
+            "error.habit.saveFailed": "Failed to save habit. Please try again.",
+            "error.habit.loadFailed": "Failed to load habits. Please restart the app.",
+            "error.habit.deleteFailed": "Failed to delete habit. Please try again.",
+            "error.habit.updateFailed": "Failed to update habit. Please try again.",
+            "error.validation.title": "Validation Error",
+            "error.validation.emptyField": "%@ cannot be empty",
+            "error.validation.invalidFormat": "Invalid format for %@",
+            "error.validation.outOfRange": "%@ must be between %d and %d",
+            "error.network.title": "Network Error",
+            "error.network.noConnection": "No internet connection. Please check your network.",
+            "error.network.timeout": "Request timed out. Please try again.",
+            "error.network.serverError": "Server error. Please try again later.",
+            "error.network.unknown": "An unknown network error occurred.",
+            "error.export.failed": "Failed to export habits. Please try again.",
+            "error.export.fileNotFound": "Export file not found.",
+            "error.import.failed": "Failed to import habits. Please check the file format.",
+            "error.import.invalidFormat": "Invalid file format. Please select a valid JSON file.",
+            "premium.error.productNotFound": "Premium product not found. Please contact support.",
+            "premium.error.userCancelled": "Purchase was cancelled.",
+            "premium.error.pending": "Purchase is pending approval.",
+            "premium.error.unknown": "An unknown error occurred during purchase.",
+            "premium.error.unverified": "Transaction could not be verified.",
+            "premium.error.noSubscription": "No active subscription found.",
+            "premium.restore.success": "Purchases restored successfully!",
+            "premium.restore.failed": "Failed to restore purchases. Please try again.",
+            "premium.purchasing": "Processing purchase...",
+            "premium.purchase.success.title": "Welcome to Premium!",
+            "premium.purchase.success.message": "Thank you for upgrading! You now have access to all premium features.",
+            
+            // Templates
+            "template.meditate.title": "Meditate",
+            "template.meditate.description": "Daily meditation practice",
+            "template.exercise.title": "Exercise",
+            "template.exercise.description": "Physical activity or workout",
+            "template.read.title": "Read Books",
+            "template.read.description": "Read for at least 20 minutes",
+            "template.water.title": "Drink Water",
+            "template.water.description": "Drink 8 glasses of water",
+            "template.journal.title": "Journal",
+            "template.journal.description": "Write in your journal",
+            "template.language.title": "Learn Language",
+            "template.language.description": "Practice a new language",
+            "template.money.title": "Save Money",
+            "template.money.description": "Save a fixed amount daily",
+            "template.family.title": "Call Family",
+            "template.family.description": "Call a family member",
+            "template.nosocial.title": "No Social Media",
+            "template.nosocial.description": "Avoid social media before bed",
+            "template.gratitude.title": "Gratitude",
+            "template.gratitude.description": "Write 3 things you're grateful for",
         ],
         "tr": [
             // Home
@@ -253,6 +344,8 @@ enum L10n {
             "home.stats.total": "Toplam",
             "home.stats.streak": "Seri",
             "home.stats.rate": "Oran",
+            "home.slots.title": "Kalan Slot",
+            "home.slots.message": "%d ücretsiz alışkanlık slotunuz kaldı. Sınırsız alışkanlık için Premium'a yükseltin!",
             
             // Greetings
             "greeting.night": "İyi Geceler",
@@ -274,6 +367,7 @@ enum L10n {
             "habit.delete": "Alışkanlığı Sil",
             "habit.delete.confirm": "Emin misiniz?",
             "habit.delete.message": "Bu işlem geri alınamaz.",
+            "habit.notFound": "Alışkanlık bulunamadı",
             "habit.note.add": "Günlük Not Ekle",
             "habit.note.title": "Bugün nasıl geçti?",
             "habit.note.placeholder": "Bugünkü ilerleme hakkında kısa bir not yaz... (opsiyonel)",
@@ -291,6 +385,7 @@ enum L10n {
             "habit.allCategories": "Tüm Kategoriler",
             "habit.templates.title": "Alışkanlık Şablonları",
             "habit.templates.use": "Şablon Kullan",
+            "habit.templates.description": "Hazır alışkanlık şablonlarından seç",
             
             // Categories
             "category.work": "İş",
@@ -301,6 +396,7 @@ enum L10n {
             "category.social": "Sosyal",
             
             // Buttons
+            "button.ok": "Tamam",
             "button.save": "Kaydet",
             "button.cancel": "İptal",
             "button.delete": "Sil",
@@ -316,6 +412,7 @@ enum L10n {
             "premium.featureMessage": "Bu özellik sadece Premium üyeler için kullanılabilir. Kilidi açmak için yükseltin!",
             "premium.goalDaysLocked": "Hedef özelleştirme sadece Premium üyeler için kullanılabilir",
             "premium.categoryLocked": "Kategori seçimi sadece Premium üyeler için kullanılabilir",
+            "premium.templates.message": "Alışkanlık şablonları sadece Premium üyeler için kullanılabilir. 10+ hazır alışkanlık şablonunu açmak için yükseltin!",
             
             // Settings
             "settings.title": "Ayarlar",
@@ -332,6 +429,8 @@ enum L10n {
             "settings.clearAllHabits": "Tüm Alışkanlıkları Temizle",
             "settings.debug": "Hata Ayıklama",
             "settings.debug.togglePremium": "Premium Aç/Kapat (Debug)",
+            "settings.appTheme": "Uygulama Teması",
+            "settings.appearance": "Görünüm",
             
             // Onboarding
             "onboarding.skip": "Geç",
@@ -380,6 +479,16 @@ enum L10n {
             "theme.pink": "Yumuşak Pembe",
             "theme.orange": "Gün Batımı",
             
+            // App Themes
+            "appTheme.purple": "Mor",
+            "appTheme.blue": "Mavi",
+            "appTheme.green": "Yeşil",
+            "appTheme.pink": "Pembe",
+            "appTheme.orange": "Turuncu",
+            "appTheme.teal": "Turkuaz",
+            "appTheme.indigo": "İndigo",
+            "appTheme.red": "Kırmızı",
+            
             // Notifications
             "notification.reminder.title": "⏰ Alışkanlık Hatırlatıcısı",
             "notification.reminder.body": "Tamamlama zamanı: %@",
@@ -407,6 +516,79 @@ enum L10n {
             "settings.data": "Veri Yönetimi",
             "settings.export": "Alışkanlıkları Dışa Aktar",
             "settings.import": "Alışkanlıkları İçe Aktar",
+            "export.title": "Alışkanlıkları Dışa Aktar",
+            "export.selectHabits": "Dışa Aktarılacak Alışkanlıkları Seç",
+            "export.habits": "Alışkanlıklar",
+            "export.selectAll": "Tümünü Seç",
+            "export.deselectAll": "Tümünü Kaldır",
+            "export.selectedCount": "%d alışkanlık seçildi",
+            "export.button": "Dışa Aktar",
+            "export.success.title": "Dışa Aktarma Başarılı",
+            "export.success.message": "%d alışkanlık başarıyla dışa aktarıldı.",
+            "import.success.title": "İçe Aktarma Başarılı",
+            "import.success.message": "%d alışkanlık başarıyla içe aktarıldı.",
+            
+            // Watch
+            "watch.empty.title": "Alışkanlık Yok",
+            "watch.empty.subtitle": "iPhone'unuzdan alışkanlık ekleyin",
+            "watch.app.title": "Arium",
+            
+            // Errors
+            "error.title": "Hata",
+            "error.retry": "Tekrar Dene",
+            "error.habit.emptyTitle": "Alışkanlık başlığı boş olamaz",
+            "error.habit.notesTooLong": "Notlar %d karakteri geçemez",
+            "error.habit.invalidStartDate": "Başlangıç tarihi gelecekte olamaz",
+            "error.habit.saveFailed": "Alışkanlık kaydedilemedi. Lütfen tekrar deneyin.",
+            "error.habit.loadFailed": "Alışkanlıklar yüklenemedi. Lütfen uygulamayı yeniden başlatın.",
+            "error.habit.deleteFailed": "Alışkanlık silinemedi. Lütfen tekrar deneyin.",
+            "error.habit.updateFailed": "Alışkanlık güncellenemedi. Lütfen tekrar deneyin.",
+            "error.validation.title": "Doğrulama Hatası",
+            "error.validation.emptyField": "%@ boş olamaz",
+            "error.validation.invalidFormat": "%@ için geçersiz format",
+            "error.validation.outOfRange": "%@ %d ile %d arasında olmalı",
+            "error.network.title": "Ağ Hatası",
+            "error.network.noConnection": "İnternet bağlantısı yok. Lütfen ağınızı kontrol edin.",
+            "error.network.timeout": "İstek zaman aşımına uğradı. Lütfen tekrar deneyin.",
+            "error.network.serverError": "Sunucu hatası. Lütfen daha sonra tekrar deneyin.",
+            "error.network.unknown": "Bilinmeyen bir ağ hatası oluştu.",
+            "error.export.failed": "Alışkanlıklar dışa aktarılamadı. Lütfen tekrar deneyin.",
+            "error.export.fileNotFound": "Dışa aktarma dosyası bulunamadı.",
+            "error.import.failed": "Alışkanlıklar içe aktarılamadı. Lütfen dosya formatını kontrol edin.",
+            "error.import.invalidFormat": "Geçersiz dosya formatı. Lütfen geçerli bir JSON dosyası seçin.",
+            "premium.error.productNotFound": "Premium ürün bulunamadı. Lütfen destek ile iletişime geçin.",
+            "premium.error.userCancelled": "Satın alma iptal edildi.",
+            "premium.error.pending": "Satın alma onay bekliyor.",
+            "premium.error.unknown": "Satın alma sırasında bilinmeyen bir hata oluştu.",
+            "premium.error.unverified": "İşlem doğrulanamadı.",
+            "premium.error.noSubscription": "Aktif abonelik bulunamadı.",
+            "premium.restore.success": "Satın alımlar başarıyla geri yüklendi!",
+            "premium.restore.failed": "Satın alımlar geri yüklenemedi. Lütfen tekrar deneyin.",
+            "premium.purchasing": "Satın alma işleniyor...",
+            "premium.purchase.success.title": "Premium'a Hoş Geldiniz!",
+            "premium.purchase.success.message": "Yükseltme için teşekkürler! Artık tüm premium özelliklere erişiminiz var.",
+            
+            // Templates
+            "template.meditate.title": "Meditasyon",
+            "template.meditate.description": "Günlük meditasyon pratiği",
+            "template.exercise.title": "Egzersiz",
+            "template.exercise.description": "Fiziksel aktivite veya antrenman",
+            "template.read.title": "Kitap Oku",
+            "template.read.description": "En az 20 dakika kitap oku",
+            "template.water.title": "Su İç",
+            "template.water.description": "8 bardak su iç",
+            "template.journal.title": "Günlük Tut",
+            "template.journal.description": "Günlüğüne yaz",
+            "template.language.title": "Dil Öğren",
+            "template.language.description": "Yeni bir dil pratiği yap",
+            "template.money.title": "Para Biriktir",
+            "template.money.description": "Günlük sabit miktar biriktir",
+            "template.family.title": "Aile Ara",
+            "template.family.description": "Bir aile üyesini ara",
+            "template.nosocial.title": "Sosyal Medya Yok",
+            "template.nosocial.description": "Yatmadan önce sosyal medyadan kaçın",
+            "template.gratitude.title": "Şükür",
+            "template.gratitude.description": "Şükrettiğin 3 şeyi yaz",
         ]
     ]
 }

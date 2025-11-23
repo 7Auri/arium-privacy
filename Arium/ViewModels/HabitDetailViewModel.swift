@@ -17,6 +17,7 @@ class HabitDetailViewModel: ObservableObject {
     @Published var showingStartDatePicker = false
     @Published var editableStartDate: Date
     @Published var editableReminderTime: Date
+    @Published var showingThemePicker = false
     
     private let notificationManager = NotificationManager.shared
     
@@ -108,6 +109,11 @@ class HabitDetailViewModel: ObservableObject {
             }
         }
         
+        store.updateHabit(habit)
+    }
+    
+    func updateTheme(_ theme: HabitTheme, store: HabitStore) {
+        habit.themeId = theme.id
         store.updateHabit(habit)
     }
 }

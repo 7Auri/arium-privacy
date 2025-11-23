@@ -10,6 +10,7 @@ import SwiftUI
 @main
 struct AriumApp: App {
     @StateObject private var habitStore = HabitStore()
+    @StateObject private var appThemeManager = AppThemeManager.shared
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
     
@@ -18,13 +19,15 @@ struct AriumApp: App {
             if hasSeenOnboarding {
                 HomeView()
                     .environmentObject(habitStore)
-                    .onAppear {
-                        // Update habits status on app launch
+                    .environmentObject(appThemeManager)
+                    .task {
+                        // Update habits status on app launch (async, non-blocking)
                         habitStore.updateTodayStatus()
                     }
             } else {
                 OnboardingView()
                     .environmentObject(habitStore)
+                    .environmentObject(appThemeManager)
             }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in

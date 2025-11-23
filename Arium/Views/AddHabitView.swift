@@ -13,7 +13,11 @@ struct AddHabitView: View {
     @StateObject private var viewModel = AddHabitViewModel()
     
     @State private var showingPremiumAlert = false
+    @State private var premiumAlertMessage = ""
     @State private var showingTemplates = false
+    @State private var showingError = false
+    @State private var currentError: AppError?
+    @StateObject private var premiumManager = PremiumManager.shared
     
     var body: some View {
         NavigationStack {
@@ -21,20 +25,113 @@ struct AddHabitView: View {
                 VStack(spacing: 20) {
                     // Templates Button
                     Button(action: {
-                        showingTemplates = true
+                        if premiumManager.isPremium {
+                            showingTemplates = true
+                        } else {
+                            premiumAlertMessage = L10n.t("premium.templates.message")
+                            showingPremiumAlert = true
+                        }
                     }) {
-                        HStack {
-                            Image(systemName: "sparkles")
-                            Text(L10n.t("habit.templates.use"))
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        premiumManager.isPremium
+                                        ? LinearGradient(
+                                            colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                        : LinearGradient(
+                                            colors: [Color(.tertiarySystemBackground), Color(.tertiarySystemBackground)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: premiumManager.isPremium ? "sparkles" : "lock.fill")
+                                    .font(.system(size: 18, weight: .semibold))
+                                    .foregroundStyle(
+                                        premiumManager.isPremium
+                                        ? AriumTheme.accent
+                                        : Color(.secondaryLabel)
+                                    )
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("habit.templates.use"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                Text(premiumManager.isPremium ? L10n.t("habit.templates.description") : L10n.t("premium.templates.message"))
+                                    .font(.system(size: 13, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(1)
+                            }
+                            
+                            Spacer()
+                            
+                            if !premiumManager.isPremium {
+                                Image(systemName: "crown.fill")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.orange, .orange.opacity(0.8)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            } else {
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.tertiary)
+                            }
                         }
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 12)
-                        .background(Color(.secondarySystemBackground))
-                        .foregroundStyle(.primary)
-                        .cornerRadius(12)
+                        .padding(16)
+                        .background(
+                            ZStack {
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(Color(.secondarySystemBackground))
+                                
+                                if premiumManager.isPremium {
+                                    RoundedRectangle(cornerRadius: 16)
+                                        .fill(
+                                            LinearGradient(
+                                                colors: [
+                                                    AriumTheme.accent.opacity(0.08),
+                                                    AriumTheme.accent.opacity(0.03),
+                                                    Color.clear
+                                                ],
+                                                startPoint: .topLeading,
+                                                endPoint: .bottomTrailing
+                                            )
+                                        )
+                                }
+                            }
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    premiumManager.isPremium
+                                    ? AriumTheme.accent.opacity(0.3)
+                                    : Color(.separator).opacity(0.3),
+                                    lineWidth: premiumManager.isPremium ? 1.5 : 1
+                                )
+                        )
+                        .shadow(
+                            color: premiumManager.isPremium
+                            ? AriumTheme.accent.opacity(0.1)
+                            : Color.clear,
+                            radius: premiumManager.isPremium ? 8 : 0,
+                            x: 0,
+                            y: premiumManager.isPremium ? 4 : 0
+                        )
                     }
                     .sheet(isPresented: $showingTemplates) {
                         HabitTemplatesView(viewModel: viewModel)
+                            .environmentObject(habitStore)
                     }
                     
                     // Title Input
@@ -46,6 +143,9 @@ struct AddHabitView: View {
                         
                         TextField(L10n.t("habit.title"), text: $viewModel.title)
                             .textFieldStyle(ModernTextFieldStyle())
+                            .submitLabel(.next)
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.sentences)
                     }
                     
                     // Notes Input
@@ -66,6 +166,8 @@ struct AddHabitView: View {
                                 RoundedRectangle(cornerRadius: 12)
                                     .stroke(Color(.separator), lineWidth: 1)
                             )
+                            .autocorrectionDisabled()
+                            .textInputAutocapitalization(.sentences)
                     }
                     
                     // Category Selector (Premium)
@@ -76,14 +178,14 @@ struct AddHabitView: View {
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
                             
-                            if !habitStore.isPremium {
+                            if !premiumManager.isPremium {
                                 Image(systemName: "crown.fill")
                                     .font(.caption2)
                                     .foregroundColor(.orange)
                             }
                         }
                         
-                        if habitStore.isPremium {
+                        if premiumManager.isPremium {
                             // Premium: Tüm kategoriler
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
@@ -108,6 +210,7 @@ struct AddHabitView: View {
                                         isSelected: true,
                                         isLocked: true
                                     ) {
+                                        premiumAlertMessage = L10n.t("premium.categoryLocked")
                                         showingPremiumAlert = true
                                     }
                                     
@@ -118,6 +221,7 @@ struct AddHabitView: View {
                                             isSelected: false,
                                             isLocked: true
                                         ) {
+                                            premiumAlertMessage = L10n.t("premium.categoryLocked")
                                             showingPremiumAlert = true
                                         }
                                     }
@@ -170,7 +274,7 @@ struct AddHabitView: View {
                                     .textCase(.uppercase)
                                     .foregroundStyle(.secondary)
                                 
-                                if !habitStore.isPremium {
+                                if !premiumManager.isPremium {
                                     Image(systemName: "crown.fill")
                                         .font(.caption2)
                                         .foregroundColor(.orange)
@@ -180,12 +284,15 @@ struct AddHabitView: View {
                             Spacer()
                             
                             Button {
-                                if habitStore.isPremium {
+                                if premiumManager.isPremium {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                         viewModel.showingDatePicker.toggle()
                                     }
                                 } else {
-                                    showingPremiumAlert = true
+                                    if !premiumManager.isPremium {
+                                        premiumAlertMessage = L10n.t("premium.featureMessage")
+                                        showingPremiumAlert = true
+                                    }
                                 }
                             } label: {
                                 HStack(spacing: 6) {
@@ -193,7 +300,7 @@ struct AddHabitView: View {
                                         .font(.subheadline)
                                         .foregroundStyle(.primary)
                                     
-                                    Image(systemName: habitStore.isPremium ? "calendar" : "lock.fill")
+                                    Image(systemName: premiumManager.isPremium ? "calendar" : "lock.fill")
                                         .font(.caption)
                                         .foregroundColor(viewModel.selectedTheme.accent)
                                 }
@@ -204,7 +311,7 @@ struct AddHabitView: View {
                             }
                         }
                         
-                        if habitStore.isPremium && viewModel.showingDatePicker {
+                        if premiumManager.isPremium && viewModel.showingDatePicker {
                             DatePicker(
                                 "",
                                 selection: $viewModel.startDate,
@@ -223,7 +330,7 @@ struct AddHabitView: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color(.separator), lineWidth: 1)
                     )
-                    .opacity(habitStore.isPremium ? 1.0 : 0.7)
+                    .opacity(premiumManager.isPremium ? 1.0 : 0.7)
                     
                     // Goal Days Selector (Premium)
                     VStack(alignment: .leading, spacing: 12) {
@@ -233,14 +340,14 @@ struct AddHabitView: View {
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
                             
-                            if !habitStore.isPremium {
+                            if !premiumManager.isPremium {
                                 Image(systemName: "crown.fill")
                                     .font(.caption2)
                                     .foregroundColor(.orange)
                             }
                         }
                         
-                        if habitStore.isPremium {
+                        if premiumManager.isPremium {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(viewModel.goalOptions, id: \.self) { days in
@@ -265,7 +372,10 @@ struct AddHabitView: View {
                                     isSelected: true,
                                     accentColor: viewModel.selectedTheme.accent
                                 ) {
-                                    showingPremiumAlert = true
+                                    if !premiumManager.isPremium {
+                                        premiumAlertMessage = L10n.t("premium.goalDaysLocked")
+                                        showingPremiumAlert = true
+                                    }
                                 }
                                 
                                 Text(L10n.t("premium.goalDaysLocked"))
@@ -282,7 +392,7 @@ struct AddHabitView: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color(.separator), lineWidth: 1)
                     )
-                    .opacity(habitStore.isPremium ? 1.0 : 0.7)
+                    .opacity(premiumManager.isPremium ? 1.0 : 0.7)
                     
                     Spacer(minLength: 40)
                 }
@@ -313,14 +423,28 @@ struct AddHabitView: View {
             .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
                 Button(L10n.t("premium.button")) {
-                    // Premium upgrade action
+                    Task {
+                        do {
+                            try await premiumManager.purchasePremium()
+                        } catch {
+                            showingError = true
+                            currentError = error as? AppError ?? PremiumError.unknown
+                        }
+                    }
                 }
             } message: {
-                Text(L10n.t("premium.featureMessage"))
+                Text(premiumAlertMessage.isEmpty ? L10n.t("premium.featureMessage") : premiumAlertMessage)
+            }
+            .errorAlert(error: $currentError)
+            .loadingOverlay(isLoading: premiumManager.isLoading || habitStore.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
+            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
+                Button(L10n.t("button.ok")) { }
+            } message: {
+                Text(L10n.t("premium.purchase.success.message"))
             }
             .onAppear {
                 // Free kullanıcılar için kategoriyi Personal olarak sabitle
-                if !habitStore.isPremium {
+                if !premiumManager.isPremium {
                     viewModel.selectedCategory = .personal
                 }
             }
@@ -328,11 +452,21 @@ struct AddHabitView: View {
     }
     
     private func saveHabit() {
-        HapticManager.success()
-        let habit = viewModel.createHabit()
-        habitStore.addHabit(habit)
-        viewModel.reset()
-        dismiss()
+        do {
+            let habit = viewModel.createHabit()
+            try habitStore.addHabit(habit)
+            HapticManager.success()
+            viewModel.reset()
+            dismiss()
+        } catch let error as HabitError {
+            showingError = true
+            currentError = error
+            HapticManager.error()
+        } catch {
+            showingError = true
+            currentError = HabitError.saveFailed
+            HapticManager.error()
+        }
     }
     
     private func currentLocaleIdentifier() -> String {
@@ -474,36 +608,44 @@ struct GoalDayButton: View {
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 6) {
+            VStack(spacing: 8) {
                 Text("\(days)")
-                    .font(.system(size: 24, weight: .bold))
-                    .foregroundStyle(isSelected ? accentColor : .primary)
+                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .foregroundStyle(isSelected ? .white : .primary)
                 
                 Text(L10n.t("habit.days"))
-                    .font(.caption2)
-                    .foregroundStyle(.secondary)
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isSelected ? .white.opacity(0.9) : .secondary)
             }
-            .frame(width: 70, height: 70)
+            .frame(width: 80, height: 80)
             .background(
-                isSelected 
-                ? accentColor.opacity(0.1) 
-                : Color(.tertiarySystemBackground)
+                Group {
+                    if isSelected {
+                        LinearGradient(
+                            colors: [accentColor, accentColor.opacity(0.8)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    } else {
+                        Color(.tertiarySystemBackground)
+                    }
+                }
             )
-            .cornerRadius(16)
+            .cornerRadius(20)
             .overlay(
-                RoundedRectangle(cornerRadius: 16)
+                RoundedRectangle(cornerRadius: 20)
                     .stroke(
-                        isSelected ? accentColor : Color(.separator),
-                        lineWidth: isSelected ? 2 : 1
+                        isSelected ? Color.clear : Color(.separator).opacity(0.3),
+                        lineWidth: isSelected ? 0 : 1
                     )
             )
             .shadow(
-                color: isSelected ? accentColor.opacity(0.2) : Color.clear,
-                radius: isSelected ? 8 : 0,
+                color: isSelected ? accentColor.opacity(0.3) : Color.clear,
+                radius: isSelected ? 12 : 0,
                 x: 0,
-                y: isSelected ? 4 : 0
+                y: isSelected ? 6 : 0
             )
-            .scaleEffect(isSelected ? 1.02 : 1.0)
+            .scaleEffect(isSelected ? 1.05 : 1.0)
             .animation(.spring(response: 0.25, dampingFraction: 0.7), value: isSelected)
         }
         .buttonStyle(PlainButtonStyle())

@@ -11,6 +11,7 @@ struct HabitDetailView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel: HabitDetailViewModel
+    @StateObject private var premiumManager = PremiumManager.shared
     
     @State private var showingNoteAlert = false
     @State private var noteText = ""
@@ -21,43 +22,58 @@ struct HabitDetailView: View {
     
     var body: some View {
         NavigationStack {
-            ScrollView {
-                    VStack(spacing: 24) {
-                        // Header with Progress Ring
-                        headerView
-                        
-                        // Notes
-                        notesView
-                        
-                        // Stats Cards
-                        statsView
-                        
-                        // Start Date Selector
-                        startDateView
-                        
+            Group {
+                if habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
+                    ScrollView {
+                        VStack(spacing: 24) {
+                            // Header with Progress Ring
+                            headerView
+                            
+                            // Notes
+                            notesView
+                            
+                            // Stats Cards
+                            statsView
+                            
+                            // Start Date Selector
+                            startDateView
+                            
                         // Goal Days Selector
                         goalDaysView
                         
+                        // Theme Selector
+                        themeView
+                        
                         // Reminder Settings
                         reminderView
-                        
-                        // Completion Button
-                        completionButton
-                        
-                        // Statistics Button
-                        statisticsButton
-                        
-                        // History
-                        historyView
-                        
-                        // Delete Button
-                        deleteButton
-                        
-                        Spacer(minLength: 40)
+                            
+                            // Completion Button
+                            completionButton
+                            
+                            // Statistics Button
+                            statisticsButton
+                            
+                            // History
+                            historyView
+                            
+                            // Delete Button
+                            deleteButton
+                            
+                            Spacer(minLength: 40)
+                        }
+                        .padding(20)
                     }
-                    .padding(20)
+                    .background(Color(.systemBackground))
+                } else {
+                    // Habit not found - auto dismiss
+                    VStack {
+                        Text(L10n.t("habit.notFound"))
+                            .foregroundStyle(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color(.systemBackground))
                 }
-            .background(Color(.systemBackground))
+            }
             .navigationTitle(viewModel.habit.title)
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color(.systemBackground), for: .navigationBar)
@@ -71,7 +87,7 @@ struct HabitDetailView: View {
                 }
             }
             .sheet(isPresented: $viewModel.showingStatistics) {
-                StatisticsView(habit: viewModel.habit, isPremium: habitStore.isPremium)
+                StatisticsView(habit: viewModel.habit, isPremium: premiumManager.isPremium)
             }
             .sheet(isPresented: $showingNoteAlert) {
                 DailyNoteSheet(
@@ -88,8 +104,9 @@ struct HabitDetailView: View {
                         showingNoteAlert = false
                     }
                 )
-                .presentationDetents([.height(300)])
+                .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+                .interactiveDismissDisabled(false)
             }
             .alert(L10n.t("habit.delete.confirm"), isPresented: $viewModel.showingDeleteAlert) {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
@@ -102,8 +119,25 @@ struct HabitDetailView: View {
             }
         }
         .onAppear {
+            // Check if habit still exists
+            if !habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
+                // Habit was deleted, dismiss immediately
+                DispatchQueue.main.async {
+                    dismiss()
+                }
+                return
+            }
+            
             viewModel.refreshCompletionForNewDay()
             refreshHabit()
+        }
+        .onChange(of: habitStore.habits) { _, _ in
+            // If habit was deleted while viewing, dismiss
+            if !habitStore.habits.contains(where: { $0.id == viewModel.habit.id }) {
+                dismiss()
+            } else {
+                refreshHabit()
+            }
         }
     }
     
@@ -222,7 +256,7 @@ struct HabitDetailView: View {
                         .fontWeight(.semibold)
                         .foregroundStyle(.secondary)
                     
-                    if !habitStore.isPremium {
+                    if !premiumManager.isPremium {
                         Image(systemName: "crown.fill")
                             .font(.caption2)
                             .foregroundColor(.orange)
@@ -232,7 +266,7 @@ struct HabitDetailView: View {
                 Spacer()
                 
                 Button {
-                    if habitStore.isPremium {
+                    if premiumManager.isPremium {
                         viewModel.showingStartDatePicker.toggle()
                     }
                 } label: {
@@ -241,7 +275,7 @@ struct HabitDetailView: View {
                             .font(.subheadline)
                             .foregroundStyle(.primary)
                         
-                        Image(systemName: habitStore.isPremium ? "calendar" : "lock.fill")
+                        Image(systemName: premiumManager.isPremium ? "calendar" : "lock.fill")
                             .font(.caption)
                             .foregroundColor(viewModel.habit.theme.accent)
                     }
@@ -250,10 +284,10 @@ struct HabitDetailView: View {
                     .background(Color(.tertiarySystemBackground))
                     .cornerRadius(8)
                 }
-                .disabled(!habitStore.isPremium)
+                .disabled(!premiumManager.isPremium)
             }
             
-            if habitStore.isPremium && viewModel.showingStartDatePicker {
+            if premiumManager.isPremium && viewModel.showingStartDatePicker {
                 DatePicker(
                     "",
                     selection: $viewModel.editableStartDate,
@@ -275,85 +309,106 @@ struct HabitDetailView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color(.separator), lineWidth: 0.5)
         )
-        .opacity(habitStore.isPremium ? 1.0 : 0.7)
+        .opacity(premiumManager.isPremium ? 1.0 : 0.7)
         .animation(.spring(response: 0.3, dampingFraction: 0.7), value: viewModel.showingStartDatePicker)
     }
     
     private var goalDaysView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 6) {
                 Text(L10n.t("habit.goalDays"))
-                    .font(.subheadline)
+                    .font(.headline)
                     .fontWeight(.semibold)
-                    .foregroundStyle(.secondary)
+                    .foregroundStyle(.primary)
                 
-                if !habitStore.isPremium {
+                if !premiumManager.isPremium {
                     Image(systemName: "crown.fill")
                         .font(.caption2)
                         .foregroundColor(.orange)
                 }
             }
             
-            if habitStore.isPremium {
+            if premiumManager.isPremium {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 12) {
+                    HStack(spacing: 16) {
                         ForEach([7, 14, 21, 30, 60, 90], id: \.self) { days in
-                            Button {
+                            GoalDayButton(
+                                days: days,
+                                isSelected: viewModel.habit.goalDays == days,
+                                accentColor: viewModel.habit.theme.accent
+                            ) {
                                 withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
                                     viewModel.updateGoalDays(days, store: habitStore)
                                 }
-                            } label: {
-                                VStack(spacing: 4) {
-                                    Text("\(days)")
-                                        .font(.system(size: 20, weight: .bold))
-                                        .foregroundStyle(viewModel.habit.goalDays == days ? viewModel.habit.theme.accent : .primary)
-                                    
-                                    Text(L10n.t("habit.days"))
-                                        .font(.caption2)
-                                        .foregroundStyle(.secondary)
-                                }
-                                .frame(width: 60, height: 60)
-                                .background(
-                                    viewModel.habit.goalDays == days
-                                    ? viewModel.habit.theme.accent.opacity(0.1)
-                                    : Color(.tertiarySystemBackground)
-                                )
-                                .cornerRadius(12)
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 12)
-                                        .stroke(
-                                            viewModel.habit.goalDays == days ? viewModel.habit.theme.accent : Color(.separator),
-                                            lineWidth: viewModel.habit.goalDays == days ? 2 : 1
-                                        )
-                                )
-                                .shadow(
-                                    color: viewModel.habit.goalDays == days ? viewModel.habit.theme.accent.opacity(0.2) : Color.clear,
-                                    radius: viewModel.habit.goalDays == days ? 6 : 0,
-                                    x: 0,
-                                    y: viewModel.habit.goalDays == days ? 3 : 0
-                                )
-                                .scaleEffect(viewModel.habit.goalDays == days ? 1.02 : 1.0)
                             }
-                            .buttonStyle(PlainButtonStyle())
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+            } else {
+                HStack {
+                    Spacer()
+                    VStack(spacing: 8) {
+                        GoalDayButton(
+                            days: 21,
+                            isSelected: true,
+                            accentColor: viewModel.habit.theme.accent
+                        ) {
+                            // Locked
+                        }
+                        .disabled(true)
+                        
+                        Text(L10n.t("premium.featureMessage"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    Spacer()
+                }
+            }
+        }
+        .padding(20)
+        .background(Color(.secondarySystemBackground))
+        .cornerRadius(20)
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+        )
+        .opacity(premiumManager.isPremium ? 1.0 : 0.7)
+    }
+    
+    private var themeView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 6) {
+                Text(L10n.t("habit.theme"))
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+            }
+            
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(HabitTheme.allThemes) { theme in
+                        ModernThemeButton(
+                            theme: theme,
+                            isSelected: viewModel.habit.theme.id == theme.id
+                        ) {
+                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                viewModel.updateTheme(theme, store: habitStore)
+                            }
                         }
                     }
                 }
-            } else {
-                Text(L10n.t("premium.featureMessage"))
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .multilineTextAlignment(.center)
-                    .padding(.vertical, 8)
+                .padding(.horizontal, 4)
             }
         }
-        .padding(16)
+        .padding(20)
         .background(Color(.secondarySystemBackground))
-        .cornerRadius(16)
+        .cornerRadius(20)
         .overlay(
-            RoundedRectangle(cornerRadius: 16)
-                .stroke(Color(.separator), lineWidth: 0.5)
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
         )
-        .opacity(habitStore.isPremium ? 1.0 : 0.7)
     }
     
     private var reminderView: some View {
@@ -408,7 +463,7 @@ struct HabitDetailView: View {
             } else {
                 // If not completed, check premium for notes
                 HapticManager.success()
-                if habitStore.isPremium {
+                if premiumManager.isPremium {
                     noteText = ""
                     showingNoteAlert = true
                 } else {
@@ -570,21 +625,24 @@ struct DailyNoteSheet: View {
     
     var body: some View {
         NavigationStack {
-            VStack(spacing: 20) {
-                VStack(alignment: .leading, spacing: 8) {
+            VStack(spacing: 0) {
+                // Content Area
+                VStack(alignment: .leading, spacing: 16) {
                     Text(L10n.t("habit.note.title"))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
+                        .font(.headline)
+                        .foregroundStyle(.primary)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 20)
                     
                     TextField(L10n.t("habit.note.placeholder"), text: $noteText, axis: .vertical)
-                        .lineLimit(3...5)
+                        .lineLimit(3...8)
                         .textFieldStyle(.plain)
-                        .padding(12)
+                        .padding(16)
+                        .frame(minHeight: 100)
                         .background(Color(.secondarySystemBackground))
-                        .cornerRadius(12)
+                        .cornerRadius(16)
                         .overlay(
-                            RoundedRectangle(cornerRadius: 12)
+                            RoundedRectangle(cornerRadius: 16)
                                 .stroke(isFocused ? themeColor : Color(.separator), lineWidth: isFocused ? 2 : 1)
                         )
                         .focused($isFocused)
@@ -593,17 +651,18 @@ struct DailyNoteSheet: View {
                                 noteText = String(newValue.prefix(100))
                             }
                         }
+                        .padding(.horizontal, 20)
                     
                     HStack {
                         Spacer()
                         Text("\(noteText.count)/100")
-                            .font(.caption2)
+                            .font(.caption)
                             .foregroundStyle(noteText.count >= 100 ? .red : .secondary)
+                            .padding(.horizontal, 20)
                     }
                 }
-                .padding(20)
                 
-                Spacer()
+                Spacer(minLength: 20)
                 
                 // Action Buttons
                 VStack(spacing: 12) {
@@ -616,7 +675,7 @@ struct DailyNoteSheet: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                             .background(themeColor)
-                            .cornerRadius(12)
+                            .cornerRadius(16)
                     }
                     
                     Button {
@@ -625,6 +684,7 @@ struct DailyNoteSheet: View {
                         Text(L10n.t("habit.skipNote"))
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
+                            .padding(.vertical, 8)
                     }
                 }
                 .padding(.horizontal, 20)
@@ -634,9 +694,19 @@ struct DailyNoteSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color(.systemBackground), for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.t("button.cancel")) {
+                        onSkip()
+                    }
+                }
+            }
         }
         .onAppear {
-            isFocused = true
+            // Delay focus to ensure sheet is fully presented
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                isFocused = true
+            }
         }
     }
 }
