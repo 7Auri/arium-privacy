@@ -43,13 +43,18 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - Gelecekteki premium özellikler
 
 ### 🛠 Gelişmiş Özellikler
-- 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları (hazır, devre dışı)
-- 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large) (hazır, devre dışı)
-- ⌚ **Apple Watch**: Tam entegre watchOS uygulaması (hazır, test edilmeli)
-  - Watch app kodları hazır ve çalışıyor
-  - Fiziksel Watch bağlantısı için rehberler mevcut
-  - Watch Simulator'de test edilebilir
-- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit) (hazır, ücretsiz hesapta devre dışı)
+- 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları
+- 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large)
+  - Interactive widget'lar (iOS 18+)
+  - Otomatik güncelleme (15 dakika)
+  - Türkçe/İngilizce localization
+- ⌚ **Apple Watch**: Tam entegre watchOS uygulaması
+  - Habit completion on watch
+  - Watch Complications (Circular, Rectangular, Inline, Corner, Bezel)
+  - WatchConnectivity ile iPhone senkronizasyonu
+- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit) (opsiyonel)
+- 📋 **Habit Templates**: 10 hazır alışkanlık şablonu
+- 💾 **Export/Import**: JSON formatında alışkanlık yedekleme ve geri yükleme
 
 ## 📱 Ekran Görüntüleri
 
@@ -91,9 +96,8 @@ Arium/
 
 AriumTests/             # Unit testler
 AriumUITests/           # UI testleri
-AriumWidget/            # Widget extension (hazır)
-AriumWatch/             # Watch app (hazır)
-Shared/                 # Paylaşılan modeller
+AriumWidget/            # Widget extension
+AriumWatch Watch App/   # Watch app
 ```
 
 ## 🚀 Kurulum

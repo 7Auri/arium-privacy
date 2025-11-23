@@ -432,6 +432,31 @@ struct SettingsView: View {
             .sheet(isPresented: $showingStatistics) {
                 StatisticsView(habits: habitStore.habits, isPremium: habitStore.isPremium)
             }
+            .sheet(isPresented: $showingExportSheet, content: {
+                if let url = exportURL {
+                    ShareSheet(items: [url])
+                }
+            })
+            .fileImporter(
+                isPresented: $showingImportPicker,
+                allowedContentTypes: [.json],
+                allowsMultipleSelection: false
+            ) { result in
+                switch result {
+                case .success(let urls):
+                    guard let url = urls.first else { return }
+                    do {
+                        let data = try Data(contentsOf: url)
+                        let importedHabits = try exportImport.importHabits(from: data)
+                        habitStore.habits = importedHabits
+                        habitStore.saveHabits()
+                    } catch {
+                        print("❌ Import failed: \(error)")
+                    }
+                case .failure(let error):
+                    print("❌ File picker failed: \(error)")
+                }
+            }
         }
     }
 }
