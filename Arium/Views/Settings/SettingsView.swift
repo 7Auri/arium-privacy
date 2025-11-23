@@ -17,6 +17,10 @@ struct SettingsView: View {
     @AppStorage("isStreakWarningEnabled") private var isStreakWarningEnabled = true
     @State private var showingStatistics = false
     @StateObject private var notificationManager = NotificationManager.shared
+    @State private var showingExportSheet = false
+    @State private var showingImportPicker = false
+    @State private var exportURL: URL?
+    @StateObject private var exportImport = HabitExportImport.shared
     
     var body: some View {
         NavigationStack {
@@ -232,6 +236,54 @@ struct SettingsView: View {
                     }
                 } header: {
                     Text(L10n.t("settings.icloud.title"))
+                        .font(.footnote)
+                        .textCase(.uppercase)
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Export/Import Section
+                Section {
+                    Button {
+                        do {
+                            let url = try exportImport.exportToFile(habitStore.habits)
+                            exportURL = url
+                            showingExportSheet = true
+                        } catch {
+                            print("❌ Export failed: \(error)")
+                        }
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "square.and.arrow.up.fill")
+                                .font(.body)
+                                .foregroundStyle(.blue.opacity(0.8))
+                                .frame(width: 28, alignment: .center)
+                            
+                            Text(L10n.t("settings.export"))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                        }
+                    }
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
+                    Button {
+                        showingImportPicker = true
+                    } label: {
+                        HStack(spacing: 12) {
+                            Image(systemName: "square.and.arrow.down.fill")
+                                .font(.body)
+                                .foregroundStyle(.green.opacity(0.8))
+                                .frame(width: 28, alignment: .center)
+                            
+                            Text(L10n.t("settings.import"))
+                                .foregroundStyle(.primary)
+                            
+                            Spacer()
+                        }
+                    }
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                } header: {
+                    Text(L10n.t("settings.data"))
                         .font(.footnote)
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)

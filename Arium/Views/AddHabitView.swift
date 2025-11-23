@@ -13,11 +13,30 @@ struct AddHabitView: View {
     @StateObject private var viewModel = AddHabitViewModel()
     
     @State private var showingPremiumAlert = false
+    @State private var showingTemplates = false
     
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 20) {
+                    // Templates Button
+                    Button(action: {
+                        showingTemplates = true
+                    }) {
+                        HStack {
+                            Image(systemName: "sparkles")
+                            Text(L10n.t("habit.templates.use"))
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 12)
+                        .background(Color(.secondarySystemBackground))
+                        .foregroundStyle(.primary)
+                        .cornerRadius(12)
+                    }
+                    .sheet(isPresented: $showingTemplates) {
+                        HabitTemplatesView(viewModel: viewModel)
+                    }
+                    
                     // Title Input
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.t("habit.title"))

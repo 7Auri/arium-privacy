@@ -47,7 +47,7 @@ class L10nManager: ObservableObject {
         }
         
         // Eğer preferred languages'da bulunamazsa, current locale'i kontrol et
-        if let languageCode = Locale.current.languageCode {
+        if let languageCode = Locale.current.language.languageCode?.identifier {
             if languageCode == "tr" {
                 return "tr"
             }
@@ -126,6 +126,8 @@ enum L10n {
             "habit.category": "Category",
             "habit.filterByCategory": "Filter by Category",
             "habit.allCategories": "All Categories",
+            "habit.templates.title": "Habit Templates",
+            "habit.templates.use": "Use Template",
             
             // Categories
             "category.work": "Work",
@@ -179,6 +181,10 @@ enum L10n {
             "onboarding.page2.subtitle": "Track your habits and keep your streaks alive.",
             "onboarding.page3.title": "Make It Yours",
             "onboarding.page3.subtitle": "Customize themes and create your own routine.",
+            
+            // Widget
+            "widget.todaysHabits": "Today's Habits",
+            "widget.pending": "Pending",
             
             // Statistics
             "statistics.title": "Statistics",
@@ -235,6 +241,9 @@ enum L10n {
             "settings.icloud.sync.description": "Keep your habits in sync across all your devices",
             "settings.icloud.syncNow": "Sync Now",
             "settings.icloud.lastSync": "Last synced",
+            "settings.data": "Data Management",
+            "settings.export": "Export Habits",
+            "settings.import": "Import Habits",
         ],
         "tr": [
             // Home
@@ -280,6 +289,8 @@ enum L10n {
             "habit.category": "Kategori",
             "habit.filterByCategory": "Kategoriye Göre Filtrele",
             "habit.allCategories": "Tüm Kategoriler",
+            "habit.templates.title": "Alışkanlık Şablonları",
+            "habit.templates.use": "Şablon Kullan",
             
             // Categories
             "category.work": "İş",
@@ -333,6 +344,10 @@ enum L10n {
             "onboarding.page2.subtitle": "Alışkanlıklarını takip et ve serilerini devam ettir.",
             "onboarding.page3.title": "Kendine Göre Yap",
             "onboarding.page3.subtitle": "Temaları özelleştir ve kendi rutinini oluştur.",
+            
+            // Widget
+            "widget.todaysHabits": "Bugünün Alışkanlıkları",
+            "widget.pending": "Bekleyen",
             
             // Statistics
             "statistics.title": "İstatistikler",
@@ -389,6 +404,9 @@ enum L10n {
             "settings.icloud.sync.description": "Alışkanlıklarınızı tüm cihazlarınızda senkronize edin",
             "settings.icloud.syncNow": "Şimdi Senkronize Et",
             "settings.icloud.lastSync": "Son senkronizasyon",
+            "settings.data": "Veri Yönetimi",
+            "settings.export": "Alışkanlıkları Dışa Aktar",
+            "settings.import": "Alışkanlıkları İçe Aktar",
         ]
     ]
 }

@@ -7,12 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		6C5C415D2ED39E0700332FC9 /* AriumWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C6718412ED11D0900E3660F /* AriumWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6C6718442ED11D0900E3660F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718432ED11D0900E3660F /* WidgetKit.framework */; };
 		6C6718462ED11D0900E3660F /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718452ED11D0900E3660F /* SwiftUI.framework */; };
 		6C671E8F2ED2592E00E3660F /* AriumWatch Watch App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 6C6718632ED11E2700E3660F /* AriumWatch Watch App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		6C5C415E2ED39E0700332FC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 6C6717AF2ED0FC7800E3660F /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 6C6718402ED11D0900E3660F;
+			remoteInfo = AriumWidgetExtension;
+		};
 		6C6717C52ED0FC7900E3660F /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 6C6717AF2ED0FC7800E3660F /* Project object */;
@@ -72,6 +80,17 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
+		6C5C41602ED39E0700332FC9 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				6C5C415D2ED39E0700332FC9 /* AriumWidgetExtension.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		6C6718872ED11E2800E3660F /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -109,6 +128,24 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		6C1E973F2ED3995C00CEA9D9 /* Exceptions for "Arium" folder in "AriumWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Models/Habit.swift,
+				Models/HabitCategory.swift,
+				Models/HabitTheme.swift,
+				Utils/DateExtensions.swift,
+				Utils/L10n.swift,
+			);
+			target = 6C6718402ED11D0900E3660F /* AriumWidgetExtension */;
+		};
+		6C3F9E372ED39FDF00C352F8 /* Exceptions for "AriumWidget" folder in "AriumWidgetExtension" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C6718402ED11D0900E3660F /* AriumWidgetExtension */;
+		};
 		6C671E8A2ED2584200E3660F /* Exceptions for "Arium" folder in "AriumWatch Watch App" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -126,6 +163,7 @@
 		6C6717B92ED0FC7800E3660F /* Arium */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				6C1E973F2ED3995C00CEA9D9 /* Exceptions for "Arium" folder in "AriumWidgetExtension" target */,
 				6C671E8A2ED2584200E3660F /* Exceptions for "Arium" folder in "AriumWatch Watch App" target */,
 			);
 			path = Arium;
@@ -143,6 +181,9 @@
 		};
 		6C6718472ED11D0900E3660F /* AriumWidget */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				6C3F9E372ED39FDF00C352F8 /* Exceptions for "AriumWidget" folder in "AriumWidgetExtension" target */,
+			);
 			path = AriumWidget;
 			sourceTree = "<group>";
 		};
@@ -268,6 +309,7 @@
 				6C6717B42ED0FC7800E3660F /* Frameworks */,
 				6C6717B52ED0FC7800E3660F /* Resources */,
 				6C671E922ED2592E00E3660F /* Embed Watch Content */,
+				6C5C41602ED39E0700332FC9 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
@@ -275,6 +317,7 @@
 				6C671E912ED2592E00E3660F /* PBXTargetDependency */,
 				6C671E942ED2593900E3660F /* PBXTargetDependency */,
 				6C671E962ED2594900E3660F /* PBXTargetDependency */,
+				6C5C415F2ED39E0700332FC9 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				6C6717B92ED0FC7800E3660F /* Arium */,
@@ -619,6 +662,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		6C5C415F2ED39E0700332FC9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 6C6718402ED11D0900E3660F /* AriumWidgetExtension */;
+			targetProxy = 6C5C415E2ED39E0700332FC9 /* PBXContainerItemProxy */;
+		};
 		6C6717C62ED0FC7900E3660F /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 6C6717B62ED0FC7800E3660F /* Arium */;
@@ -916,9 +964,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AriumWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AriumWidget;
-				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -944,9 +992,9 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
-				GENERATE_INFOPLIST_FILE = YES;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = AriumWidget/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = AriumWidget;
-				INFOPLIST_KEY_NSExtension_NSExtensionPointIdentifier = "com.apple.widgetkit-extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",

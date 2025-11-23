@@ -31,6 +31,11 @@ struct AriumApp: App {
             if newPhase == .active {
                 // Refresh completion status when app becomes active
                 habitStore.updateTodayStatus()
+                
+                // Clear notification badge when app becomes active
+                Task {
+                    await NotificationManager.shared.clearBadge()
+                }
             }
         }
     }

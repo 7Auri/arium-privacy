@@ -213,7 +213,30 @@ class NotificationManager: NSObject, ObservableObject {
     // MARK: - Badge Count
     
     func updateBadgeCount(incompleteCount: Int) {
-        UNUserNotificationCenter.current().setBadgeCount(incompleteCount)
+        Task {
+            do {
+                try await UNUserNotificationCenter.current().setBadgeCount(incompleteCount)
+            } catch {
+                print("❌ Failed to update badge count: \(error)")
+            }
+        }
+    }
+    
+    func clearBadge() async {
+        // Get delivered notifications
+        let deliveredNotifications = await notificationCenter.deliveredNotifications()
+        
+        // If there are delivered notifications, remove them to clear badge
+        if !deliveredNotifications.isEmpty {
+            notificationCenter.removeAllDeliveredNotifications()
+        }
+        
+        // Always set badge count to 0 when app is active
+        do {
+            try await UNUserNotificationCenter.current().setBadgeCount(0)
+        } catch {
+            print("❌ Failed to clear badge: \(error)")
+        }
     }
     
     // MARK: - Remove All Notifications
@@ -221,8 +244,14 @@ class NotificationManager: NSObject, ObservableObject {
     func removeAllNotifications() {
         notificationCenter.removeAllPendingNotificationRequests()
         notificationCenter.removeAllDeliveredNotifications()
-        UNUserNotificationCenter.current().setBadgeCount(0)
-        print("🗑️ Removed all notifications")
+        Task {
+            do {
+                try await UNUserNotificationCenter.current().setBadgeCount(0)
+                print("🗑️ Removed all notifications")
+            } catch {
+                print("❌ Failed to clear badge: \(error)")
+            }
+        }
     }
     
     // MARK: - Alias Methods (for compatibility)
