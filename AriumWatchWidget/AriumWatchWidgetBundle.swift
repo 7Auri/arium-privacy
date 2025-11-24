@@ -12,6 +12,8 @@ import SwiftUI
 struct AriumWatchWidgetBundle: WidgetBundle {
     var body: some Widget {
         AriumWatchWidget()
-        AriumWatchWidgetControl()
+        if #available(watchOS 26.0, *) {
+            AriumWatchWidgetControl()
+        }
     }
 }

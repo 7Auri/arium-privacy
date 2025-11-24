@@ -22,20 +22,36 @@ class WatchHabitViewModel: NSObject, ObservableObject {
             session.activate()
         }
         
+        // Load habits immediately
         loadHabits()
+        
+        // Also try loading after a short delay (for simulator timing issues)
+        Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+            loadHabits()
+        }
     }
     
     func loadHabits() {
         // Load from shared UserDefaults (App Groups)
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
-              let data = sharedDefaults.data(forKey: "SavedHabits"),
-              let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
-            print("⚠️ Failed to load habits on Watch")
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") else {
+            print("❌ Watch: Failed to access App Groups 'group.com.zorbeyteam.arium'")
+            return
+        }
+        
+        guard let data = sharedDefaults.data(forKey: "SavedHabits") else {
+            print("⚠️ Watch: No data found in App Groups for key 'SavedHabits'")
+            print("💡 Tip: Make sure iPhone app has saved habits to App Groups")
+            return
+        }
+        
+        guard let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
+            print("❌ Watch: Failed to decode habits from data (size: \(data.count) bytes)")
             return
         }
         
         habits = loadedHabits
-        print("✅ Loaded \(habits.count) habits on Watch")
+        print("✅ Watch: Loaded \(habits.count) habits successfully")
     }
     
     func toggleHabit(_ habit: Habit) {
@@ -51,14 +67,19 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     }
     
     private func saveHabits() {
+        saveHabitsToAppGroups(habits)
+    }
+    
+    private func saveHabitsToAppGroups(_ habitsToSave: [Habit]) {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
-              let data = try? JSONEncoder().encode(habits) else {
-            print("❌ Failed to save habits on Watch")
+              let data = try? JSONEncoder().encode(habitsToSave) else {
+            print("❌ Watch: Failed to save habits to App Groups")
             return
         }
         
         sharedDefaults.set(data, forKey: "SavedHabits")
-        print("✅ Saved \(habits.count) habits on Watch")
+        sharedDefaults.synchronize() // Force sync
+        print("✅ Watch: Saved \(habitsToSave.count) habits to App Groups")
     }
     
     private func sendUpdateToiPhone(habit: Habit) {
@@ -93,6 +114,19 @@ extension WatchHabitViewModel: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         Task { @MainActor in
             if message["action"] as? String == "habitsUpdated" {
+                print("📱 Watch: Received habitsUpdated message from iPhone")
+            }
+            
+            // Try to receive habits data directly
+            if let habitsData = message["habits"] as? Data,
+               let receivedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+                print("✅ Watch: Received \(receivedHabits.count) habits via WatchConnectivity message")
+                habits = receivedHabits
+                
+                // Also save to App Groups for widget access
+                saveHabitsToAppGroups(receivedHabits)
+            } else {
+                // Fallback: try loading from App Groups
                 loadHabits()
             }
         }
@@ -100,7 +134,20 @@ extension WatchHabitViewModel: WCSessionDelegate {
     
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
         Task { @MainActor in
-            loadHabits()
+            print("📱 Watch: Received application context from iPhone")
+            
+            // Try to get habits from context first (most reliable)
+            if let habitsData = applicationContext["habits"] as? Data,
+               let receivedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+                print("✅ Watch: Received \(receivedHabits.count) habits via application context")
+                habits = receivedHabits
+                
+                // Also save to App Groups for widget access
+                saveHabitsToAppGroups(receivedHabits)
+            } else {
+                // Fallback: try loading from App Groups
+                loadHabits()
+            }
         }
     }
 }

@@ -177,10 +177,15 @@ class HabitStore: NSObject, ObservableObject {
             
             // Save to local UserDefaults
             UserDefaults.standard.set(encoded, forKey: saveKey)
+            print("✅ iPhone: Saved \(habits.count) habits to local UserDefaults")
             
             // Save to shared UserDefaults (for Widget & Watch)
             if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
                 sharedDefaults.set(encoded, forKey: saveKey)
+                sharedDefaults.synchronize() // Force sync
+                print("✅ iPhone: Saved \(habits.count) habits to App Groups 'group.com.zorbeyteam.arium'")
+            } else {
+                print("❌ iPhone: Failed to access App Groups 'group.com.zorbeyteam.arium'")
             }
             
             // Sync to iCloud
@@ -237,11 +242,48 @@ class HabitStore: NSObject, ObservableObject {
     }
     
     private func sendUpdateToWatch() {
-        guard let session = session, session.isReachable else { return }
+        guard let session = session else { return }
         
-        let message: [String: Any] = ["action": "habitsUpdated"]
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("❌ Failed to send update to Watch: \(error)")
+        // In simulator, isWatchAppInstalled may return false even if app is installed
+        // So we'll try to send anyway and handle errors gracefully
+        
+        // Try to send habits data directly via WatchConnectivity
+        do {
+            let encoded = try JSONEncoder().encode(habits)
+            
+            // Send via application context (works even when not reachable)
+            // This is the most reliable method for simulators
+            let context: [String: Any] = [
+                "action": "habitsUpdated",
+                "habits": encoded
+            ]
+            try session.updateApplicationContext(context)
+            print("✅ iPhone: Sent \(habits.count) habits to Watch via application context")
+            
+            // Also try sendMessage if reachable (works better on real devices)
+            if session.isReachable {
+                let message: [String: Any] = [
+                    "action": "habitsUpdated",
+                    "habits": encoded
+                ]
+                session.sendMessage(message, replyHandler: nil) { error in
+                    // error is non-optional Error type, closure only called on error
+                    print("⚠️ iPhone: Failed to send message to Watch: \(error.localizedDescription)")
+                }
+            } else {
+                print("ℹ️ iPhone: Watch is not reachable, but application context was sent")
+            }
+        } catch {
+            // Check if error is due to Watch app not being installed
+            let nsError = error as NSError
+            if nsError.domain == "WCErrorDomain" && nsError.code == 7006 {
+                print("⚠️ iPhone: Watch app is not installed. Please:")
+                print("   1. Select 'AriumWatch Watch App' scheme in Xcode")
+                print("   2. Select Watch simulator as device")
+                print("   3. Press Cmd + R to install Watch app")
+            } else {
+                print("❌ iPhone: Failed to send habits to Watch: \(error.localizedDescription)")
+            }
         }
     }
     

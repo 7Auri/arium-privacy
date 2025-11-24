@@ -9,6 +9,7 @@ import AppIntents
 import SwiftUI
 import WidgetKit
 
+@available(watchOS 26.0, *)
 struct AriumWatchWidgetControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
@@ -28,6 +29,7 @@ struct AriumWatchWidgetControl: ControlWidget {
     }
 }
 
+@available(watchOS 26.0, *)
 extension AriumWatchWidgetControl {
     struct Provider: ControlValueProvider {
         var previewValue: Bool {
@@ -41,6 +43,7 @@ extension AriumWatchWidgetControl {
     }
 }
 
+@available(watchOS 26.0, *)
 struct StartTimerIntent: SetValueIntent {
     static let title: LocalizedStringResource = "Start a timer"
 

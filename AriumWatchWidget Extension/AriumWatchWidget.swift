@@ -16,17 +16,18 @@ struct WatchProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (WatchHabitEntry) -> ()) {
-        let habits = loadHabits()
-        let entry = WatchHabitEntry(date: Date(), habits: habits, isLoading: false, hasError: habits.isEmpty && !hasSampleData())
+        // getSnapshot must be fast - use cached or sample data
+        let habits = loadHabitsFast()
+        let entry = WatchHabitEntry(date: Date(), habits: habits, isLoading: false, hasError: habits.isEmpty)
         completion(entry)
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<Entry>) -> ()) {
+        // getTimeline must complete quickly to avoid SIGTERM
         let currentDate = Date()
-        let habits = loadHabits()
-        let hasError = habits.isEmpty && !hasSampleData()
+        let habits = loadHabitsFast()
         
-        let entry = WatchHabitEntry(date: currentDate, habits: habits, isLoading: false, hasError: hasError)
+        let entry = WatchHabitEntry(date: currentDate, habits: habits, isLoading: false, hasError: habits.isEmpty)
         
         // Refresh every 15 minutes (production)
         // For testing, change value to 1 minute
@@ -42,12 +43,30 @@ struct WatchProvider: TimelineProvider {
         completion(timeline)
     }
     
-    private func loadHabits() -> [Habit] {
+    // Fast version - minimal logging to avoid SIGTERM
+    private func loadHabitsFast() -> [Habit] {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
             return []
         }
+        return habits
+    }
+    
+    // Detailed version for debugging (use sparingly)
+    private func loadHabits() -> [Habit] {
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") else {
+            return []
+        }
+        
+        guard let data = sharedDefaults.data(forKey: "SavedHabits") else {
+            return []
+        }
+        
+        guard let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
+            return []
+        }
+        
         return habits
     }
     
@@ -98,8 +117,12 @@ struct AriumWatchWidget: Widget {
 
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: kind, provider: WatchProvider()) { entry in
-            AriumWatchWidgetEntryView(entry: entry)
-                .containerBackground(.fill.tertiary, for: .widget)
+            if #available(watchOS 10.0, *) {
+                AriumWatchWidgetEntryView(entry: entry)
+                    .containerBackground(.fill.tertiary, for: .widget)
+            } else {
+                AriumWatchWidgetEntryView(entry: entry)
+            }
         }
         .configurationDisplayName("Arium Habits")
         .description("Track your daily habits on your watch face.")

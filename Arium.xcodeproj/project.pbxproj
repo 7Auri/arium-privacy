@@ -138,6 +138,7 @@
 
 /* Begin PBXFileReference section */
 		6C23B0732ED4E122008036DF /* AriumWatchWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = AriumWatchWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
+		6C23B86C2ED4ED4E008036DF /* AriumWatchWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = AriumWatchWidgetExtension.entitlements; sourceTree = "<group>"; };
 		6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */ = {isa = PBXFileReference; lastKnownFileType = text; path = AriumStoreKit.storekit; sourceTree = "<group>"; };
 		6C6717B72ED0FC7800E3660F /* Arium.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Arium.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		6C6717C42ED0FC7900E3660F /* AriumTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = AriumTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -322,6 +323,7 @@
 		6C6717AE2ED0FC7800E3660F = {
 			isa = PBXGroup;
 			children = (
+				6C23B86C2ED4ED4E008036DF /* AriumWatchWidgetExtension.entitlements */,
 				6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */,
 				6C6717B92ED0FC7800E3660F /* Arium */,
 				6C6717C72ED0FC7900E3660F /* AriumTests */,
@@ -826,12 +828,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = AriumWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AriumWatchWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AriumWatchWidget;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "AriumWatchWidget Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "AriumWatchWidget Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -845,12 +848,14 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Debug;
 		};
@@ -859,12 +864,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = AriumWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = AriumWatchWidget/Info.plist;
-				INFOPLIST_KEY_CFBundleDisplayName = AriumWatchWidget;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = "AriumWatchWidget Extension/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "AriumWatchWidget Extension";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -878,12 +884,14 @@
 				SDKROOT = watchos;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "watchos watchsimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 26.1;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
 			};
 			name = Release;
 		};
@@ -1019,6 +1027,8 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1048,6 +1058,8 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -1156,6 +1168,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.AriumWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -1184,6 +1198,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.AriumWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";

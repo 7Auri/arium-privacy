@@ -13,6 +13,8 @@ struct AriumWidgetBundle: WidgetBundle {
     var body: some Widget {
         AriumWidget()
         AriumWidgetControl()
+        #if os(iOS)
         AriumWidgetLiveActivity()
+        #endif
     }
 }

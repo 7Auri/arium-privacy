@@ -9,6 +9,7 @@ import WidgetKit
 import SwiftUI
 
 @main
+@available(watchOS 10.0, *)
 struct AriumWatchWidgetBundle: WidgetBundle {
     var body: some Widget {
         AriumWatchWidget()
