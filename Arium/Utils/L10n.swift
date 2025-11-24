@@ -7,6 +7,7 @@
 
 import Foundation
 import SwiftUI
+import Combine
 
 class L10nManager: ObservableObject {
     static let shared = L10nManager()
