@@ -1,6 +1,12 @@
 {
   "images" : [
     {
+      "filename" : "AppIcon-1024.png",
+      "idiom" : "universal",
+      "platform" : "ios",
+      "size" : "1024x1024"
+    },
+    {
       "appearances" : [
         {
           "appearance" : "luminosity",
@@ -127,13 +133,9 @@
       "size" : "83.5x83.5"
     },
     {
-      "idiom" : "ios-marketing",
-      "scale" : "1x",
-      "size" : "1024x1024"
-    },
-    {
       "filename" : "AppIcon-1024.png",
       "idiom" : "ios-marketing",
+      "scale" : "1x",
       "size" : "1024x1024"
     }
   ],
