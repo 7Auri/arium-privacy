@@ -119,17 +119,22 @@ struct TemplateCard: View {
                 Image(systemName: template.icon)
                     .font(.system(size: 32))
                     .foregroundStyle(template.category.color)
+                    .frame(height: 32)
                 
                 VStack(spacing: 4) {
                     Text(template.title)
                         .font(.headline)
                         .foregroundStyle(.primary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
                     
                     Text(template.description)
                         .font(.caption)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(minHeight: 32, maxHeight: 32)
                 }
                 
                 HStack(spacing: 4) {
@@ -141,7 +146,7 @@ struct TemplateCard: View {
                         .foregroundStyle(.secondary)
                 }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 160)
             .padding()
             .background(Color(.secondarySystemBackground))
             .cornerRadius(16)

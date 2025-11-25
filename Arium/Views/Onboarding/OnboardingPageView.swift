@@ -78,57 +78,92 @@ struct OnboardingPageView: View {
     private var iconView: some View {
         let accentColor = page.showThemeSelector ? selectedTheme.accent : page.accentColor
         
-        return ZStack {
-            // Outer glow circle
-            Circle()
-                .fill(
-                    RadialGradient(
-                        colors: [
-                            accentColor.opacity(0.15),
-                            accentColor.opacity(0.05),
-                            Color.clear
-                        ],
-                        center: .center,
-                        startRadius: 50,
-                        endRadius: 120
-                    )
-                )
-                .frame(width: 240, height: 240)
-                .blur(radius: 20)
-            
-            // Background circle with gradient
-            Circle()
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            accentColor.opacity(0.25),
-                            accentColor.opacity(0.1),
-                            accentColor.opacity(0.05)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .frame(width: 200, height: 200)
-                .shadow(color: accentColor.opacity(0.3), radius: 20, x: 0, y: 10)
-            
-            // Icon
-            Image(systemName: page.iconName)
-                .font(.system(size: 90, weight: .ultraLight))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            accentColor,
-                            accentColor.opacity(0.8),
-                            accentColor.opacity(0.6)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+        // İlk sayfada (id: 0) Watch app icon'unu göster (yuvarlak, daha doğal)
+        if page.id == 0 {
+            return AnyView(
+                ZStack {
+                    // Outer glow circle
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    accentColor.opacity(0.15),
+                                    accentColor.opacity(0.05),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 50,
+                                endRadius: 120
+                            )
+                        )
+                        .frame(width: 240, height: 240)
+                        .blur(radius: 20)
+                    
+                    // App Logo (Watch Icon - Yuvarlak, daha doğal)
+                    Image("AppIconWatch")
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 180, height: 180)
+                        .clipShape(Circle())
+                        .shadow(color: accentColor.opacity(0.3), radius: 20, x: 0, y: 10)
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.7), value: selectedTheme)
+            )
+        } else {
+            return AnyView(
+                ZStack {
+                    // Outer glow circle
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    accentColor.opacity(0.15),
+                                    accentColor.opacity(0.05),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 50,
+                                endRadius: 120
+                            )
+                        )
+                        .frame(width: 240, height: 240)
+                        .blur(radius: 20)
+                    
+                    // Background circle with gradient
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [
+                                    accentColor.opacity(0.25),
+                                    accentColor.opacity(0.1),
+                                    accentColor.opacity(0.05)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 200, height: 200)
+                        .shadow(color: accentColor.opacity(0.3), radius: 20, x: 0, y: 10)
+                    
+                    // Icon
+                    Image(systemName: page.iconName)
+                        .font(.system(size: 90, weight: .ultraLight))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    accentColor,
+                                    accentColor.opacity(0.8),
+                                    accentColor.opacity(0.6)
+                                ],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
+                }
+                .animation(.spring(response: 0.4, dampingFraction: 0.7), value: selectedTheme)
+            )
         }
-        .animation(.spring(response: 0.4, dampingFraction: 0.7), value: selectedTheme)
     }
     
     private var themeSelectorView: some View {

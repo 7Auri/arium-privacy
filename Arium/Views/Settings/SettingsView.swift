@@ -517,6 +517,23 @@ struct SettingsView: View {
                 
                 // About Section
                 Section {
+                    // App Logo (iPhone App Icon)
+                    VStack(spacing: 16) {
+                        Image("AppIconMain")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 100, height: 100)
+                            .cornerRadius(22)
+                            .shadow(color: AriumTheme.accent.opacity(0.2), radius: 10, x: 0, y: 5)
+                        
+                        Text("Arium")
+                            .font(.system(size: 24, weight: .bold))
+                            .foregroundStyle(AriumTheme.textPrimary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 20)
+                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    
                     HStack {
                         Text(L10n.t("settings.version"))
                             .foregroundStyle(.primary)
