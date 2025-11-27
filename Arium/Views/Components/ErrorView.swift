@@ -53,23 +53,41 @@ struct ErrorView: View {
 
 struct ErrorAlert: ViewModifier {
     @Binding var error: AppError?
+    @State private var showingAlert = false
+    @State private var alertTitle = ""
+    @State private var alertMessage = ""
+    @State private var errorId = UUID()
     
     func body(content: Content) -> some View {
         content
+            .onChange(of: error?.errorTitle ?? "") { oldValue, newValue in
+                if let newError = error {
+                    alertTitle = newError.errorTitle
+                    alertMessage = newError.errorMessage.isEmpty ? " " : newError.errorMessage
+                    showingAlert = true
+                    errorId = UUID()
+                } else {
+                    showingAlert = false
+                }
+            }
+            .onChange(of: error?.errorMessage ?? "") { oldValue, newValue in
+                if let newError = error {
+                    alertTitle = newError.errorTitle
+                    alertMessage = newError.errorMessage.isEmpty ? " " : newError.errorMessage
+                    showingAlert = true
+                } else {
+                    showingAlert = false
+                }
+            }
             .alert(
-                error?.errorTitle ?? L10n.t("error.title"),
-                isPresented: Binding(
-                    get: { error != nil },
-                    set: { if !$0 { error = nil } }
-                )
+                alertTitle.isEmpty ? L10n.t("error.title") : alertTitle,
+                isPresented: $showingAlert
             ) {
                 Button(L10n.t("button.ok")) {
                     error = nil
                 }
             } message: {
-                if let error = error {
-                    Text(error.errorMessage)
-                }
+                Text(alertMessage)
             }
     }
 }

@@ -22,9 +22,14 @@ struct SettingsView: View {
     @State private var exportURL: URL?
     @StateObject private var exportImport = HabitExportImport.shared
     @StateObject private var premiumManager = PremiumManager.shared
+    @StateObject private var cloudSyncManager = CloudSyncManager.shared
     @State private var showingPremiumError = false
     @State private var premiumError: AppError?
     @State private var exportError: AppError?
+    @State private var showingiCloudSyncSuccess = false
+    @State private var showingiCloudSyncError = false
+    @State private var iCloudSyncError: AppError?
+    @State private var iCloudLoadMessage = ""
     @State private var showingLanguagePicker = false
     @StateObject private var appThemeManager = AppThemeManager.shared
     @State private var showingThemePicker = false
@@ -34,6 +39,11 @@ struct SettingsView: View {
     @State private var showingImportSuccess = false
     @State private var exportedHabitCount = 0
     @State private var importedHabitCount = 0
+    @State private var showingImportSelection = false
+    @State private var importItems: [ImportHabitItem] = []
+    @State private var showingDuplicateAlert = false
+    @State private var duplicateHabit: Habit?
+    @State private var duplicateItemId: UUID?
     
     var body: some View {
         NavigationStack {
@@ -348,18 +358,32 @@ struct SettingsView: View {
                     }
                     .tint(.blue)
                     .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    // Note: No automatic sync when toggle is enabled
+                    // Users must manually use "Load from iCloud" or "Sync Now" buttons
                     
                     if habitStore.iCloudSyncEnabled {
                         Button {
                             Task {
-                                await habitStore.syncWithiCloud()
+                                do {
+                                    try await habitStore.syncWithiCloud()
+                                    showingiCloudSyncSuccess = true
+                                } catch {
+                                    print("❌ iCloud sync error: \(error)")
+                                    showingiCloudSyncError = true
+                                    iCloudSyncError = NetworkError.unknown
+                                }
                             }
                         } label: {
                             HStack(spacing: 12) {
-                                Image(systemName: "arrow.clockwise.circle.fill")
-                                    .font(.body)
-                                    .foregroundStyle(.blue.opacity(0.8))
-                                    .frame(width: 28, alignment: .center)
+                                if cloudSyncManager.isSyncing {
+                                    ProgressView()
+                                        .frame(width: 28, height: 28)
+                                } else {
+                                    Image(systemName: "arrow.clockwise.circle.fill")
+                                        .font(.body)
+                                        .foregroundStyle(.blue.opacity(0.8))
+                                        .frame(width: 28, alignment: .center)
+                                }
                                 
                                 Text(L10n.t("settings.icloud.syncNow"))
                                     .foregroundStyle(.primary)
@@ -367,13 +391,80 @@ struct SettingsView: View {
                                 Spacer()
                             }
                         }
+                        .disabled(cloudSyncManager.isSyncing)
                         .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        
+                        Button {
+                            Task {
+                                do {
+                                    let beforeCount = habitStore.habits.count
+                                    try await habitStore.loadFromiCloud()
+                                    let afterCount = habitStore.habits.count
+                                    let addedCount = afterCount - beforeCount
+                                    
+                                    if addedCount > 0 {
+                                        iCloudLoadMessage = "\(addedCount) alışkanlık iCloud'dan yüklendi"
+                                    } else if afterCount > 0 {
+                                        iCloudLoadMessage = "Tüm alışkanlıklar zaten mevcut"
+                                    } else {
+                                        iCloudLoadMessage = "iCloud'da alışkanlık bulunamadı"
+                                    }
+                                    showingiCloudSyncSuccess = true
+                                } catch {
+                                    print("❌ iCloud load error: \(error)")
+                                    showingiCloudSyncError = true
+                                    iCloudSyncError = NetworkError.unknown
+                                }
+                            }
+                        } label: {
+                            HStack(spacing: 12) {
+                                Image(systemName: "arrow.down.circle.fill")
+                                    .font(.body)
+                                    .foregroundStyle(.blue.opacity(0.8))
+                                    .frame(width: 28, alignment: .center)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L10n.t("settings.icloud.loadFromCloud"))
+                                        .foregroundStyle(.primary)
+                                    
+                                    Text(L10n.t("settings.icloud.loadFromCloud.description"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                }
+                                
+                                Spacer()
+                            }
+                        }
+                        .disabled(cloudSyncManager.isSyncing)
+                        .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        
+                        if let lastSync = cloudSyncManager.lastSyncDate {
+                            HStack(spacing: 12) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.body)
+                                    .foregroundStyle(.green.opacity(0.8))
+                                    .frame(width: 28, alignment: .center)
+                                
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(L10n.t("settings.icloud.lastSync"))
+                                        .font(.caption)
+                                        .foregroundStyle(.secondary)
+                                    
+                                    Text(lastSync.localizedRelativeTimeString())
+                                        .font(.caption2)
+                                        .foregroundStyle(.tertiary)
+                                }
+                                
+                                Spacer()
+                            }
+                            .listRowBackground(Color(.secondarySystemGroupedBackground))
+                        }
                     }
                 } header: {
                     Text(L10n.t("settings.icloud.title"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
+                    .font(.footnote)
+                    .textCase(.uppercase)
+                    .foregroundStyle(.secondary)
                 }
                 
                 // Export/Import Section
@@ -622,6 +713,14 @@ struct SettingsView: View {
             }
             .errorAlert(error: $premiumError)
             .errorAlert(error: $exportError)
+            .errorAlert(error: $iCloudSyncError)
+            .alert(L10n.t("settings.icloud.syncSuccess"), isPresented: $showingiCloudSyncSuccess) {
+                Button(L10n.t("button.ok")) { }
+            } message: {
+                if !iCloudLoadMessage.isEmpty {
+                    Text(iCloudLoadMessage)
+                }
+            }
             .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
             .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                 Button(L10n.t("button.ok")) { }
@@ -667,6 +766,34 @@ struct SettingsView: View {
                         }
                 }
             }
+            .sheet(isPresented: $showingImportSelection) {
+                ImportHabitSelectionSheet(
+                    items: $importItems,
+                    isPremium: premiumManager.isPremium,
+                    maxFreeHabits: habitStore.maxFreeHabits
+                ) { selectedItems in
+                    // Merge habits
+                    let mergedHabits = exportImport.mergeHabits(
+                        items: selectedItems,
+                        isPremium: premiumManager.isPremium,
+                        maxFreeHabits: habitStore.maxFreeHabits
+                    )
+                    
+                    // Calculate how many new habits were added
+                    let existingCount = habitStore.habits.count
+                    importedHabitCount = mergedHabits.count - existingCount
+                    
+                    // Update habit store
+                    habitStore.habits = mergedHabits
+                    habitStore.saveHabits()
+                    
+                    // Show success message
+                    showingImportSuccess = true
+                    showingImportSelection = false
+                    
+                    print("✅ Import completed successfully: \(importedHabitCount) new habits added")
+                }
+            }
             .fileImporter(
                 isPresented: $showingImportPicker,
                 allowedContentTypes: [.json],
@@ -704,15 +831,16 @@ struct SettingsView: View {
                         let importedHabits = try exportImport.importHabits(from: data)
                         print("✅ Successfully imported \(importedHabits.count) habits")
                         
-                        // Update habit store
-                        importedHabitCount = importedHabits.count
-                        habitStore.habits = importedHabits
-                        habitStore.saveHabits()
+                        // Prepare import items for selection
+                        let items = exportImport.prepareImportItems(
+                            importedHabits: importedHabits,
+                            existingHabits: habitStore.habits,
+                            isPremium: premiumManager.isPremium
+                        )
+                        importItems = items
+                        showingImportSelection = true
                         
-                        // Show success message
-                        showingImportSuccess = true
-                        
-                        print("✅ Import completed successfully")
+                        print("✅ Import selection screen prepared")
                     } catch let error as DecodingError {
                         print("❌ JSON decode failed: \(error)")
                         print("   - \(error.localizedDescription)")
@@ -764,6 +892,38 @@ struct LanguagePickerSheet: View {
                     icon: "globe"
                 ) {
                     currentLanguage = "tr"
+                }
+                
+                LanguageOptionRow(
+                    title: "Deutsch",
+                    isSelected: currentLanguage == "de",
+                    icon: "globe"
+                ) {
+                    currentLanguage = "de"
+                }
+                
+                LanguageOptionRow(
+                    title: "Français",
+                    isSelected: currentLanguage == "fr",
+                    icon: "globe"
+                ) {
+                    currentLanguage = "fr"
+                }
+                
+                LanguageOptionRow(
+                    title: "Español",
+                    isSelected: currentLanguage == "es",
+                    icon: "globe"
+                ) {
+                    currentLanguage = "es"
+                }
+                
+                LanguageOptionRow(
+                    title: "Italiano",
+                    isSelected: currentLanguage == "it",
+                    icon: "globe"
+                ) {
+                    currentLanguage = "it"
                 }
             }
             .navigationTitle(L10n.t("settings.language"))
@@ -1012,6 +1172,244 @@ struct ColorOptionButton: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Import Habit Selection Sheet
+
+struct ImportHabitSelectionSheet: View {
+    @Binding var items: [ImportHabitItem]
+    let isPremium: Bool
+    let maxFreeHabits: Int
+    let onImport: ([ImportHabitItem]) -> Void
+    @Environment(\.dismiss) var dismiss
+    @State private var showingDuplicateAlert = false
+    @State private var duplicateItem: ImportHabitItem?
+    
+    var existingHabits: [ImportHabitItem] {
+        items.filter { $0.isExisting }
+    }
+    
+    var newHabits: [ImportHabitItem] {
+        items.filter { !$0.isExisting }
+    }
+    
+    var selectedNewHabitsCount: Int {
+        items.filter { !$0.isExisting && $0.isSelected }.count
+    }
+    
+    var existingHabitsCount: Int {
+        existingHabits.count
+    }
+    
+    var totalSelectedCount: Int {
+        items.filter { $0.isSelected }.count
+    }
+    
+    var maxSelectable: Int {
+        isPremium ? Int.max : maxFreeHabits
+    }
+    
+    var canSelectMore: Bool {
+        isPremium || totalSelectedCount < maxFreeHabits
+    }
+    
+    var remainingSlots: Int {
+        max(0, maxFreeHabits - totalSelectedCount)
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // Info section
+                if !isPremium {
+                    Section {
+                        HStack {
+                            Image(systemName: "info.circle.fill")
+                                .foregroundStyle(.blue)
+                            Text(String(format: L10n.t("import.limitReached"), remainingSlots))
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+                
+                // Existing habits section
+                if !existingHabits.isEmpty {
+                    Section {
+                        ForEach(existingHabits) { item in
+                            ImportHabitRow(
+                                item: item,
+                                isPremium: isPremium,
+                                canSelectMore: canSelectMore,
+                                maxSelectable: maxSelectable
+                            ) {
+                                toggleSelection(for: item)
+                            }
+                        }
+                    } header: {
+                        Text(L10n.t("import.existingHabits"))
+                    }
+                }
+                
+                // New habits section
+                if !newHabits.isEmpty {
+                    Section {
+                        ForEach(newHabits) { item in
+                            ImportHabitRow(
+                                item: item,
+                                isPremium: isPremium,
+                                canSelectMore: canSelectMore,
+                                maxSelectable: maxSelectable
+                            ) {
+                                if item.isDuplicate {
+                                    duplicateItem = item
+                                    showingDuplicateAlert = true
+                                } else {
+                                    toggleSelection(for: item)
+                                }
+                            }
+                        }
+                    } header: {
+                        Text(L10n.t("import.newHabits"))
+                    } footer: {
+                        Text(String(format: L10n.t("import.selectedCount"), selectedNewHabitsCount))
+                    }
+                }
+            }
+            .navigationTitle(L10n.t("import.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.t("button.cancel")) {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.t("import.button")) {
+                        onImport(items)
+                    }
+                    .disabled(selectedNewHabitsCount == 0)
+                }
+            }
+            .alert(L10n.t("import.duplicate.title"), isPresented: $showingDuplicateAlert) {
+                if let item = duplicateItem {
+                    Button(L10n.t("import.duplicate.overwrite")) {
+                        resolveDuplicate(for: item, resolution: .overwrite)
+                    }
+                    Button(L10n.t("import.duplicate.skip")) {
+                        resolveDuplicate(for: item, resolution: .skip)
+                    }
+                    Button(L10n.t("import.duplicate.newId")) {
+                        resolveDuplicate(for: item, resolution: .newId)
+                    }
+                    Button(L10n.t("button.cancel"), role: .cancel) {
+                        duplicateItem = nil
+                    }
+                }
+            } message: {
+                if let item = duplicateItem {
+                    Text(String(format: L10n.t("import.duplicate.message"), item.habit.title))
+                }
+            }
+        }
+    }
+    
+    private func toggleSelection(for item: ImportHabitItem) {
+        // Don't allow toggling existing habits
+        if item.isExisting {
+            return
+        }
+        
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        
+        if items[index].isSelected {
+            // Deselect
+            items[index].isSelected = false
+        } else {
+            // Check limit
+            if !isPremium && totalSelectedCount >= maxFreeHabits {
+                return
+            }
+            items[index].isSelected = true
+        }
+    }
+    
+    private func resolveDuplicate(for item: ImportHabitItem, resolution: DuplicateResolution) {
+        guard let index = items.firstIndex(where: { $0.id == item.id }) else { return }
+        
+        switch resolution {
+        case .overwrite:
+            items[index].isSelected = true
+            items[index].duplicateResolution = .overwrite
+        case .skip:
+            items[index].isSelected = false
+            items[index].duplicateResolution = .skip
+        case .newId:
+            items[index].isSelected = true
+            items[index].duplicateResolution = .newId
+        }
+        
+        duplicateItem = nil
+    }
+}
+
+struct ImportHabitRow: View {
+    let item: ImportHabitItem
+    let isPremium: Bool
+    let canSelectMore: Bool
+    let maxSelectable: Int
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                if item.isExisting {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 22))
+                        .foregroundStyle(.green)
+                } else {
+                    Image(systemName: item.isSelected ? "checkmark.circle.fill" : "circle")
+                        .font(.system(size: 22))
+                        .foregroundStyle(
+                            item.isSelected ? AriumTheme.accent : .secondary
+                        )
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    HStack {
+                        Text(item.habit.title)
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(.primary)
+                        
+                        if item.isDuplicate {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.caption)
+                                .foregroundStyle(.orange)
+                        }
+                        
+                        if item.isExisting {
+                            Text("(Existing)")
+                                .font(.caption)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                    
+                    if !item.habit.notes.isEmpty {
+                        Text(item.habit.notes)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 4)
+            .opacity(item.isExisting || item.isSelected || canSelectMore ? 1.0 : 0.5)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(item.isExisting || (!item.isSelected && !canSelectMore))
     }
 }
 

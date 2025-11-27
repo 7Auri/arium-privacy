@@ -23,6 +23,9 @@ struct AriumApp: App {
                     .task {
                         // Update habits status on app launch (async, non-blocking)
                         habitStore.updateTodayStatus()
+                        
+                        // Note: iCloud sync is now manual-only for better user control and privacy
+                        // Users can sync via "Sync Now" or "Load from iCloud" buttons in Settings
                     }
             } else {
                 OnboardingView()
@@ -39,6 +42,9 @@ struct AriumApp: App {
                 Task {
                     await NotificationManager.shared.clearBadge()
                 }
+                
+                // Note: iCloud sync is now manual-only for better user control and privacy
+                // Users can sync via "Sync Now" or "Load from iCloud" buttons in Settings
             }
         }
     }

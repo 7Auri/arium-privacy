@@ -23,7 +23,7 @@ class HabitStore: NSObject, ObservableObject {
     @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = false // Disabled for free Apple account
     
     private let saveKey = "SavedHabits"
-    private let maxFreeHabits = 3
+    let maxFreeHabits = 3
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
     private lazy var cloudSync: CloudSyncManager? = {
         guard iCloudSyncEnabled else { return nil }
@@ -82,6 +82,9 @@ class HabitStore: NSObject, ObservableObject {
         
         saveHabits()
         isLoading = false
+        
+        // Note: Auto-sync removed for legal/privacy compliance
+        // Sync happens automatically on app launch/activation or manually via "Sync Now" button
     }
     
     // MARK: - Validation
@@ -117,6 +120,9 @@ class HabitStore: NSObject, ObservableObject {
             }
             
             saveHabits()
+            
+            // Note: Auto-sync removed for legal/privacy compliance
+            // Sync happens automatically on app launch/activation or manually via "Sync Now" button
         }
     }
     
@@ -136,6 +142,9 @@ class HabitStore: NSObject, ObservableObject {
         }
         
         saveHabits()
+        
+        // Note: Auto-sync removed for legal/privacy compliance
+        // Sync happens automatically on app launch/activation or manually via "Sync Now" button
     }
     
     func toggleHabitCompletion(_ habitId: UUID, note: String? = nil) {
@@ -160,6 +169,9 @@ class HabitStore: NSObject, ObservableObject {
             }
             
             saveHabits()
+            
+            // Note: Auto-sync removed for legal/privacy compliance
+            // Sync happens automatically on app launch/activation or manually via "Sync Now" button
         }
     }
     
@@ -177,15 +189,21 @@ class HabitStore: NSObject, ObservableObject {
             
             // Save to local UserDefaults
             UserDefaults.standard.set(encoded, forKey: saveKey)
-            print("✅ iPhone: Saved \(habits.count) habits to local UserDefaults")
+            #if DEBUG
+            print("✅ Saved \(habits.count) habits to local storage")
+            #endif
             
             // Save to shared UserDefaults (for Widget & Watch)
             if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
                 sharedDefaults.set(encoded, forKey: saveKey)
                 sharedDefaults.synchronize() // Force sync
-                print("✅ iPhone: Saved \(habits.count) habits to App Groups 'group.com.zorbeyteam.arium'")
+                #if DEBUG
+                print("✅ Saved \(habits.count) habits to App Groups")
+                #endif
             } else {
-                print("❌ iPhone: Failed to access App Groups 'group.com.zorbeyteam.arium'")
+                #if DEBUG
+                print("⚠️ Failed to access App Groups")
+                #endif
             }
             
             // Sync to iCloud
@@ -287,16 +305,88 @@ class HabitStore: NSObject, ObservableObject {
         }
     }
     
-    func syncWithiCloud() async {
-        guard iCloudSyncEnabled, let cloudSync = cloudSync else { return }
+    func syncWithiCloud() async throws {
+        guard iCloudSyncEnabled else {
+            // User hasn't enabled iCloud sync in settings
+            throw NetworkError.unknown
+        }
         
-        do {
-            let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
-            await MainActor.run {
-                habits = syncedHabits
+        guard let cloudSync = cloudSync else {
+            // CloudSyncManager not initialized
+            throw NetworkError.unknown
+        }
+        
+        // Check iCloud account status
+        let isAvailable = await cloudSync.checkAccountStatus()
+        guard isAvailable else {
+            // iCloud account not signed in or not available
+            // This is different from network error - it's an account issue
+            throw NetworkError.noConnection
+        }
+        
+        let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
+        await MainActor.run {
+            let oldCount = habits.count
+            habits = syncedHabits
+            let newCount = habits.count
+            print("📊 Sync result: \(oldCount) → \(newCount) habits")
+            saveHabits()
+        }
+    }
+    
+    // Sadece iCloud'dan indir (merge yapmadan)
+    func loadFromiCloud() async throws {
+        guard iCloudSyncEnabled else {
+            throw NetworkError.unknown
+        }
+        
+        guard let cloudSync = cloudSync else {
+            throw NetworkError.unknown
+        }
+        
+        // Account status'u kontrol et
+        let isAvailable = await cloudSync.checkAccountStatus()
+        guard isAvailable else {
+            throw NetworkError.noConnection
+        }
+        
+        print("📥 Starting download from iCloud...")
+        let cloudHabits = try await cloudSync.downloadHabits()
+        print("📥 Downloaded \(cloudHabits.count) habits from iCloud")
+        
+        await MainActor.run {
+            if cloudHabits.isEmpty {
+                print("ℹ️ No habits found in iCloud")
+            } else {
+                // Cloud'dan gelen verileri local ile birleştir (cloud öncelikli)
+                var mergedHabits: [UUID: Habit] = [:]
+                
+                // Önce local habits'leri ekle
+                for habit in habits {
+                    mergedHabits[habit.id] = habit
+                }
+                
+                // Cloud habits'leri ekle (cloud öncelikli - daha yeni olanı tut)
+                for cloudHabit in cloudHabits {
+                    if let localHabit = mergedHabits[cloudHabit.id] {
+                        // Aynı ID varsa, daha yeni olanı tut
+                        if cloudHabit.createdAt > localHabit.createdAt {
+                            mergedHabits[cloudHabit.id] = cloudHabit
+                            print("🔄 Replaced local habit '\(localHabit.title)' with cloud version")
+                        } else {
+                            print("ℹ️ Keeping local habit '\(localHabit.title)' (newer than cloud)")
+                        }
+                    } else {
+                        // Yeni habit cloud'dan
+                        mergedHabits[cloudHabit.id] = cloudHabit
+                        print("➕ Added new habit from cloud: '\(cloudHabit.title)'")
+                    }
+                }
+                
+                habits = Array(mergedHabits.values)
+                print("✅ Loaded \(habits.count) habits from iCloud (merged with local)")
+                saveHabits()
             }
-        } catch {
-            print("❌ Failed to sync with iCloud: \(error)")
         }
     }
     

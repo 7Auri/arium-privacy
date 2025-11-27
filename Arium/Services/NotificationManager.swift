@@ -35,7 +35,10 @@ class NotificationManager: NSObject, ObservableObject {
             }
             return granted
         } catch {
-            print("❌ Notification authorization error: \(error)")
+            // Silent fail - notification permission denied (normal in simulator or if user declined)
+            #if DEBUG
+            print("⚠️ Notification authorization error: \(error.localizedDescription)")
+            #endif
             return false
         }
     }
