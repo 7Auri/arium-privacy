@@ -66,3 +66,5 @@ echo "✨ iPhone icon'ları hazır!"
 echo ""
 echo "💡 Not: Icon'un safe area (%10-15) ile hazırlandığından emin olun."
 
+
+

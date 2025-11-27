@@ -345,6 +345,13 @@ enum L10n {
             "premium.purchase.success.title": "Welcome to Premium!",
             "premium.purchase.success.message": "Thank you for upgrading! You now have access to all premium features.",
             
+            // Update
+            "update.available.title": "Update Available",
+            "update.available.message": "A new version (%@) is available. Update now to get the latest features and improvements.",
+            "update.available.message.generic": "A new version is available. Update now to get the latest features and improvements.",
+            "update.available.update": "Update",
+            "button.later": "Later",
+            
             // Templates
             "template.meditate.title": "Meditate",
             "template.meditate.description": "Daily meditation practice",
@@ -632,6 +639,13 @@ enum L10n {
             "premium.purchase.success.title": "Premium'a Hoş Geldiniz!",
             "premium.purchase.success.message": "Yükseltme için teşekkürler! Artık tüm premium özelliklere erişiminiz var.",
             
+            // Update
+            "update.available.title": "Güncelleme Mevcut",
+            "update.available.message": "Yeni bir sürüm (%@) mevcut. En son özellikler ve iyileştirmeler için şimdi güncelleyin.",
+            "update.available.message.generic": "Yeni bir sürüm mevcut. En son özellikler ve iyileştirmeler için şimdi güncelleyin.",
+            "update.available.update": "Güncelle",
+            "button.later": "Sonra",
+            
             // Templates
             "template.meditate.title": "Meditasyon",
             "template.meditate.description": "Günlük meditasyon pratiği",
@@ -916,6 +930,13 @@ enum L10n {
             "premium.purchasing": "Kauf wird verarbeitet...",
             "premium.purchase.success.title": "Willkommen bei Premium!",
             "premium.purchase.success.message": "Danke für das Upgrade! Du hast jetzt Zugriff auf alle Premium-Funktionen.",
+            
+            // Update
+            "update.available.title": "Update verfügbar",
+            "update.available.message": "Eine neue Version (%@) ist verfügbar. Aktualisiere jetzt, um die neuesten Funktionen und Verbesserungen zu erhalten.",
+            "update.available.message.generic": "Eine neue Version ist verfügbar. Aktualisiere jetzt, um die neuesten Funktionen und Verbesserungen zu erhalten.",
+            "update.available.update": "Aktualisieren",
+            "button.later": "Später",
             
             // Templates
             "template.meditate.title": "Meditieren",
@@ -1202,6 +1223,13 @@ enum L10n {
             "premium.purchase.success.title": "Bienvenue sur Premium !",
             "premium.purchase.success.message": "Merci d'avoir fait la mise à niveau ! Vous avez maintenant accès à toutes les fonctionnalités Premium.",
             
+            // Update
+            "update.available.title": "Mise à jour disponible",
+            "update.available.message": "Une nouvelle version (%@) est disponible. Mettez à jour maintenant pour obtenir les dernières fonctionnalités et améliorations.",
+            "update.available.message.generic": "Une nouvelle version est disponible. Mettez à jour maintenant pour obtenir les dernières fonctionnalités et améliorations.",
+            "update.available.update": "Mettre à jour",
+            "button.later": "Plus tard",
+            
             // Templates
             "template.meditate.title": "Méditer",
             "template.meditate.description": "Pratique quotidienne de méditation",
@@ -1487,6 +1515,13 @@ enum L10n {
             "premium.purchase.success.title": "¡Bienvenido a Premium!",
             "premium.purchase.success.message": "¡Gracias por actualizar! Ahora tienes acceso a todas las funciones Premium.",
             
+            // Update
+            "update.available.title": "Actualización disponible",
+            "update.available.message": "Una nueva versión (%@) está disponible. Actualiza ahora para obtener las últimas funciones y mejoras.",
+            "update.available.message.generic": "Una nueva versión está disponible. Actualiza ahora para obtener las últimas funciones y mejoras.",
+            "update.available.update": "Actualizar",
+            "button.later": "Más tarde",
+            
             // Templates
             "template.meditate.title": "Meditar",
             "template.meditate.description": "Práctica diaria de meditación",
@@ -1771,6 +1806,13 @@ enum L10n {
             "premium.purchasing": "Elaborazione acquisto...",
             "premium.purchase.success.title": "Benvenuto in Premium!",
             "premium.purchase.success.message": "Grazie per l'aggiornamento! Ora hai accesso a tutte le funzionalità Premium.",
+            
+            // Update
+            "update.available.title": "Aggiornamento disponibile",
+            "update.available.message": "È disponibile una nuova versione (%@). Aggiorna ora per ottenere le ultime funzionalità e miglioramenti.",
+            "update.available.message.generic": "È disponibile una nuova versione. Aggiorna ora per ottenere le ultime funzionalità e miglioramenti.",
+            "update.available.update": "Aggiorna",
+            "button.later": "Più tardi",
             
             // Templates
             "template.meditate.title": "Meditare",

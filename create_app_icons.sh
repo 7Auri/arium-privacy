@@ -81,3 +81,5 @@ echo ""
 echo "🎉 Tüm icon boyutları oluşturuldu!"
 echo "✨ Icon'lar $OUTPUT_DIR dizinine eklendi."
 
+
+

@@ -70,3 +70,5 @@ Icon'ları düzenledikten sonra:
 - ✅ Daha belirgin logo
 - ✅ Güçlü kontrast
 
+
+

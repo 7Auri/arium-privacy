@@ -92,3 +92,5 @@ echo "   Swift kodunda:"
 echo "   Image(\"AppIconSade\")"
 echo "   Image(\"AppIconDetayli\")"
 
+
+

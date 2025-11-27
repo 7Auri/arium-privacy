@@ -23,8 +23,10 @@ struct SettingsView: View {
     @StateObject private var exportImport = HabitExportImport.shared
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var cloudSyncManager = CloudSyncManager.shared
+    @StateObject private var versionChecker = AppVersionChecker.shared
     @State private var showingPremiumError = false
     @State private var premiumError: AppError?
+    @State private var showingUpdateAlert = false
     @State private var exportError: AppError?
     @State private var showingiCloudSyncSuccess = false
     @State private var showingiCloudSyncError = false
@@ -631,7 +633,7 @@ struct SettingsView: View {
                         
                         Spacer()
                         
-                        Text("1.0.0")
+                        Text(Bundle.main.displayVersion)
                             .foregroundStyle(.secondary)
                     }
                     .listRowBackground(Color(.secondarySystemGroupedBackground))
@@ -726,6 +728,25 @@ struct SettingsView: View {
                 Button(L10n.t("button.ok")) { }
             } message: {
                 Text(L10n.t("premium.purchase.success.message"))
+            }
+            .alert(L10n.t("update.available.title"), isPresented: $showingUpdateAlert) {
+                Button(L10n.t("update.available.update")) {
+                    versionChecker.openAppStore()
+                }
+                Button(L10n.t("button.later"), role: .cancel) { }
+            } message: {
+                if let latestVersion = versionChecker.latestVersion {
+                    Text(String(format: L10n.t("update.available.message"), latestVersion))
+                } else {
+                    Text(L10n.t("update.available.message.generic"))
+                }
+            }
+            .task {
+                // Check for updates when settings view appears
+                await versionChecker.checkForUpdates()
+                if versionChecker.hasUpdateAvailable {
+                    showingUpdateAlert = true
+                }
             }
             .sheet(isPresented: $showingExportHabitPicker) {
                 ExportHabitPickerSheet(

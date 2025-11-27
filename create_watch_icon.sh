@@ -42,3 +42,5 @@ echo ""
 echo "💡 Not: Watch icon'ları dairesel görünecek (watchOS otomatik yapar)"
 echo "   Icon'un merkezde ve dengeli olduğundan emin olun."
 
+
+

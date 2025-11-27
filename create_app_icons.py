@@ -170,3 +170,5 @@ if __name__ == "__main__":
         print("\n❌ Hata oluştu!")
         sys.exit(1)
 
+
+

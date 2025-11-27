@@ -86,3 +86,5 @@ Image("AppIconDetayli")
 
 Şu anda placeholder icon'lar kullanılıyor. Gerçek icon dosyalarını ekledikten sonra script'leri çalıştırarak güncelleyebilirsiniz.
 
+
+

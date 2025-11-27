@@ -82,3 +82,5 @@ echo "   - App Icon: Arium/Assets.xcassets/AppIcon.appiconset/"
 echo "   - AppIconSade: Arium/Assets.xcassets/AppIconSade.imageset/"
 echo "   - AppIconDetayli: Arium/Assets.xcassets/AppIconDetayli.imageset/"
 
+
+

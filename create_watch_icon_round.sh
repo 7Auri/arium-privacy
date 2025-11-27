@@ -43,3 +43,5 @@ echo "✨ Watch icon'ları hazır!"
 echo ""
 echo "💡 Not: Icon'un yuvarlak mask ile hazırlandığından emin olun."
 
+
+

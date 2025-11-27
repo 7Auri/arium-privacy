@@ -77,3 +77,5 @@ Script çalıştıktan sonra:
 - ✅ Uygulama içi icon'lar hazır
 - ✅ Xcode'da Assets.xcassets'te görünecek
 
+
+
