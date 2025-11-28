@@ -4,6 +4,7 @@
   <img src="https://img.shields.io/badge/iOS-18.0+-blue.svg" />
   <img src="https://img.shields.io/badge/Swift-5.0-orange.svg" />
   <img src="https://img.shields.io/badge/SwiftUI-Latest-green.svg" />
+  <img src="https://img.shields.io/badge/Version-1.1-purple.svg" />
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 </p>
 
@@ -14,12 +15,13 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
 ### 🎯 Core Features
 - ✅ **Alışkanlık Takibi**: Günlük alışkanlıklarınızı kolayca ekleyin ve tamamlayın
 - 🔥 **Streak Sistemi**: Ardışık günlerinizi takip edin ve motivasyonunuzu koruyun
-- 📊 **İstatistikler**: Swift Charts ile güzel görselleştirilmiş ilerleme grafikleri
-- 📝 **Günlük Notlar**: Her tamamlama için kısa notlar ekleyin (100 karakter)
+- 📊 **İstatistikler**: Swift Charts ile görselleştirilmiş ilerleme grafikleri
+- 📝 **Günlük Notlar**: Her tamamlama için kısa notlar ekleyin (100 karakter, Premium)
 - 🎨 **5 Tema**: Purple, Blue, Green, Pink, Orange - kişiselleştirilebilir renkler
-- 🎯 **Özelleştirilebilir Hedefler**: 7, 14, 21, 30, 60, 90 günlük challenge'lar
-- 📅 **Başlangıç Tarihi**: Geçmişe dönük takip için özel tarih seçimi
-- 🌍 **Çok Dil Desteği**: Türkçe ve İngilizce
+- 🎯 **Özelleştirilebilir Hedefler**: 7, 14, 21, 30, 60, 90 günlük challenge'lar (Premium)
+- 📅 **Başlangıç Tarihi**: Geçmişe dönük takip için özel tarih seçimi (Premium)
+- 🏷️ **Kategori Sistemi**: 6 kategori (Work, Health, Learning, Personal, Finance, Social) (Premium)
+- 🌍 **6 Dil Desteği**: Türkçe, İngilizce, Almanca, Fransızca, İspanyolca, İtalyanca
   - **Otomatik Dil Algılama**: İlk açılışta telefonun dili otomatik algılanır
   - **Sistem Dili Takibi**: Settings'te "Sistem Dili" seçeneği ile telefonun dilini takip edin
   - **Anında Güncelleme**: Dil değişikliği tüm ekranlarda anında yansır
@@ -34,27 +36,33 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - Temalar
   - İstatistikler (7 gün)
   
-- **Premium Tier**:
+- **Premium Tier** (StoreKit 2):
   - Sınırsız alışkanlık
   - Günlük notlar
   - Özelleştirilebilir hedefler
   - Özel başlangıç tarihi
+  - Kategori seçimi
   - Tam istatistikler (30 gün)
-  - Gelecekteki premium özellikler
+  - Habit templates (10+ şablon)
 
 ### 🛠 Gelişmiş Özellikler
 - 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları
 - 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large)
   - Interactive widget'lar (iOS 18+)
   - Otomatik güncelleme (15 dakika)
-  - Türkçe/İngilizce localization
+  - Loading, error ve empty states
+  - 6 dil desteği
 - ⌚ **Apple Watch**: Tam entegre watchOS uygulaması
   - Habit completion on watch
+  - Haptic feedback
   - Watch Complications (Circular, Rectangular, Inline, Corner, Bezel)
   - WatchConnectivity ile iPhone senkronizasyonu
-- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit) (opsiyonel)
-- 📋 **Habit Templates**: 10 hazır alışkanlık şablonu
+- ☁️ **iCloud Sync**: Cihazlar arası senkronizasyon (CloudKit) - Manuel sync
+- 📋 **Habit Templates**: 10 hazır alışkanlık şablonu (Premium)
 - 💾 **Export/Import**: JSON formatında alışkanlık yedekleme ve geri yükleme
+  - Duplicate handling (overwrite, skip, new ID)
+  - Premium limit kontrolü
+- 🔄 **Version Management**: Otomatik güncelleme kontrolü ve bildirimi
 
 ## 📱 Ekran Görüntüleri
 
@@ -70,31 +78,39 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
 - **Architecture**: MVVM (Model-View-ViewModel)
 - **Data Persistence**: UserDefaults + App Groups
 - **Charts**: Swift Charts
-- **Localization**: NSLocalizedString
+- **Localization**: Custom L10n system (ObservableObject)
 - **Notifications**: UserNotifications Framework
-- **iCloud**: CloudKit (optional)
+- **iCloud**: CloudKit (optional, manual sync)
 - **Watch**: WatchConnectivity
+- **In-App Purchase**: StoreKit 2
 
 ### Proje Yapısı
 ```
 Arium/
-├── Models/              # Veri modelleri (Habit, HabitTheme)
+├── Models/              # Veri modelleri (Habit, HabitTheme, HabitCategory)
 ├── ViewModels/          # İş mantığı (HomeViewModel, etc.)
 ├── Views/               # SwiftUI görünümleri
 │   ├── Home/           # Ana ekran
 │   ├── HabitDetail/    # Detay ekranı
 │   ├── Settings/       # Ayarlar
 │   └── Statistics/     # İstatistikler
-├── Services/            # Servisler (HabitStore, NotificationManager, CloudSyncManager)
+├── Services/            # Servisler
+│   ├── HabitStore.swift
+│   ├── PremiumManager.swift (StoreKit 2)
+│   ├── NotificationManager.swift
+│   ├── CloudSyncManager.swift
+│   ├── AppVersionChecker.swift
+│   └── HabitExportImport.swift
 ├── Theme/              # Tema sistemi
 ├── Utils/              # Yardımcı fonksiyonlar
-│   ├── L10n.swift     # Lokalizasyon yönetimi (ObservableObject)
+│   ├── L10n.swift     # Lokalizasyon yönetimi (6 dil)
 │   ├── DateExtensions.swift
-│   ├── HapticManager.swift  # Haptic feedback yönetimi
-│   └── AccessibilityHelpers.swift  # Accessibility yardımcıları
+│   ├── HapticManager.swift
+│   ├── AccessibilityHelpers.swift
+│   └── BundleExtensions.swift
 └── Resources/          # Assets, localization dosyaları
 
-AriumTests/             # Unit testler
+AriumTests/             # Unit testler (100+ test case)
 AriumUITests/           # UI testleri
 AriumWidget/            # Widget extension
 AriumWatch Watch App/   # Watch app
@@ -107,6 +123,7 @@ AriumWatch Watch App/   # Watch app
 - iOS 18.0+
 - macOS 15.0+ (Sequoia)
 - Swift 5.0+
+- Apple Developer Account (ücretsiz hesap yeterli, premium özellikler için ücretli gerekli)
 
 ### Adımlar
 
@@ -122,25 +139,33 @@ open Arium.xcodeproj
 ```
 
 3. **Bundle ID'leri Güncelle**
-- Ana App: `com.yourcompany.arium`
-- Widget: `com.yourcompany.arium.AriumWidget`
-- Watch: `com.yourcompany.arium.watchkitapp`
+- Ana App: `zorbey.Arium` (veya kendi bundle ID'niz)
+- Widget: `zorbey.Arium.AriumWidget`
+- Watch: `zorbey.Arium.watchkitapp`
 
 4. **Team Seç**
 - Xcode → Signing & Capabilities → Team seç
 
 5. **App Groups Ekle** (Widget/Watch için)
 - Signing & Capabilities → + Capability → App Groups
-- Group ID: `group.com.yourcompany.arium`
+- Group ID: `group.com.zorbeyteam.arium`
 
-6. **Build & Run**
+6. **iCloud Container Ekle** (iCloud Sync için)
+- Signing & Capabilities → + Capability → iCloud
+- CloudKit: `iCloud.com.zorbeyteam.arium`
+
+7. **App Store ID Ekle** (Version checker için)
+- Target → Info → Custom iOS Target Properties
+- `APP_STORE_ID` key'ine App Store Connect'ten aldığınız ID'yi girin
+
+8. **Build & Run**
 ```
 Cmd + R
 ```
 
 ## 🧪 Testler
 
-Proje %100 test coverage ile gelir!
+Proje 100+ test case ile gelir!
 
 ### Test Çalıştırma
 ```bash
@@ -160,28 +185,27 @@ xcodebuild test -scheme Arium -destination 'platform=iOS Simulator,name=iPhone 1
 - ✅ Integration (IntegrationTests)
 - ✅ UI Flows (AriumUITests)
 
-## 📦 Widget & Watch Ekleme (İsteğe Bağlı)
+## 📦 Widget & Watch
 
 ### Widget Extension
-1. File → New → Target → Widget Extension
-2. Product Name: `AriumWidget`
-3. AriumWidget klasöründeki dosyaları target'a ekle
-4. App Groups capability ekle
+- ✅ Small, Medium, Large widget boyutları
+- ✅ Loading, error, empty states
+- ✅ Interactive widgets (iOS 18+)
+- ✅ 15 dakikada bir otomatik güncelleme
+- ✅ 6 dil desteği
 
 ### Watch App
-1. File → New → Target → Watch App
-2. Product Name: `AriumWatch`
-3. AriumWatch Watch App klasöründeki dosyaları target'a ekle
-4. App Groups capability ekle
-
-Detaylı adımlar için `SETUP_GUIDE.md` dosyasına bakın.
+- ✅ Habit completion on watch
+- ✅ Haptic feedback
+- ✅ Watch Complications (5 tip)
+- ✅ WatchConnectivity senkronizasyonu
 
 ## ⚙️ Konfigürasyon
 
 ### UserDefaults Keys
 ```swift
 @AppStorage("isPremium") var isPremium: Bool = false
-@AppStorage("selectedLanguage") var selectedLanguage: String = "en"
+@AppStorage("appLanguage") var appLanguage: String = "en"
 @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = false
 @AppStorage("hasSeenOnboarding") var hasSeenOnboarding: Bool = false
 ```
@@ -189,12 +213,17 @@ Detaylı adımlar için `SETUP_GUIDE.md` dosyasına bakın.
 ### App Groups
 Widget ve Watch için shared data:
 ```swift
-UserDefaults(suiteName: "group.com.yourcompany.arium")
+UserDefaults(suiteName: "group.com.zorbeyteam.arium")
 ```
 
 ### iCloud Container
 ```swift
-iCloud.com.yourcompany.arium
+iCloud.com.zorbeyteam.arium
+```
+
+### Premium Product ID
+```swift
+com.zorbeyteam.arium.premium
 ```
 
 ## 🎨 Temalar
@@ -213,31 +242,28 @@ Yeni temalar `HabitTheme.swift` dosyasından kolayca eklenebilir.
 ### Desteklenen Diller
 - 🇹🇷 Türkçe
 - 🇬🇧 English
+- 🇩🇪 Deutsch
+- 🇫🇷 Français
+- 🇪🇸 Español
+- 🇮🇹 Italiano
 
 ### Özellikler
 - **Otomatik Dil Algılama**: İlk açılışta telefonun dili otomatik algılanır
-  - Türkçe ise → Türkçe seçilir
-  - İngilizce veya başka bir dil ise → İngilizce seçilir
 - **Sistem Dili Takibi**: Settings'te "Sistem Dili" seçeneği
-  - Sadece telefonun dili destekleniyorsa (tr/en) görünür
-  - Telefonun dili değiştiğinde app dili otomatik güncellenir
 - **Anında Güncelleme**: Dil değişikliği tüm ekranlarda anında yansır (ObservableObject)
 
 ### Yeni Dil Ekleme
-1. `Arium/Resources/Localizations/` klasöründe yeni `.strings` dosyası oluştur
+1. `Arium/Utils/L10n.swift` dosyasına yeni dil dictionary'si ekle
 2. Tüm keyleri çevir
-3. `L10n.swift` dosyasına dil ekle
-4. `detectSystemLanguage()` fonksiyonuna yeni dil desteği ekle
+3. `detectSystemLanguage()` fonksiyonuna yeni dil desteği ekle
 
 ## 🔔 Bildirimler
 
-4 tip bildirim desteği (hazır, şu anda devre dışı):
+4 tip bildirim desteği:
 1. **Daily Reminders**: Özel saatte günlük hatırlatma
 2. **Streak Warnings**: Saat 21:00'da tamamlanmayan alışkanlıklar
 3. **Milestone Celebrations**: 7, 21, 30, 100 gün başarıları
 4. **Daily Motivation**: Sabah 07:00'da motivasyon mesajları
-
-Aktifleştirmek için `NotificationManager` kullanın.
 
 ## 📊 İstatistikler
 
@@ -247,34 +273,101 @@ Aktifleştirmek için `NotificationManager` kullanın.
 - ✅ **Total Completions**: Toplam tamamlama sayısı
 - 📉 **Completion Rate**: Tamamlanma yüzdesi
 - 📅 **Days Tracked**: Takip edilen gün sayısı
-- 📊 **30-Day Chart**: Swift Charts ile görselleştirme
+- 📊 **30-Day Chart**: Swift Charts ile görselleştirme (Premium)
+
+## 💎 Premium Özellikler
+
+### StoreKit 2 Entegrasyonu
+- ✅ Non-Consumable in-app purchase
+- ✅ Transaction verification
+- ✅ Restore purchases
+- ✅ Premium status management
+
+### Premium Setup
+Detaylı kurulum için `PREMIUM_PRODUCT_SETUP.md` dosyasına bakın.
+
+## 🚀 TestFlight & Release
+
+### TestFlight'a Yükleme
+1. Xcode → Product → Archive
+2. Organizer → Distribute App → App Store Connect
+3. Upload
+4. App Store Connect → TestFlight → Build processing bekleyin
+
+Detaylı rehber için `TESTFLIGHT_RELEASE_GUIDE.md` dosyasına bakın.
+
+## 📈 Proje İstatistikleri
+
+```
+Lines of Code:    ~10,742+
+Test Coverage:    100+ tests
+Swift Files:      43
+Languages:        6 (TR, EN, DE, FR, ES, IT)
+Version:          1.1 (Build 2)
+Status:           ✅ Production Ready
+```
+
+## 📚 Dokümantasyon
+
+- **README.md** - Bu dosya (genel bakış)
+- **PREMIUM_PRODUCT_SETUP.md** - Premium ürün kurulum rehberi
+- **TESTFLIGHT_RELEASE_GUIDE.md** - TestFlight ve release rehberi
+- **COMPREHENSIVE_ANALYSIS.md** - Kapsamlı proje analizi
+- **IMPROVEMENTS_APPLIED.md** - Uygulanan iyileştirmeler
+
+## 🎯 Quick Start
+
+```bash
+# Clone
+git clone https://bitbucket.org/zorbeyteam/ariumapp.git
+
+# Open
+cd ariumapp && open Arium.xcodeproj
+
+# Run
+# Press Cmd + R in Xcode
+```
+
+## 💡 Tips & Tricks
+
+### Debug Mode
+Settings → Debug → Premium Toggle ile freemium özelliklerini test edin.
+
+### Localization Test
+- Settings → Language ile dil değiştirip tüm UI'ın çevrildiğini kontrol edin
+- İlk açılışta telefonun dilinin otomatik algılandığını test edin
+
+### Theme Testing
+Her habit'e farklı tema atayıp renk uyumunu test edin.
+
+### Streak Testing
+Habit'e uzun tap → Edit → Start Date ile geçmişe dönük streak test edin.
+
+### iCloud Sync
+- Settings → iCloud Sync → Enable
+- "Sync Now" ile manuel senkronizasyon
+- "Load from iCloud" ile cloud'dan veri yükleme
 
 ## 🐛 Bilinen Sorunlar
 
-- ⚠️ Widget & Watch geçici olarak devre dışı (manuel ekleme gerekiyor)
 - ⚠️ iCloud Sync ücretsiz Apple Developer hesabında çalışmıyor (ücretli hesap gerekli)
-- ⚠️ Push Notifications ücretsiz hesapta desteklenmiyor
 - ⚠️ Watch App fiziksel cihaza yükleme sorunları olabilir (watchOS versiyon uyumsuzluğu)
   - Çözüm: Watch Simulator kullan veya Watch'ı stable versiyona güncelle
-  - Detaylı rehberler: `WATCH_*.md` dosyalarına bakın
 
 ## 🗺 Roadmap
 
-### v1.1 (Gelecek)
-- [ ] Widget'ı yeniden etkinleştir
-- [ ] Watch App'i yeniden etkinleştir
-- [ ] iCloud Sync aktifleştir
-- [ ] Bildirimler aktifleştir
+### v1.2 (Gelecek)
+- [ ] Widget refresh rate optimization
+- [ ] Watch app performance improvements
+- [ ] Analytics (opsiyonel, privacy-first)
 
 ### v2.0 (Uzun Vadeli)
 - [ ] iPad desteği
 - [ ] macOS app (Catalyst)
 - [ ] Sosyal özellikler (arkadaşlar, liderlik tablosu)
 - [ ] Daha fazla istatistik (aylık, yıllık raporlar)
-- [ ] Habit kategorileri
 - [ ] Özel reminder zamanları
-- [ ] Habit şablonları
-- [ ] Export/Import özelliği
+- [ ] Habit sharing
 
 ## 🤝 Katkıda Bulunma
 
@@ -288,7 +381,7 @@ Katkılar memnuniyetle karşılanır!
 
 ## 📄 Lisans
 
-Bu proje MIT lisansı altında lisanslanmıştır. Detaylar için `LICENSE` dosyasına bakın.
+Bu proje MIT lisansı altında lisanslanmıştır.
 
 ## 👨‍💻 Geliştirici
 
@@ -314,53 +407,4 @@ Sorularınız veya önerileriniz için:
 
 ---
 
-## 📈 Proje İstatistikleri
-
-```
-Lines of Code:    ~12,000+
-Test Coverage:    100+ tests
-Commits:          60+
-Development Time: Complete
-Status:           ✅ Production Ready
-Features:         Otomatik dil algılama, Haptic feedback, Accessibility
-```
-
-## 📚 Ek Dokümantasyon
-
-- `SETUP_GUIDE.md` - Widget ve Watch app kurulum rehberi
-- `WATCH_*.md` - Watch app bağlantı ve sorun giderme rehberleri
-- `README.md` - Bu dosya
-
-## 🎯 Quick Start
-
-```bash
-# Clone
-git clone https://bitbucket.org/zorbeyteam/ariumapp.git
-
-# Open
-cd ariumapp && open Arium.xcodeproj
-
-# Run
-# Press Cmd + R in Xcode
-```
-
-## 💡 Tips & Tricks
-
-### Debug Mode
-Settings → Debug → Premium Toggle ile freemium özelliklerini test edin.
-
-### Localization Test
-- Settings → Language ile dil değiştirip tüm UI'ın çevrildiğini kontrol edin
-- İlk açılışta telefonun dilinin otomatik algılandığını test edin
-- "Sistem Dili" seçeneğinin sadece desteklenen dillerde göründüğünü kontrol edin
-
-### Theme Testing
-Her habit'e farklı tema atayıp renk uyumunu test edin.
-
-### Streak Testing
-Habit'e uzun tap → Edit → Start Date ile geçmişe dönük streak test edin.
-
----
-
 **Happy Habit Tracking! 🚀✨**
-
