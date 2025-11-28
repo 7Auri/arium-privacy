@@ -81,11 +81,21 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                let displayText = currentLanguage == "system" 
-                                    ? L10n.t("settings.language.system")
-                                    : Self.languageDisplayName(for: currentLanguage)
-                                
-                                Text(displayText)
+                                if currentLanguage == "system" {
+                                    Text(L10n.t("settings.language.system"))
+                                } else if currentLanguage == "tr" {
+                                    Text("Türkçe")
+                                } else if currentLanguage == "de" {
+                                    Text("Deutsch")
+                                } else if currentLanguage == "fr" {
+                                    Text("Français")
+                                } else if currentLanguage == "es" {
+                                    Text("Español")
+                                } else if currentLanguage == "it" {
+                                    Text("Italiano")
+                                } else {
+                                    Text("English")
+                                }
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
