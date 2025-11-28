@@ -225,9 +225,15 @@ enum L10n {
             "repetition.night": "Night",
             "repetition.time": "Time",
             "repetition.custom.label": "Custom Label",
+            "repetition.custom.labels": "Custom Labels (Optional)",
             "repetition.progress": "%d of %d completed",
             "repetition.premium.title": "Premium Feature",
             "repetition.premium.message": "Daily repetitions are a Premium feature. Upgrade to track multiple completions per day!",
+            
+            // Goal Days
+            "goalDays.custom": "Custom",
+            "goalDays.custom.prompt": "Enter goal days",
+            "goalDays.custom.placeholder": "e.g., 45",
             "widget.error.message": "Please open the app to sync your habits",
             "widget.empty.title": "No Habits Yet",
             "widget.empty.message": "Add your first habit in the app",
@@ -593,9 +599,15 @@ enum L10n {
             "repetition.night": "Gece",
             "repetition.time": "Saat",
             "repetition.custom.label": "Özel Etiket",
+            "repetition.custom.labels": "Özel Etiketler (Opsiyonel)",
             "repetition.progress": "%d / %d tamamlandı",
             "repetition.premium.title": "Premium Özellik",
             "repetition.premium.message": "Günlük tekrarlar Premium özelliğidir. Günde birden fazla tamamlama izlemek için yükseltin!",
+            
+            // Goal Days
+            "goalDays.custom": "Özel",
+            "goalDays.custom.prompt": "Hedef gün sayısı girin",
+            "goalDays.custom.placeholder": "Örn: 45",
             "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
             "widget.empty.title": "Henüz Alışkanlık Yok",
             "widget.empty.message": "İlk alışkanlığınızı uygulamada ekleyin",

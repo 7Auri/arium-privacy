@@ -79,7 +79,7 @@ struct DailyRepetitionSettingsView: View {
             // Custom labels (if > 1 repetition)
             if dailyRepetitions > 1 {
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Custom Labels (Optional)")
+                    Text(L10n.t("repetition.custom.labels"))
                         .font(.caption.bold())
                         .foregroundColor(.secondary)
                     
