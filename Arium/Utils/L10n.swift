@@ -1190,9 +1190,15 @@ enum L10n {
             "repetition.night": "Nacht",
             "repetition.time": "Zeit",
             "repetition.custom.label": "Benutzerdefiniertes Label",
+            "repetition.custom.labels": "Benutzerdefinierte Labels (Optional)",
             "repetition.progress": "%d von %d abgeschlossen",
             "repetition.premium.title": "Premium-Funktion",
             "repetition.premium.message": "Tägliche Wiederholungen sind eine Premium-Funktion. Upgraden Sie, um mehrere Abschlüsse pro Tag zu verfolgen!",
+            
+            // Goal Days
+            "goalDays.custom": "Benutzerdefiniert",
+            "goalDays.custom.prompt": "Zieltage eingeben",
+            "goalDays.custom.placeholder": "z.B. 45",
         ],
         "fr": [
             // Home
@@ -1556,9 +1562,15 @@ enum L10n {
             "repetition.night": "Nuit",
             "repetition.time": "Heure",
             "repetition.custom.label": "Étiquette personnalisée",
+            "repetition.custom.labels": "Étiquettes personnalisées (Optionnel)",
             "repetition.progress": "%d sur %d complétés",
             "repetition.premium.title": "Fonction Premium",
             "repetition.premium.message": "Les répétitions quotidiennes sont une fonctionnalité Premium. Passez à la version supérieure pour suivre plusieurs complétions par jour!",
+            
+            // Goal Days
+            "goalDays.custom": "Personnalisé",
+            "goalDays.custom.prompt": "Entrez les jours objectif",
+            "goalDays.custom.placeholder": "p.ex. 45",
         ],
         "es": [
             // Home
@@ -1922,9 +1934,15 @@ enum L10n {
             "repetition.night": "Madrugada",
             "repetition.time": "Hora",
             "repetition.custom.label": "Etiqueta personalizada",
+            "repetition.custom.labels": "Etiquetas personalizadas (Opcional)",
             "repetition.progress": "%d de %d completados",
             "repetition.premium.title": "Función Premium",
             "repetition.premium.message": "Las repeticiones diarias son una función Premium. ¡Actualiza para rastrear múltiples completaciones por día!",
+            
+            // Goal Days
+            "goalDays.custom": "Personalizado",
+            "goalDays.custom.prompt": "Ingresa días objetivo",
+            "goalDays.custom.placeholder": "ej. 45",
         ],
         "it": [
             // Home
@@ -2288,9 +2306,15 @@ enum L10n {
             "repetition.night": "Notte",
             "repetition.time": "Ora",
             "repetition.custom.label": "Etichetta personalizzata",
+            "repetition.custom.labels": "Etichette personalizzate (Opzionale)",
             "repetition.progress": "%d di %d completati",
             "repetition.premium.title": "Funzione Premium",
             "repetition.premium.message": "Le ripetizioni giornaliere sono una funzione Premium. Aggiorna per tracciare più completamenti al giorno!",
+            
+            // Goal Days
+            "goalDays.custom": "Personalizzato",
+            "goalDays.custom.prompt": "Inserisci giorni obiettivo",
+            "goalDays.custom.placeholder": "es. 45",
         ]
     ]
 }
