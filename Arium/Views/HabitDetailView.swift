@@ -656,6 +656,33 @@ struct HabitDetailView: View {
         dismiss()
     }
     
+    private func generateShareText() -> String {
+        let emoji: String
+        if viewModel.habit.streak >= 30 {
+            emoji = "🏆"
+        } else if viewModel.habit.streak >= 7 {
+            emoji = "🔥"
+        } else {
+            emoji = "✨"
+        }
+        
+        var text = """
+        \(emoji) \(viewModel.habit.title)
+        
+        📊 Streak: \(viewModel.habit.streak) days
+        ✅ Completed: \(viewModel.habit.completionDates.count) times
+        🎯 Goal: \(viewModel.habit.goalDays) days
+        """
+        
+        if viewModel.habit.isCompletedToday {
+            text += "\n\n✅ Completed today!"
+        }
+        
+        text += "\n\n#Arium #HabitTracking"
+        
+        return text
+    }
+    
     private func generateShareImage() async {
         let habit = viewModel.habit
         let shareView = HabitShareView(habit: habit)

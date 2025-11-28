@@ -197,6 +197,14 @@ enum L10n {
             "widget.pending": "Pending",
             "widget.loading": "Loading...",
             "widget.error.title": "Unable to Load",
+            
+            // Quick Actions
+            "quickAction.addHabit": "New Habit",
+            "quickAction.addHabit.subtitle": "Quick add",
+            "quickAction.statistics": "Statistics",
+            "quickAction.statistics.subtitle": "View progress",
+            "quickAction.today": "Today's Habits",
+            "quickAction.today.subtitle": "Quick view",
             "widget.error.message": "Please open the app to sync your habits",
             "widget.empty.title": "No Habits Yet",
             "widget.empty.message": "Add your first habit in the app",
@@ -492,6 +500,14 @@ enum L10n {
             "widget.pending": "Bekleyen",
             "widget.loading": "Yükleniyor...",
             "widget.error.title": "Yüklenemedi",
+            
+            // Quick Actions
+            "quickAction.addHabit": "Yeni Alışkanlık",
+            "quickAction.addHabit.subtitle": "Hızlı ekle",
+            "quickAction.statistics": "İstatistikler",
+            "quickAction.statistics.subtitle": "İlerlemeyi gör",
+            "quickAction.today": "Bugünkü Alışkanlıklar",
+            "quickAction.today.subtitle": "Hızlı görüntüle",
             "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
             "widget.empty.title": "Henüz Alışkanlık Yok",
             "widget.empty.message": "İlk alışkanlığınızı uygulamada ekleyin",

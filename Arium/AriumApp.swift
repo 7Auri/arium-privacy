@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import AppIntents
 
 @main
 struct AriumApp: App {
@@ -13,6 +14,7 @@ struct AriumApp: App {
     @StateObject private var appThemeManager = AppThemeManager.shared
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
     @Environment(\.scenePhase) private var scenePhase
+    @State private var quickAction: QuickAction?
     
     var body: some Scene {
         WindowGroup {
@@ -24,8 +26,14 @@ struct AriumApp: App {
                         // Update habits status on app launch (async, non-blocking)
                         habitStore.updateTodayStatus()
                         
+                        // Setup Quick Actions
+                        QuickActionManager.shared.setupQuickActions()
+                        
                         // Note: iCloud sync is now manual-only for better user control and privacy
                         // Users can sync via "Sync Now" or "Load from iCloud" buttons in Settings
+                    }
+                    .onOpenURL { url in
+                        handleQuickAction(url: url)
                     }
             } else {
                 OnboardingView()
@@ -50,6 +58,24 @@ struct AriumApp: App {
             // Handle memory warnings
             if newPhase == .background {
                 MemoryOptimization.handleMemoryWarning()
+            }
+        }
+    }
+    
+    // MARK: - Quick Action Handling
+    
+    private func handleQuickAction(url: URL) {
+        // Handle deep links from Quick Actions
+        if url.scheme == "arium" {
+            switch url.host {
+            case "addHabit":
+                quickAction = .addHabit
+            case "statistics":
+                quickAction = .viewStatistics
+            case "today":
+                quickAction = .todayHabits
+            default:
+                break
             }
         }
     }
