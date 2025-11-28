@@ -74,7 +74,7 @@ struct OnboardingView: View {
     }
     
     private var bottomSection: some View {
-        VStack(spacing: 20) {
+        VStack(spacing: 24) {
             // Page Indicators (custom)
             HStack(spacing: 8) {
                 ForEach(viewModel.pages) { page in
@@ -117,27 +117,27 @@ struct OnboardingView: View {
                 }
                 .foregroundColor(.white)
                 .frame(maxWidth: .infinity)
-                .frame(height: 60)
+                .frame(height: 56)
                 .background(
                     LinearGradient(
                         colors: [
                             viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent,
-                            (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.8)
+                            (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.85)
                         ],
-                        startPoint: .leading,
-                        endPoint: .trailing
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
                     )
                 )
-                .cornerRadius(20)
+                .cornerRadius(16)
                 .shadow(
-                    color: (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.4),
-                    radius: 16,
+                    color: (viewModel.isLastPage ? viewModel.selectedTheme.accent : AriumTheme.accent).opacity(0.35),
+                    radius: 12,
                     x: 0,
-                    y: 8
+                    y: 6
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 20)
-                        .stroke(Color.white.opacity(0.2), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color.white.opacity(0.15), lineWidth: 1)
                 )
             }
             .buttonStyle(PlainButtonStyle())

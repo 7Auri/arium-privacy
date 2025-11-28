@@ -172,15 +172,15 @@ struct SettingsView: View {
                             title: L10n.t("achievements.title"),
                             description: AchievementManager.shared.newAchievementsCount > 0
                                 ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
-                                : L10n.t("achievements.viewAll"),
-                            showChevron: false,
-                            action: {}
-                        )
+                                : L10n.t("achievements.viewAll")
+                        ) {}
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .listSectionSeparator(.hidden)
+                .listSectionSpacing(0)
                 
                 // Customization Section
                 Section {
@@ -189,59 +189,62 @@ struct SettingsView: View {
                             iconName: "paintbrush.fill",
                             iconColor: .pink,
                             title: L10n.t("settings.customization"),
-                            description: L10n.t("settings.customization.subtitle"),
-                            showChevron: false,
-                            action: {}
-                        )
+                            description: L10n.t("settings.customization.subtitle")
+                        ) {}
                     }
                     .buttonStyle(PlainButtonStyle())
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .listSectionSeparator(.hidden)
+                .listSectionSpacing(0)
                 
                 
                 // Premium Section
                 Section {
-                    HStack(spacing: 12) {
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(L10n.t("settings.premium"))
-                                .font(.body)
-                                .foregroundStyle(.primary)
-                            
-                            Text(premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"))
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        if !premiumManager.isPremium {
-                            Button {
-                                Task {
-                                    do {
-                                        try await premiumManager.purchasePremium()
-                                    } catch {
-                                        showingPremiumError = true
-                                        premiumError = error as? AppError ?? PremiumError.unknown
-                                    }
-                                }
-                            } label: {
-                                Text(L10n.t("premium.button"))
+                    SettingsCard {
+                        HStack(spacing: 12) {
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("settings.premium"))
+                                    .font(.body)
+                                    .foregroundStyle(.primary)
+
+                                Text(premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"))
                                     .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(AriumTheme.accent)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(AriumTheme.accent.opacity(0.15))
-                                    .clipShape(Capsule())
+                                    .foregroundStyle(.secondary)
                             }
-                        } else {
-                            Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
-                                .foregroundStyle(AriumTheme.success)
+
+                            Spacer()
+
+                            if !premiumManager.isPremium {
+                                Button {
+                                    Task {
+                                        do {
+                                            try await premiumManager.purchasePremium()
+                                        } catch {
+                                            showingPremiumError = true
+                                            premiumError = error as? AppError ?? PremiumError.unknown
+                                        }
+                                    }
+                                } label: {
+                                    Text(L10n.t("premium.button"))
+                                        .font(.caption)
+                                        .fontWeight(.semibold)
+                                        .foregroundStyle(AriumTheme.accent)
+                                        .padding(.horizontal, 12)
+                                        .padding(.vertical, 6)
+                                        .background(AriumTheme.accent.opacity(0.15))
+                                        .clipShape(Capsule())
+                                }
+                            } else {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(AriumTheme.success)
+                            }
                         }
                     }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 } header: {
                     Text(L10n.t("settings.premium"))
                         .font(.footnote)
@@ -501,6 +504,8 @@ struct SettingsView: View {
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)
                 }
+                .listSectionSeparator(.hidden)
+                .listSectionSpacing(0)
                 
                 // Statistics Section
                 Section {
@@ -521,6 +526,8 @@ struct SettingsView: View {
                         .textCase(.uppercase)
                         .foregroundStyle(.secondary)
                 }
+                .listSectionSeparator(.hidden)
+                .listSectionSpacing(0)
                 
                 // Debug Section
                 #if DEBUG
@@ -1407,6 +1414,25 @@ struct ImportHabitRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(item.isExisting || (!item.isSelected && !canSelectMore))
+    }
+}
+
+
+struct SettingsCard<Content: View>: View {
+    let content: Content
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        HStack { content }
+            .padding(16)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+            )
     }
 }
 
