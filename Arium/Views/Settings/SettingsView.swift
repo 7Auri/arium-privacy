@@ -48,14 +48,14 @@ struct SettingsView: View {
     @State private var duplicateItemId: UUID?
     
     var body: some View {
-        NavigationStack {
+        let systemLang = L10nManager.detectSystemLanguage()
+        let hasSystemLanguage = systemLang != nil
+        let currentLanguage = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+        
+        return NavigationStack {
             List {
                 // Language Section
                 Section {
-                    let systemLang = L10nManager.detectSystemLanguage()
-                    let hasSystemLanguage = systemLang != nil
-                    let currentLanguage = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
-                    
                     Button {
                         showingLanguagePicker = true
                     } label: {
