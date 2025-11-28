@@ -216,7 +216,7 @@ xcodebuild test -scheme Arium -destination 'platform=iOS Simulator,name=iPhone 1
 - ✅ Integration (IntegrationTests, HabitExportImportTests)
 - ✅ UI Flows (AriumUITests)
 
-## 📦 Widget & Watch
+## 📦 Widget, Watch & Live Activities
 
 ### Widget Extension
 - ✅ Small, Medium, Large widget boyutları
@@ -224,12 +224,19 @@ xcodebuild test -scheme Arium -destination 'platform=iOS Simulator,name=iPhone 1
 - ✅ Interactive widgets (iOS 18+)
 - ✅ 15 dakikada bir otomatik güncelleme
 - ✅ 6 dil desteği
+- ✅ 5 widget teması (customizable)
 
 ### Watch App
 - ✅ Habit completion on watch
 - ✅ Haptic feedback
 - ✅ Watch Complications (5 tip)
 - ✅ WatchConnectivity senkronizasyonu
+
+### Live Activities (Dynamic Island)
+- ✅ Real-time habit tracking
+- ✅ Dynamic Island support (iPhone 14 Pro+)
+- ✅ Lock Screen widgets
+- ✅ Interactive controls
 
 ## ⚙️ Konfigürasyon
 
