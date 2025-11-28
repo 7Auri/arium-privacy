@@ -8,6 +8,7 @@
 import ActivityKit
 import WidgetKit
 import SwiftUI
+import AppIntents
 
 /// Attributes for the Habit Live Activity
 struct HabitActivityAttributes: ActivityAttributes {
@@ -239,6 +240,7 @@ struct OpenAppIntent: AppIntent {
     static var title: LocalizedStringResource = "Open Arium"
     static var openAppWhenRun: Bool = true
     
+    @MainActor
     func perform() async throws -> some IntentResult {
         return .result()
     }
