@@ -17,6 +17,8 @@ class AddHabitViewModel: ObservableObject {
     @Published var startDate: Date = Date()
     @Published var showingDatePicker: Bool = false
     @Published var goalDays: Int = 21
+    @Published var dailyRepetitions: Int = 1
+    @Published var repetitionLabels: [String]? = nil
     
     let goalOptions = [7, 14, 21, 30, 60, 90]
     
@@ -31,7 +33,9 @@ class AddHabitViewModel: ObservableObject {
             themeId: selectedTheme.id,
             startDate: startDate,
             goalDays: goalDays,
-            category: selectedCategory
+            category: selectedCategory,
+            dailyRepetitions: dailyRepetitions,
+            repetitionLabels: repetitionLabels
         )
     }
     
@@ -43,6 +47,8 @@ class AddHabitViewModel: ObservableObject {
         startDate = Date()
         showingDatePicker = false
         goalDays = 21
+        dailyRepetitions = 1
+        repetitionLabels = nil
     }
 }
 
