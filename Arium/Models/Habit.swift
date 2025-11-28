@@ -24,6 +24,12 @@ struct Habit: Identifiable, Codable, Equatable {
     var isReminderEnabled: Bool // Hatırlatıcı açık mı
     var category: HabitCategory // Alışkanlık kategorisi
     
+    // MARK: - Daily Repetitions (Premium Feature)
+    var dailyRepetitions: Int // Günde kaç kez (1-5, default: 1)
+    var repetitionLabels: [String]? // Özel etiketler (örn: ["Sabah", "Akşam"])
+    var todayCompletions: [Int] // Bugün tamamlanan tekrarların index'leri [0, 1] = sabah ve akşam tamamlandı
+    var dailyCompletionCounts: [String: Int] // Date string : completion count (örn: "2024-11-28": 2)
+    
     init(
         id: UUID = UUID(),
         title: String,
@@ -38,7 +44,11 @@ struct Habit: Identifiable, Codable, Equatable {
         goalDays: Int = 21,
         reminderTime: Date? = nil,
         isReminderEnabled: Bool = false,
-        category: HabitCategory = .personal
+        category: HabitCategory = .personal,
+        dailyRepetitions: Int = 1,
+        repetitionLabels: [String]? = nil,
+        todayCompletions: [Int] = [],
+        dailyCompletionCounts: [String: Int] = [:]
     ) {
         self.id = id
         self.title = title
@@ -54,6 +64,10 @@ struct Habit: Identifiable, Codable, Equatable {
         self.reminderTime = reminderTime
         self.isReminderEnabled = isReminderEnabled
         self.category = category
+        self.dailyRepetitions = dailyRepetitions
+        self.repetitionLabels = repetitionLabels
+        self.todayCompletions = todayCompletions
+        self.dailyCompletionCounts = dailyCompletionCounts
     }
     
     var theme: HabitTheme {
