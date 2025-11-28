@@ -663,6 +663,18 @@ enum L10n {
             "achievement.new": "YENİ",
             "achievements.title": "Rozetler",
             "achievements.viewAll": "Tüm Rozetleri Gör",
+            
+            // Data Export
+            "export.title": "Veri Aktar",
+            "export.subtitle": "Alışkanlıklarınızı dışa aktarın",
+            "export.csv": "CSV Olarak Aktar",
+            "export.json": "JSON Olarak Aktar",
+            "export.pdf": "PDF Rapor Oluştur",
+            "export.success": "Başarıyla aktarıldı!",
+            "export.error.noData": "Aktarılacak veri yok",
+            "export.error.failed": "Aktarma başarısız oldu",
+            "export.error.pdfFailed": "PDF oluşturulamadı",
+            "export.choose": "Format Seçin",
             "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
             "widget.empty.title": "Henüz Alışkanlık Yok",
             "widget.empty.message": "İlk alışkanlığınızı uygulamada ekleyin",
