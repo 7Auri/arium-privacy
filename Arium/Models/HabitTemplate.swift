@@ -361,3 +361,5 @@ struct HabitTemplate: Identifiable, Codable {
     // Get premium templates
     static var premiumTemplates: [HabitTemplate] {
         templates.filter { $0.isPremium }
+    }
+}

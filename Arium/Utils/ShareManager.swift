@@ -38,7 +38,7 @@ class ShareManager {
     /// Generate share text for a habit
     /// - Parameter habit: The habit to generate text for
     /// - Returns: Formatted share text
-    private func generateShareText(for: Habit) -> String {
+    private func generateShareText(for habit: Habit) -> String {
         let emoji: String
         if habit.streak >= 30 {
             emoji = "🏆"
@@ -110,16 +110,3 @@ class ShareManager {
         return text
     }
 }
-
-/// SwiftUI wrapper for ShareManager
-struct ShareSheet: UIViewControllerRepresentable {
-    let text: String
-    
-    func makeUIViewController(context: Context) -> UIActivityViewController {
-        let activityVC = UIActivityViewController(activityItems: [text], applicationActivities: nil)
-        return activityVC
-    }
-    
-    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
-}
-
