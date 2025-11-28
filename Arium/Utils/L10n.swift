@@ -1128,6 +1128,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Daten synchronisieren",
             "quickAction.viewStatistics": "Statistiken anzeigen",
             "quickAction.viewStatistics.subtitle": "Fortschritt sehen",
+            
+            // Template View
+            "template.search.placeholder": "Vorlagen suchen...",
+            "template.filter.popular": "Beliebt",
+            "template.filter.free": "Kostenlos",
+            "template.section.popular": "Beliebte Vorlagen",
+            "template.section.all": "Alle Vorlagen",
+            "template.count": "%d Vorlagen",
         ],
         "fr": [
             // Home
@@ -1471,6 +1479,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Synchroniser les données",
             "quickAction.viewStatistics": "Voir les statistiques",
             "quickAction.viewStatistics.subtitle": "Voir les progrès",
+            
+            // Template View
+            "template.search.placeholder": "Rechercher des modèles...",
+            "template.filter.popular": "Populaire",
+            "template.filter.free": "Gratuit",
+            "template.section.popular": "Modèles populaires",
+            "template.section.all": "Tous les modèles",
+            "template.count": "%d modèles",
         ],
         "es": [
             // Home
@@ -1814,6 +1830,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sincronizar datos",
             "quickAction.viewStatistics": "Ver estadísticas",
             "quickAction.viewStatistics.subtitle": "Ver progreso",
+            
+            // Template View
+            "template.search.placeholder": "Buscar plantillas...",
+            "template.filter.popular": "Popular",
+            "template.filter.free": "Gratis",
+            "template.section.popular": "Plantillas populares",
+            "template.section.all": "Todas las plantillas",
+            "template.count": "%d plantillas",
         ],
         "it": [
             // Home
@@ -2157,6 +2181,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sincronizza dati",
             "quickAction.viewStatistics": "Visualizza statistiche",
             "quickAction.viewStatistics.subtitle": "Vedi progresso",
+            
+            // Template View
+            "template.search.placeholder": "Cerca modelli...",
+            "template.filter.popular": "Popolare",
+            "template.filter.free": "Gratuito",
+            "template.section.popular": "Modelli popolari",
+            "template.section.all": "Tutti i modelli",
+            "template.count": "%d modelli",
         ]
     ]
 }
