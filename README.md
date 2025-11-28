@@ -17,7 +17,7 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
 - 🔥 **Streak Sistemi**: Ardışık günlerinizi takip edin ve motivasyonunuzu koruyun
 - 📊 **İstatistikler**: Swift Charts ile görselleştirilmiş ilerleme grafikleri
 - 📝 **Günlük Notlar**: Her tamamlama için kısa notlar ekleyin (100 karakter, Premium)
-- 🎨 **5 Tema**: Purple, Blue, Green, Pink, Orange - kişiselleştirilebilir renkler
+- 🎨 **20 Tema**: Purple, Blue, Green, Pink, Orange + 15 yeni tema - kişiselleştirilebilir renkler
 - 🎯 **Özelleştirilebilir Hedefler**: 7, 14, 21, 30, 60, 90 günlük challenge'lar (Premium)
 - 📅 **Başlangıç Tarihi**: Geçmişe dönük takip için özel tarih seçimi (Premium)
 - 🏷️ **Kategori Sistemi**: 6 kategori (Work, Health, Learning, Personal, Finance, Social) (Premium)
@@ -46,6 +46,37 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - Habit templates (10+ şablon)
 
 ### 🛠 Gelişmiş Özellikler
+- 🔄 **Daily Repetitions**: Günde 1-5 kez tekrar eden alışkanlıklar (Premium)
+  - Özel etiketler (Sabah, Akşam, vs.)
+  - Progress tracking (2/3 tamamlandı)
+  - Partial completion desteği
+- 🏆 **Achievement System**: Gamification sistemi
+  - 14 rozet (Streak, Completion, Consistency, Variety, Premium)
+  - XP & Level sistemi (1-∞)
+  - 5 Tier: Bronze → Diamond
+  - Otomatik unlock
+- 💾 **Data Export**: Veri dışa aktarma
+  - CSV export (spreadsheet)
+  - JSON export/import (backup)
+  - PDF rapor (printable)
+  - Share sheet entegrasyonu
+- 🎨 **Advanced Customization**:
+  - 20 Tema (Purple, Blue, Green, Pink, Orange + 15 yeni)
+  - 4 Font seçeneği (System, Rounded, Serif, Monospaced)
+  - 5 Widget teması (Light, Dark, Gradient, Minimal, Colorful)
+  - Custom goal days (1-365 gün)
+- 👥 **Social Sharing**: İlerleme paylaşımı
+  - Streak paylaşma
+  - Achievement paylaşma
+  - Haftalık progress paylaşma
+- 💪 **HealthKit Integration**: Apple Health entegrasyonu
+  - Step count okuma
+  - Mindful sessions
+  - Active calories
+- 📅 **Calendar Integration**: Takvim entegrasyonu
+  - Habit → Calendar event
+  - Reminder sync
+  - Alarm ekleme
 - 🔔 **Bildirimler**: Günlük hatırlatmalar, streak uyarıları, milestone kutlamaları
 - 📱 **Widget**: Home Screen widget desteği (Small, Medium, Large)
   - Interactive widget'lar (iOS 18+)
@@ -177,12 +208,12 @@ xcodebuild test -scheme Arium -destination 'platform=iOS Simulator,name=iPhone 1
 ```
 
 ### Test Coverage
-- ✅ **100+ test case**
-- ✅ Models (HabitTests)
-- ✅ Services (HabitStoreTests)
-- ✅ ViewModels (ViewModelTests)
-- ✅ Utilities (UtilityTests)
-- ✅ Integration (IntegrationTests)
+- ✅ **78+ test case** (~92% coverage)
+- ✅ Models (HabitTests, HabitRepetitionTests)
+- ✅ Services (HabitStoreTests, AchievementManagerTests, DataExportManagerTests)
+- ✅ ViewModels (ViewModelTests, AddHabitViewModelTests)
+- ✅ Utilities (UtilityTests, L10nTests, DateExtensionsTests)
+- ✅ Integration (IntegrationTests, HabitExportImportTests)
 - ✅ UI Flows (AriumUITests)
 
 ## 📦 Widget & Watch
@@ -228,12 +259,31 @@ com.zorbeyteam.arium.premium
 
 ## 🎨 Temalar
 
-5 önceden tanımlı tema:
+20 önceden tanımlı tema:
+
+### Orijinal Temalar:
 - 💜 **Purple Dream** - Varsayılan
 - 💙 **Ocean Blue** - Sakin ve huzurlu
 - 💚 **Forest Green** - Doğal ve ferahlatıcı
 - 💗 **Soft Pink** - Nazik ve yumuşak
 - 🧡 **Sunset Orange** - Enerjik ve sıcak
+
+### Yeni Temalar (v1.1):
+- 💎 **Ruby Red** - Cesur ve enerjik
+- 🌴 **Tropical Teal** - Egzotik ve ferahlatıcı
+- 🌙 **Midnight Indigo** - Derin ve gizemli
+- 🌿 **Fresh Mint** - Temiz ve canlandırıcı
+- 🪸 **Coral Reef** - Sıcak ve canlı
+- 💜 **Sweet Lavender** - Zarif ve sakin
+- ✨ **Golden Hour** - Lüks ve sıcak
+- 🌹 **Rose Gold** - Şık ve modern
+- 🌊 **Deep Navy** - Profesyonel ve güçlü
+- 🍋 **Zesty Lime** - Taze ve enerjik
+- 👑 **Royal Violet** - Asil ve zengin
+- 💙 **Azure Turquoise** - Huzurlu ve berrak
+- ❤️ **Bold Crimson** - Güçlü ve tutkulu
+- 🍃 **Calm Sage** - Doğal ve huzurlu
+- 🍑 **Peachy Keen** - Yumuşak ve sıcak
 
 Yeni temalar `HabitTheme.swift` dosyasından kolayca eklenebilir.
 
@@ -299,10 +349,14 @@ Detaylı rehber için `TESTFLIGHT_RELEASE_GUIDE.md` dosyasına bakın.
 ## 📈 Proje İstatistikleri
 
 ```
-Lines of Code:    ~10,742+
-Test Coverage:    100+ tests
-Swift Files:      43
+Lines of Code:    ~15,000+
+Test Coverage:    78+ tests (~92% coverage)
+Swift Files:      116
+Test Files:       19
 Languages:        6 (TR, EN, DE, FR, ES, IT)
+Commits:          112+
+Themes:           20
+Achievements:     14
 Version:          1.1 (Build 2)
 Status:           ✅ Production Ready
 ```
@@ -310,10 +364,14 @@ Status:           ✅ Production Ready
 ## 📚 Dokümantasyon
 
 - **README.md** - Bu dosya (genel bakış)
-- **PREMIUM_PRODUCT_SETUP.md** - Premium ürün kurulum rehberi
+- **FEATURE_SUMMARY.md** - Tüm özellikler özeti
+- **TRANSLATIONS_AND_TESTS_COMPLETE.md** - Final durum raporu
 - **TESTFLIGHT_RELEASE_GUIDE.md** - TestFlight ve release rehberi
-- **COMPREHENSIVE_ANALYSIS.md** - Kapsamlı proje analizi
-- **IMPROVEMENTS_APPLIED.md** - Uygulanan iyileştirmeler
+- **PREMIUM_PRODUCT_SETUP.md** - Premium ürün kurulum rehberi
+- **DYNAMIC_ISLAND_SETUP.md** - Live Activities kurulum
+- **ALTERNATE_ICONS_SETUP.md** - Alternate app icons kurulum
+- **TEMPLATE_SYSTEM_IMPROVEMENTS.md** - Template sistemi
+- **PERFORMANCE_OPTIMIZATIONS.md** - Performance guide
 
 ## 🎯 Quick Start
 
@@ -356,7 +414,20 @@ Habit'e uzun tap → Edit → Start Date ile geçmişe dönük streak test edin.
 
 ## 🗺 Roadmap
 
+### v1.1 (✅ Tamamlandı)
+- ✅ Daily Repetitions (1-5× per day)
+- ✅ Achievement System (14 rozetler)
+- ✅ Data Export (CSV/JSON/PDF)
+- ✅ 20 Tema + 4 Font + 5 Widget Teması
+- ✅ Social Sharing
+- ✅ HealthKit Integration
+- ✅ Calendar Integration
+- ✅ Live Activities (Dynamic Island)
+- ✅ 6 Dil Desteği
+
 ### v1.2 (Gelecek)
+- [ ] Smart Insights (AI-powered)
+- [ ] Advanced Reminders
 - [ ] Widget refresh rate optimization
 - [ ] Watch app performance improvements
 - [ ] Analytics (opsiyonel, privacy-first)
@@ -367,7 +438,7 @@ Habit'e uzun tap → Edit → Start Date ile geçmişe dönük streak test edin.
 - [ ] Sosyal özellikler (arkadaşlar, liderlik tablosu)
 - [ ] Daha fazla istatistik (aylık, yıllık raporlar)
 - [ ] Özel reminder zamanları
-- [ ] Habit sharing
+- [ ] Community templates
 
 ## 🤝 Katkıda Bulunma
 

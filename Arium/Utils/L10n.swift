@@ -291,7 +291,6 @@ enum L10n {
             "achievements.viewAll": "View All Achievements",
             
             // Data Export
-            "export.title": "Export Data",
             "export.subtitle": "Export your habits",
             "export.csv": "Export as CSV",
             "export.json": "Export as JSON",
@@ -732,7 +731,7 @@ enum L10n {
             "achievements.viewAll": "Tüm Rozetleri Gör",
             
             // Data Export
-            "export.title": "Veri Aktar",
+           
             "export.subtitle": "Alışkanlıklarınızı dışa aktarın",
             "export.csv": "CSV Olarak Aktar",
             "export.json": "JSON Olarak Aktar",
@@ -759,11 +758,7 @@ enum L10n {
             "widgetTheme.title": "Widget Teması",
             
             // Theme Names
-            "theme.purple": "Mor Rüya",
-            "theme.blue": "Okyanus Mavisi",
-            "theme.green": "Orman Yeşili",
-            "theme.pink": "Yumuşak Pembe",
-            "theme.orange": "Gün Batımı",
+
             "theme.red": "Yakut Kırmızısı",
             "theme.teal": "Tropikal Turkuaz",
             "theme.indigo": "Gece Mavisi",
@@ -1199,7 +1194,7 @@ enum L10n {
             "settings.data": "Datenverwaltung",
             "settings.export": "Gewohnheiten exportieren",
             "settings.import": "Gewohnheiten importieren",
-            "export.title": "Gewohnheiten exportieren",
+   
             "export.selectHabits": "Zu exportierende Gewohnheiten auswählen",
             "export.habits": "Gewohnheiten",
             "export.selectAll": "Alle auswählen",
@@ -1653,7 +1648,7 @@ enum L10n {
             "settings.data": "Gestion des données",
             "settings.export": "Exporter les habitudes",
             "settings.import": "Importer les habitudes",
-            "export.title": "Exporter les habitudes",
+            
             "export.selectHabits": "Sélectionner les habitudes à exporter",
             "export.habits": "Habitudes",
             "export.selectAll": "Tout sélectionner",
@@ -2107,7 +2102,7 @@ enum L10n {
             "settings.data": "Gestión de datos",
             "settings.export": "Exportar hábitos",
             "settings.import": "Importar hábitos",
-            "export.title": "Exportar hábitos",
+           
             "export.selectHabits": "Seleccionar hábitos para exportar",
             "export.habits": "Hábitos",
             "export.selectAll": "Seleccionar todo",
@@ -2561,7 +2556,7 @@ enum L10n {
             "settings.data": "Gestione dati",
             "settings.export": "Esporta abitudini",
             "settings.import": "Importa abitudini",
-            "export.title": "Esporta abitudini",
+       
             "export.selectHabits": "Seleziona abitudini da esportare",
             "export.habits": "Abitudini",
             "export.selectAll": "Seleziona tutto",
