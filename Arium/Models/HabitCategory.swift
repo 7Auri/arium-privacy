@@ -35,6 +35,11 @@ enum HabitCategory: String, Codable, CaseIterable, Identifiable {
         }
     }
     
+    // Display name (alias for compatibility)
+    var displayName: String {
+        localizedName
+    }
+    
     // SF Symbol icon
     var icon: String {
         switch self {
