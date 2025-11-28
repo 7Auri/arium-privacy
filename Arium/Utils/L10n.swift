@@ -1657,8 +1657,7 @@ enum L10n {
             "settings.data": "Gestion des données",
             "settings.export": "Exporter les habitudes",
             "settings.export.habits": "Sauvegarder les habitudes",
-            "settings.customization": "Personnalisation",
-            "settings.customization.subtitle": "Polices, widgets, thèmes",
+            
             "settings.customization": "Personnalisation",
             "settings.customization.subtitle": "Polices, widgets, thèmes",
             "export.selectHabits": "Sélectionner les habitudes à exporter",
@@ -2115,8 +2114,7 @@ enum L10n {
             "settings.export": "Exportar hábitos",
             "settings.export.habits": "Respaldar hábitos",
             "settings.customization": "Personalización",
-            "settings.customization.subtitle": "Fuentes, widgets, temas",
-            "settings.customization": "Personalización",
+    
             "settings.customization.subtitle": "Fuentes, widgets, temas",
             "settings.import": "Importar hábitos",
            
@@ -2572,10 +2570,7 @@ enum L10n {
             "settings.export": "Esporta abitudini",
             "settings.export.habits": "Backup abitudini",
             "settings.customization": "Personalizzazione",
-            "settings.customization.subtitle": "Font, widget, temi",
-            "settings.customization": "Personalizzazione",
-            "settings.customization.subtitle": "Font, widget, temi",
-            "settings.import": "Importa abitudini",
+    
        
             "export.selectHabits": "Seleziona abitudini da esportare",
             "export.habits": "Abitudini",
