@@ -81,20 +81,22 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                if currentLanguage == "system" {
-                                    Text(L10n.t("settings.language.system"))
-                                } else if currentLanguage == "tr" {
-                                    Text("Türkçe")
-                                } else if currentLanguage == "de" {
-                                    Text("Deutsch")
-                                } else if currentLanguage == "fr" {
-                                    Text("Français")
-                                } else if currentLanguage == "es" {
-                                    Text("Español")
-                                } else if currentLanguage == "it" {
-                                    Text("Italiano")
-                                } else {
-                                    Text("English")
+                                Group {
+                                    if currentLanguage == "system" {
+                                        Text(L10n.t("settings.language.system"))
+                                    } else if currentLanguage == "tr" {
+                                        Text("Türkçe")
+                                    } else if currentLanguage == "de" {
+                                        Text("Deutsch")
+                                    } else if currentLanguage == "fr" {
+                                        Text("Français")
+                                    } else if currentLanguage == "es" {
+                                        Text("Español")
+                                    } else if currentLanguage == "it" {
+                                        Text("Italiano")
+                                    } else {
+                                        Text("English")
+                                    }
                                 }
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
@@ -1192,19 +1194,6 @@ struct AppThemePickerSheet: View {
         }
     }
     
-    // MARK: - Helper Functions
-    
-    private static func languageDisplayName(for code: String) -> String {
-        switch code {
-        case "tr": return "Türkçe"
-        case "en": return "English"
-        case "de": return "Deutsch"
-        case "fr": return "Français"
-        case "es": return "Español"
-        case "it": return "Italiano"
-        default: return "English"
-        }
-    }
 }
 
 // MARK: - Export Habit Picker Sheet
