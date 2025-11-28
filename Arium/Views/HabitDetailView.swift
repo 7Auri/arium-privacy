@@ -107,7 +107,7 @@ struct HabitDetailView: View {
             
             // Category Badge
             HStack(spacing: 6) {
-                Image(systemName: viewModel.habit.category.icon)
+                Text(viewModel.habit.category.icon)
                     .font(.caption)
                 Text(viewModel.habit.category.localizedName)
                     .font(.caption)
