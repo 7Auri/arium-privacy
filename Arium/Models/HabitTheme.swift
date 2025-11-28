@@ -70,8 +70,134 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         accentColor: "#E67E22"
     )
     
+    // NEW THEMES
+    static let red = HabitTheme(
+        id: "red",
+        name: "Ruby Red",
+        primaryColor: "#FFB3BA",
+        secondaryColor: "#FFE6E8",
+        accentColor: "#E74C3C"
+    )
+    
+    static let teal = HabitTheme(
+        id: "teal",
+        name: "Tropical Teal",
+        primaryColor: "#A8E6CF",
+        secondaryColor: "#E0F7EF",
+        accentColor: "#16A085"
+    )
+    
+    static let indigo = HabitTheme(
+        id: "indigo",
+        name: "Midnight Indigo",
+        primaryColor: "#C5CAE9",
+        secondaryColor: "#E8EAF6",
+        accentColor: "#3F51B5"
+    )
+    
+    static let mint = HabitTheme(
+        id: "mint",
+        name: "Fresh Mint",
+        primaryColor: "#B8F2E6",
+        secondaryColor: "#E6FAF5",
+        accentColor: "#00D9C0"
+    )
+    
+    static let coral = HabitTheme(
+        id: "coral",
+        name: "Coral Reef",
+        primaryColor: "#FFB3AB",
+        secondaryColor: "#FFE6E3",
+        accentColor: "#FF7F6A"
+    )
+    
+    static let lavender = HabitTheme(
+        id: "lavender",
+        name: "Sweet Lavender",
+        primaryColor: "#D4C5F9",
+        secondaryColor: "#F0EBFF",
+        accentColor: "#9B7EDE"
+    )
+    
+    static let gold = HabitTheme(
+        id: "gold",
+        name: "Golden Hour",
+        primaryColor: "#FFE5B4",
+        secondaryColor: "#FFF5E1",
+        accentColor: "#F39C12"
+    )
+    
+    static let rose = HabitTheme(
+        id: "rose",
+        name: "Rose Gold",
+        primaryColor: "#F4C2C2",
+        secondaryColor: "#FDEAEA",
+        accentColor: "#E91E63"
+    )
+    
+    static let navy = HabitTheme(
+        id: "navy",
+        name: "Deep Navy",
+        primaryColor: "#A8C5E0",
+        secondaryColor: "#E3EEF7",
+        accentColor: "#2C3E50"
+    )
+    
+    static let lime = HabitTheme(
+        id: "lime",
+        name: "Zesty Lime",
+        primaryColor: "#D7F5A6",
+        secondaryColor: "#F0FBDC",
+        accentColor: "#8BC34A"
+    )
+    
+    static let violet = HabitTheme(
+        id: "violet",
+        name: "Royal Violet",
+        primaryColor: "#D8B5E8",
+        secondaryColor: "#F2E6F7",
+        accentColor: "#8E44AD"
+    )
+    
+    static let turquoise = HabitTheme(
+        id: "turquoise",
+        name: "Azure Turquoise",
+        primaryColor: "#A8E6E3",
+        secondaryColor: "#E0F7F6",
+        accentColor: "#1ABC9C"
+    )
+    
+    static let crimson = HabitTheme(
+        id: "crimson",
+        name: "Bold Crimson",
+        primaryColor: "#FFB3C1",
+        secondaryColor: "#FFE6EC",
+        accentColor: "#C0392B"
+    )
+    
+    static let sage = HabitTheme(
+        id: "sage",
+        name: "Calm Sage",
+        primaryColor: "#C7DCA7",
+        secondaryColor: "#EBF3DC",
+        accentColor: "#87A96B"
+    )
+    
+    static let peach = HabitTheme(
+        id: "peach",
+        name: "Peachy Keen",
+        primaryColor: "#FFDAB9",
+        secondaryColor: "#FFF3E6",
+        accentColor: "#FF9A76"
+    )
+    
     static let allThemes: [HabitTheme] = [
-        .purple, .blue, .green, .pink, .orange
+        // Original
+        .purple, .blue, .green, .pink, .orange,
+        // New
+        .red, .teal, .indigo, .mint, .coral,
+        .lavender, .gold, .rose, .navy, .lime,
+        .violet, .turquoise, .crimson, .sage, .peach
     ]
 }
 
