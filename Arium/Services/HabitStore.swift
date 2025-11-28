@@ -219,6 +219,11 @@ class HabitStore: NSObject, ObservableObject {
             
             // Notify Watch
             sendUpdateToWatch()
+            
+            // Check achievements (non-blocking)
+            Task { @MainActor in
+                AchievementManager.shared.checkAchievements(habits: habits, isPremium: isPremium)
+            }
         } catch {
             self.error = HabitError.saveFailed
             print("❌ Failed to save habits: \(error)")
