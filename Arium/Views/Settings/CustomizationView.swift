@@ -33,7 +33,7 @@ struct CustomizationView: View {
                                         .font(.body)
                                         .foregroundColor(.primary)
                                     
-                                    Text("The quick brown fox")
+                                    Text(L10n.t("font.preview.text"))
                                         .font(font.font(size: 12))
                                         .foregroundColor(.secondary)
                                 }
@@ -65,7 +65,7 @@ struct CustomizationView: View {
                                 RoundedRectangle(cornerRadius: 8)
                                     .fill(theme.backgroundColor)
                                     .overlay(
-                                        Text("Widget")
+                                        Text(L10n.t("widget.preview"))
                                             .font(.caption.bold())
                                             .foregroundColor(theme.textColor)
                                     )
@@ -93,12 +93,12 @@ struct CustomizationView: View {
                 } header: {
                     Text(L10n.t("widgetTheme.title"))
                 } footer: {
-                    Text("Widget themes will update next time the widget refreshes")
+                    Text(L10n.t("widgetTheme.refreshMessage"))
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
             }
-            .navigationTitle("🎨 Customization")
+            .navigationTitle("🎨 \(L10n.t("settings.customization"))")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

@@ -209,6 +209,7 @@ enum L10n {
             "settings.termsOfService": "Terms of Service",
             "settings.resetOnboarding": "Reset Onboarding",
             "settings.clearAllHabits": "Clear All Habits",
+            "settings.clearCache": "Clear Cache",
             "settings.debug": "Debug",
             "settings.debug.togglePremium": "Toggle Premium (Debug)",
             "settings.appTheme": "App Theme",
@@ -232,6 +233,24 @@ enum L10n {
             "widget.pending": "Pending",
             "widget.loading": "Loading...",
             "widget.error.title": "Unable to Load",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Font Type",
+            "font.system": "System Font",
+            "font.rounded": "Rounded",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Widget Theme",
+            "widgetTheme.light": "Light",
+            "widgetTheme.dark": "Dark",
+            "widgetTheme.gradient": "Gradient",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Colorful",
+            "widgetTheme.refreshMessage": "Widget themes will update next time the widget refreshes",
             
             // Quick Actions
             "quickAction.newHabit": "New Habit",
@@ -655,6 +674,7 @@ enum L10n {
             "settings.termsOfService": "Kullanım Şartları",
             "settings.resetOnboarding": "Onboarding'i Sıfırla",
             "settings.clearAllHabits": "Tüm Alışkanlıkları Temizle",
+            "settings.clearCache": "Cache Temizle",
             "settings.debug": "Hata Ayıklama",
             "settings.debug.togglePremium": "Premium Aç/Kapat (Debug)",
             "settings.appTheme": "Uygulama Teması",
@@ -678,6 +698,24 @@ enum L10n {
             "widget.pending": "Bekleyen",
             "widget.loading": "Yükleniyor...",
             "widget.error.title": "Yüklenemedi",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Yazı Tipi",
+            "font.system": "Sistem Yazı Tipi",
+            "font.rounded": "Yuvarlatılmış",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Widget Teması",
+            "widgetTheme.light": "Açık",
+            "widgetTheme.dark": "Koyu",
+            "widgetTheme.gradient": "Gradyan",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Renkli",
+            "widgetTheme.refreshMessage": "Widget temaları bir sonraki widget yenilemesinde güncellenecek",
             
             // Quick Actions
             "quickAction.newHabit": "Yeni Alışkanlık",
@@ -782,21 +820,6 @@ enum L10n {
             "export.error.failed": "Aktarma başarısız oldu",
             "export.error.pdfFailed": "PDF oluşturulamadı",
             "export.choose": "Format Seçin",
-            
-            // Fonts
-            "font.system": "Sistem Yazı Tipi",
-            "font.rounded": "Yuvarlatılmış",
-            "font.serif": "Serif",
-            "font.monospaced": "Monospace",
-            "font.title": "Yazı Tipi",
-            
-            // Widget Themes
-            "widgetTheme.light": "Açık",
-            "widgetTheme.dark": "Koyu",
-            "widgetTheme.gradient": "Gradyan",
-            "widgetTheme.minimal": "Minimal",
-            "widgetTheme.colorful": "Renkli",
-            "widgetTheme.title": "Widget Teması",
             
             // Theme Names
 
@@ -1135,6 +1158,7 @@ enum L10n {
             "settings.termsOfService": "Nutzungsbedingungen",
             "settings.resetOnboarding": "Onboarding zurücksetzen",
             "settings.clearAllHabits": "Alle Gewohnheiten löschen",
+            "settings.clearCache": "Cache löschen",
             "settings.debug": "Debug",
             "settings.debug.togglePremium": "Premium umschalten (Debug)",
             "settings.appTheme": "App-Design",
@@ -1159,6 +1183,24 @@ enum L10n {
             "widget.loading": "Wird geladen...",
             "widget.error.title": "Kann nicht geladen werden",
             "widget.error.message": "Bitte öffne die App, um deine Gewohnheiten zu synchronisieren",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Schriftart",
+            "font.system": "Systemschrift",
+            "font.rounded": "Abgerundet",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Widget-Design",
+            "widgetTheme.light": "Hell",
+            "widgetTheme.dark": "Dunkel",
+            "widgetTheme.gradient": "Verlauf",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Bunt",
+            "widgetTheme.refreshMessage": "Widget-Designs werden beim nächsten Widget-Aktualisierung aktualisiert",
             "widget.empty.title": "Noch keine Gewohnheiten",
             "widget.empty.message": "Füge deine erste Gewohnheit in der App hinzu",
             
@@ -1484,21 +1526,6 @@ enum L10n {
             "export.error.failed": "Export fehlgeschlagen",
             "export.error.pdfFailed": "PDF-Erstellung fehlgeschlagen",
             "export.choose": "Format wählen",
-            
-            // Fonts (DE)
-            "font.system": "System-Schriftart",
-            "font.rounded": "Abgerundet",
-            "font.serif": "Serif",
-            "font.monospaced": "Monospace",
-            "font.title": "Schriftart",
-            
-            // Widget Themes (DE)
-            "widgetTheme.light": "Hell",
-            "widgetTheme.dark": "Dunkel",
-            "widgetTheme.gradient": "Farbverlauf",
-            "widgetTheme.minimal": "Minimal",
-            "widgetTheme.colorful": "Farbenfroh",
-            "widgetTheme.title": "Widget-Thema",
         ],
         "fr": [
             // Home
@@ -1594,6 +1621,7 @@ enum L10n {
             "settings.termsOfService": "Conditions d'utilisation",
             "settings.resetOnboarding": "Réinitialiser l'introduction",
             "settings.clearAllHabits": "Effacer toutes les habitudes",
+            "settings.clearCache": "Effacer le cache",
             "settings.debug": "Débogage",
             "settings.debug.togglePremium": "Basculer Premium (Débogage)",
             "settings.appTheme": "Thème de l'application",
@@ -1620,6 +1648,24 @@ enum L10n {
             "widget.error.message": "Veuillez ouvrir l'application pour synchroniser vos habitudes",
             "widget.empty.title": "Aucune habitude pour le moment",
             "widget.empty.message": "Ajoutez votre première habitude dans l'application",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Type de police",
+            "font.system": "Police système",
+            "font.rounded": "Arrondi",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Thème du widget",
+            "widgetTheme.light": "Clair",
+            "widgetTheme.dark": "Sombre",
+            "widgetTheme.gradient": "Dégradé",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Coloré",
+            "widgetTheme.refreshMessage": "Les thèmes de widget seront mis à jour lors du prochain rafraîchissement du widget",
             
             // Statistics
             "statistics.title": "Statistiques",
@@ -1943,21 +1989,6 @@ enum L10n {
             "export.error.failed": "Exportation échouée",
             "export.error.pdfFailed": "Génération PDF échouée",
             "export.choose": "Choisir le format",
-            
-            // Fonts (FR)
-            "font.system": "Police système",
-            "font.rounded": "Arrondi",
-            "font.serif": "Serif",
-            "font.monospaced": "Monospace",
-            "font.title": "Police",
-            
-            // Widget Themes (FR)
-            "widgetTheme.light": "Clair",
-            "widgetTheme.dark": "Sombre",
-            "widgetTheme.gradient": "Dégradé",
-            "widgetTheme.minimal": "Minimal",
-            "widgetTheme.colorful": "Coloré",
-            "widgetTheme.title": "Thème du widget",
         ],
         "es": [
             // Home
@@ -2053,6 +2084,7 @@ enum L10n {
             "settings.termsOfService": "Términos de servicio",
             "settings.resetOnboarding": "Restablecer introducción",
             "settings.clearAllHabits": "Eliminar todos los hábitos",
+            "settings.clearCache": "Limpiar caché",
             "settings.debug": "Depuración",
             "settings.debug.togglePremium": "Alternar Premium (Depuración)",
             "settings.appTheme": "Tema de la aplicación",
@@ -2079,6 +2111,24 @@ enum L10n {
             "widget.error.message": "Por favor, abre la aplicación para sincronizar tus hábitos",
             "widget.empty.title": "Aún no hay hábitos",
             "widget.empty.message": "Agrega tu primer hábito en la aplicación",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Tipo de fuente",
+            "font.system": "Fuente del sistema",
+            "font.rounded": "Redondeada",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Tema del widget",
+            "widgetTheme.light": "Claro",
+            "widgetTheme.dark": "Oscuro",
+            "widgetTheme.gradient": "Degradado",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Colorido",
+            "widgetTheme.refreshMessage": "Los temas del widget se actualizarán la próxima vez que se actualice el widget",
             
             // Statistics
             "statistics.title": "Estadísticas",
@@ -2400,21 +2450,6 @@ enum L10n {
             "export.error.failed": "Exportación fallida",
             "export.error.pdfFailed": "Generación de PDF fallida",
             "export.choose": "Elegir formato",
-            
-            // Fonts (ES)
-            "font.system": "Fuente del sistema",
-            "font.rounded": "Redondeado",
-            "font.serif": "Serif",
-            "font.monospaced": "Monoespaciado",
-            "font.title": "Fuente",
-            
-            // Widget Themes (ES)
-            "widgetTheme.light": "Claro",
-            "widgetTheme.dark": "Oscuro",
-            "widgetTheme.gradient": "Degradado",
-            "widgetTheme.minimal": "Minimalista",
-            "widgetTheme.colorful": "Colorido",
-            "widgetTheme.title": "Tema del widget",
         ],
         "it": [
             // Home
@@ -2510,6 +2545,7 @@ enum L10n {
             "settings.termsOfService": "Termini di servizio",
             "settings.resetOnboarding": "Reimposta introduzione",
             "settings.clearAllHabits": "Elimina tutte le abitudini",
+            "settings.clearCache": "Pulisci cache",
             "settings.debug": "Debug",
             "settings.debug.togglePremium": "Attiva/Disattiva Premium (Debug)",
             "settings.appTheme": "Tema app",
@@ -2536,6 +2572,24 @@ enum L10n {
             "widget.error.message": "Apri l'app per sincronizzare le tue abitudini",
             "widget.empty.title": "Nessuna abitudine ancora",
             "widget.empty.message": "Aggiungi la tua prima abitudine nell'app",
+            "widget.preview": "Widget",
+            
+            // Font
+            "font.title": "Tipo di carattere",
+            "font.system": "Carattere di sistema",
+            "font.rounded": "Arrotondato",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.preview.text": "The quick brown fox",
+            
+            // Widget Theme
+            "widgetTheme.title": "Tema widget",
+            "widgetTheme.light": "Chiaro",
+            "widgetTheme.dark": "Scuro",
+            "widgetTheme.gradient": "Sfumato",
+            "widgetTheme.minimal": "Minimale",
+            "widgetTheme.colorful": "Colorato",
+            "widgetTheme.refreshMessage": "I temi del widget verranno aggiornati al prossimo aggiornamento del widget",
             
             // Statistics
             "statistics.title": "Statistiche",
@@ -2856,21 +2910,6 @@ enum L10n {
             "export.error.failed": "Esportazione fallita",
             "export.error.pdfFailed": "Generazione PDF fallita",
             "export.choose": "Scegli formato",
-            
-            // Fonts (IT)
-            "font.system": "Font di sistema",
-            "font.rounded": "Arrotondato",
-            "font.serif": "Serif",
-            "font.monospaced": "Monospazio",
-            "font.title": "Font",
-            
-            // Widget Themes (IT)
-            "widgetTheme.light": "Chiaro",
-            "widgetTheme.dark": "Scuro",
-            "widgetTheme.gradient": "Sfumatura",
-            "widgetTheme.minimal": "Minimale",
-            "widgetTheme.colorful": "Colorato",
-            "widgetTheme.title": "Tema del widget",
         ]
     ])
 }

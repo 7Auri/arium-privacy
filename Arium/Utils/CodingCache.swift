@@ -47,5 +47,18 @@ enum CodingCache {
         // No pretty printing for better performance
         return encoder
     }()
+    
+    /// Clear all caches (URL cache, etc.)
+    /// Note: JSONEncoder/Decoder instances are static and cannot be cleared,
+    /// but this clears other system caches
+    static func clearCaches() {
+        // Clear URL cache
+        URLCache.shared.removeAllCachedResponses()
+        
+        // Clear any other system caches if needed
+        #if DEBUG
+        print("✅ Caches cleared")
+        #endif
+    }
 }
 
