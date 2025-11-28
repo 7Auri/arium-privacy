@@ -406,6 +406,42 @@ class HabitStore: NSObject, ObservableObject {
         let completedToday = habits.filter { $0.isCompletedToday }.count
         return Double(completedToday) / Double(habits.count)
     }
+    
+    // MARK: - Live Activity (Dynamic Island)
+    
+    private func updateLiveActivity() {
+        if #available(iOS 16.1, *) {
+            let completedToday = habits.filter { $0.isCompletedToday }.count
+            let totalHabits = habits.count
+            let longestStreak = habits.map { $0.streak }.max() ?? 0
+            
+            LiveActivityManager.shared.updateActivity(
+                completedToday: completedToday,
+                totalHabits: totalHabits,
+                currentStreak: longestStreak
+            )
+        }
+    }
+    
+    func startLiveActivity() {
+        if #available(iOS 16.1, *) {
+            let completedToday = habits.filter { $0.isCompletedToday }.count
+            let totalHabits = habits.count
+            let longestStreak = habits.map { $0.streak }.max() ?? 0
+            
+            LiveActivityManager.shared.startActivity(
+                completedToday: completedToday,
+                totalHabits: totalHabits,
+                currentStreak: longestStreak
+            )
+        }
+    }
+    
+    func endLiveActivity() {
+        if #available(iOS 16.1, *) {
+            LiveActivityManager.shared.endActivity()
+        }
+    }
 }
 
 // MARK: - WCSessionDelegate
