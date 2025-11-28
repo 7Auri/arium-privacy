@@ -40,8 +40,26 @@ enum HabitCategory: String, Codable, CaseIterable, Identifiable {
         localizedName
     }
     
-    // SF Symbol icon
+    // Emoji icon for UI
     var icon: String {
+        switch self {
+        case .work:
+            return "💼"
+        case .health:
+            return "💚"
+        case .learning:
+            return "📚"
+        case .personal:
+            return "💗"
+        case .finance:
+            return "💰"
+        case .social:
+            return "👥"
+        }
+    }
+    
+    // SF Symbol for other uses
+    var systemIcon: String {
         switch self {
         case .work:
             return "briefcase.fill"
