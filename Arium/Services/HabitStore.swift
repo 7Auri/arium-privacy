@@ -185,12 +185,14 @@ class HabitStore: NSObject, ObservableObject {
     
     func saveHabits() {
         do {
-            let encoded = try JSONEncoder().encode(habits)
+            // Optimize memory by pruning old data before saving
+            let optimizedHabits = MemoryOptimization.pruneOldData(habits: habits)
+            let encoded = try CodingCache.compactEncoder.encode(optimizedHabits)
             
             // Save to local UserDefaults
             UserDefaults.standard.set(encoded, forKey: saveKey)
             #if DEBUG
-            print("✅ Saved \(habits.count) habits to local storage")
+            print("✅ Saved \(optimizedHabits.count) habits to local storage")
             #endif
             
             // Save to shared UserDefaults (for Widget & Watch)
@@ -228,7 +230,7 @@ class HabitStore: NSObject, ObservableObject {
         // Load from local UserDefaults
         if let data = UserDefaults.standard.data(forKey: saveKey) {
             do {
-                let decoded = try JSONDecoder().decode([Habit].self, from: data)
+                let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
                 habits = decoded
             } catch {
                 self.error = HabitError.loadFailed

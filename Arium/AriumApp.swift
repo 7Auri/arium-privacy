@@ -46,6 +46,11 @@ struct AriumApp: App {
                 // Note: iCloud sync is now manual-only for better user control and privacy
                 // Users can sync via "Sync Now" or "Load from iCloud" buttons in Settings
             }
+            
+            // Handle memory warnings
+            if newPhase == .background {
+                MemoryOptimization.handleMemoryWarning()
+            }
         }
     }
 }

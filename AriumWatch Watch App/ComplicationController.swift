@@ -80,7 +80,7 @@ class ComplicationController: NSObject, CLKComplicationDataSource {
     private func loadHabits() -> [Habit] {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
+              let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
         }
         return habits

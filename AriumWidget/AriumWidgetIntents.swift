@@ -19,7 +19,7 @@ struct ToggleHabitIntent: AppIntent {
         // Load habits from App Groups
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              var habits = try? JSONDecoder().decode([Habit].self, from: data),
+              var habits = try? CodingCache.decoder.decode([Habit].self, from: data),
               let index = habits.firstIndex(where: { $0.id.uuidString == habitId }) else {
             throw IntentError.habitNotFound
         }
@@ -28,7 +28,7 @@ struct ToggleHabitIntent: AppIntent {
         habits[index].toggleCompletion()
         
         // Save back to App Groups
-        if let encoded = try? JSONEncoder().encode(habits) {
+        if let encoded = try? CodingCache.compactEncoder.encode(habits) {
             sharedDefaults.set(encoded, forKey: "SavedHabits")
         }
         

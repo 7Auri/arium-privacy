@@ -45,7 +45,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
             return
         }
         
-        guard let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
+        guard let loadedHabits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             print("❌ Watch: Failed to decode habits from data (size: \(data.count) bytes)")
             return
         }
@@ -72,7 +72,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     
     private func saveHabitsToAppGroups(_ habitsToSave: [Habit]) {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
-              let data = try? JSONEncoder().encode(habitsToSave) else {
+              let data = try? CodingCache.compactEncoder.encode(habitsToSave) else {
             print("❌ Watch: Failed to save habits to App Groups")
             return
         }
@@ -119,7 +119,7 @@ extension WatchHabitViewModel: WCSessionDelegate {
             
             // Try to receive habits data directly
             if let habitsData = message["habits"] as? Data,
-               let receivedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+               let receivedHabits = try? CodingCache.decoder.decode([Habit].self, from: habitsData) {
                 print("✅ Watch: Received \(receivedHabits.count) habits via WatchConnectivity message")
                 habits = receivedHabits
                 
@@ -138,7 +138,7 @@ extension WatchHabitViewModel: WCSessionDelegate {
             
             // Try to get habits from context first (most reliable)
             if let habitsData = applicationContext["habits"] as? Data,
-               let receivedHabits = try? JSONDecoder().decode([Habit].self, from: habitsData) {
+               let receivedHabits = try? CodingCache.decoder.decode([Habit].self, from: habitsData) {
                 print("✅ Watch: Received \(receivedHabits.count) habits via application context")
                 habits = receivedHabits
                 

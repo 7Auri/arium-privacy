@@ -30,16 +30,11 @@ class HabitExportImport: ObservableObject {
     private init() {}
     
     func exportHabits(_ habits: [Habit]) throws -> Data {
-        let encoder = JSONEncoder()
-        encoder.dateEncodingStrategy = .iso8601
-        encoder.outputFormatting = .prettyPrinted
-        return try encoder.encode(habits)
+        return try CodingCache.encoder.encode(habits)
     }
     
     func importHabits(from data: Data) throws -> [Habit] {
-        let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
-        return try decoder.decode([Habit].self, from: data)
+        return try CodingCache.decoder.decode([Habit].self, from: data)
     }
     
     func prepareImportItems(

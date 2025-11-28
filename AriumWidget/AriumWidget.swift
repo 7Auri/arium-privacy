@@ -29,15 +29,21 @@ struct Provider: TimelineProvider {
         
         let entry = HabitEntry(date: currentDate, habits: habits, isLoading: false, hasError: hasError)
         
-        // Refresh every 15 minutes (production)
-        // For testing, change value to 1 minute
+        // Calculate next refresh time
+        // 1. Refresh at midnight (for daily reset)
+        // 2. Refresh every 15 minutes (production) or 1 minute (debug)
+        let calendar = Calendar.current
+        let midnight = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: currentDate)!)
+        
         #if DEBUG
-        let refreshMinutes = 1 // Test için 1 dakika
+        let periodicRefresh = calendar.date(byAdding: .minute, value: 1, to: currentDate)!
         #else
-        let refreshMinutes = 15 // Production için 15 dakika
+        let periodicRefresh = calendar.date(byAdding: .minute, value: 15, to: currentDate)!
         #endif
         
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: refreshMinutes, to: currentDate)!
+        // Choose the earlier of the two
+        let nextUpdate = min(midnight, periodicRefresh)
+        
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         
         completion(timeline)
@@ -46,7 +52,7 @@ struct Provider: TimelineProvider {
     private func loadHabits() -> [Habit] {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
+              let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
         }
         return habits
@@ -55,7 +61,7 @@ struct Provider: TimelineProvider {
     private func hasSampleData() -> Bool {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              let _ = try? JSONDecoder().decode([Habit].self, from: data) else {
+              let _ = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return false
         }
         return true

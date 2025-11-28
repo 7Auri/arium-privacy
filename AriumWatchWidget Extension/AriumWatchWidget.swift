@@ -29,15 +29,18 @@ struct WatchProvider: TimelineProvider {
         
         let entry = WatchHabitEntry(date: currentDate, habits: habits, isLoading: false, hasError: habits.isEmpty)
         
-        // Refresh every 15 minutes (production)
-        // For testing, change value to 1 minute
+        // Calculate next refresh time (same as iPhone widget)
+        let calendar = Calendar.current
+        let midnight = calendar.startOfDay(for: calendar.date(byAdding: .day, value: 1, to: currentDate)!)
+        
         #if DEBUG
-        let refreshMinutes = 1 // Test için 1 dakika
+        let periodicRefresh = calendar.date(byAdding: .minute, value: 1, to: currentDate)!
         #else
-        let refreshMinutes = 15 // Production için 15 dakika
+        let periodicRefresh = calendar.date(byAdding: .minute, value: 15, to: currentDate)!
         #endif
         
-        let nextUpdate = Calendar.current.date(byAdding: .minute, value: refreshMinutes, to: currentDate)!
+        let nextUpdate = min(midnight, periodicRefresh)
+        
         let timeline = Timeline(entries: [entry], policy: .after(nextUpdate))
         
         completion(timeline)
@@ -47,7 +50,7 @@ struct WatchProvider: TimelineProvider {
     private func loadHabitsFast() -> [Habit] {
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
+              let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
         }
         return habits
@@ -63,7 +66,7 @@ struct WatchProvider: TimelineProvider {
             return []
         }
         
-        guard let habits = try? JSONDecoder().decode([Habit].self, from: data) else {
+        guard let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
         }
         
