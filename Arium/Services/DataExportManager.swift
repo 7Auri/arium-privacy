@@ -27,7 +27,7 @@ enum ExportFormat: String, CaseIterable {
     }
 }
 
-enum ExportError: Error, LocalizedError {
+enum DataExportError: Error, LocalizedError {
     case noData
     case exportFailed
     case pdfGenerationFailed
@@ -51,7 +51,7 @@ class DataExportManager {
     
     func exportToCSV(habits: [Habit]) throws -> URL {
         guard !habits.isEmpty else {
-            throw ExportError.noData
+            throw DataExportError.noData
         }
         
         var csvString = "ID,Title,Category,Created,Streak,Total Completions,Goal Days,Daily Repetitions,Notes\n"
@@ -97,7 +97,7 @@ class DataExportManager {
     
     func exportToJSON(habits: [Habit]) throws -> URL {
         guard !habits.isEmpty else {
-            throw ExportError.noData
+            throw DataExportError.noData
         }
         
         let exportData = ExportData(
@@ -113,7 +113,7 @@ class DataExportManager {
         let jsonData = try encoder.encode(exportData)
         
         guard let jsonString = String(data: jsonData, encoding: .utf8) else {
-            throw ExportError.exportFailed
+            throw DataExportError.exportFailed
         }
         
         return try saveToTemporaryFile(jsonString, filename: "Arium_Export_\(timestamp).json")
@@ -123,7 +123,7 @@ class DataExportManager {
     
     func exportToPDF(habits: [Habit]) throws -> URL {
         guard !habits.isEmpty else {
-            throw ExportError.noData
+            throw DataExportError.noData
         }
         
         let pdfMetaData = [
@@ -257,7 +257,7 @@ class DataExportManager {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent(filename)
         
         guard let data = content.data(using: .utf8) else {
-            throw ExportError.exportFailed
+            throw DataExportError.exportFailed
         }
         
         try data.write(to: url)

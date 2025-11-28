@@ -84,7 +84,7 @@ struct ImprovedTemplatesView: View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
                 // Popular filter
-                FilterChip(
+                TemplateFilterChip(
                     title: "⭐ " + L10n.t("template.filter.popular"),
                     isSelected: showOnlyPopular
                 ) {
@@ -96,7 +96,7 @@ struct ImprovedTemplatesView: View {
                 
                 // Free filter
                 if !premiumManager.isPremium {
-                    FilterChip(
+                    TemplateFilterChip(
                         title: "🆓 " + L10n.t("template.filter.free"),
                         isSelected: showOnlyFree
                     ) {
@@ -109,7 +109,7 @@ struct ImprovedTemplatesView: View {
                 
                 // Category filters
                 ForEach([HabitCategory.health, .personal, .learning, .work, .finance, .social], id: \.self) { category in
-                    FilterChip(
+                    TemplateFilterChip(
                         title: category.icon + " " + L10n.t("category.\(category.rawValue)"),
                         isSelected: selectedCategory == category
                     ) {
@@ -234,9 +234,9 @@ struct ImprovedTemplatesView: View {
     }
 }
 
-// MARK: - Filter Chip
+// MARK: - Template Filter Chip
 
-struct FilterChip: View {
+struct TemplateFilterChip: View {
     let title: String
     let isSelected: Bool
     let action: () -> Void
