@@ -24,7 +24,7 @@ struct AriumApp: App {
                     .environmentObject(appThemeManager)
                     .task {
                         // Update habits status on app launch (async, non-blocking)
-                        habitStore.updateTodayStatus()
+                        await habitStore.updateTodayStatus()
                         
                         // Setup Quick Actions
                         QuickActionManager.shared.setupQuickActions()
@@ -44,10 +44,8 @@ struct AriumApp: App {
         .onChange(of: scenePhase) { oldPhase, newPhase in
             if newPhase == .active {
                 // Refresh completion status when app becomes active
-                habitStore.updateTodayStatus()
-                
-                // Clear notification badge when app becomes active
                 Task {
+                    await habitStore.updateTodayStatus()
                     await NotificationManager.shared.clearBadge()
                 }
                 
