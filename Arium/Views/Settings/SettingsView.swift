@@ -1107,7 +1107,10 @@ struct AppThemePickerSheet: View {
     
     // MARK: - View Components
     
+    @ViewBuilder
     private var languageButton: some View {
+        let displayText = currentLanguageText()
+        
         Button {
             showingLanguagePicker = true
         } label: {
@@ -1133,7 +1136,7 @@ struct AppThemePickerSheet: View {
                         .font(.system(size: 16, weight: .semibold))
                         .foregroundStyle(.primary)
                     
-                    Text(currentLanguageText())
+                    Text(displayText)
                         .font(.system(size: 14, weight: .regular))
                         .foregroundStyle(.secondary)
                 }
@@ -1153,6 +1156,12 @@ struct AppThemePickerSheet: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingLanguagePicker) {
+            LanguagePickerSheet(
+                isSystemLanguage: $isSystemLanguage,
+                selectedLanguage: $appLanguage
+            )
+        }
     }
     
     private func currentLanguageText() -> String {
