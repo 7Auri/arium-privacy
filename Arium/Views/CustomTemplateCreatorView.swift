@@ -90,7 +90,9 @@ struct CustomTemplateCreatorView: View {
                                 suggestedGoalDays: goalDays,
                                 icon: selectedIcon,
                                 isPopular: false,
-                                isPremium: true
+                                isPremium: true,
+                                dailyRepetitions: 1,
+                                repetitionLabels: nil
                             )
                         ) {}
                         .disabled(true)
@@ -201,7 +203,9 @@ struct CustomTemplateCreatorView: View {
             suggestedGoalDays: goalDays,
             icon: selectedIcon,
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         )
         
         savedTemplates.append(template)

@@ -33,7 +33,7 @@ struct RepetitionProgressView: View {
         HStack(spacing: 4) {
             ForEach(0..<habit.dailyRepetitions, id: \.self) { index in
                 Circle()
-                    .fill(habit.todayCompletions.contains(index) ? habit.theme.accentColor : Color.secondary.opacity(0.3))
+                    .fill(habit.todayCompletions.contains(index) ? habit.theme.accent : Color.secondary.opacity(0.3))
                     .frame(width: 6, height: 6)
             }
         }
@@ -68,7 +68,7 @@ struct RepetitionProgressView: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(
                             LinearGradient(
-                                colors: [habit.theme.accentColor, habit.theme.accentColor.opacity(0.7)],
+                                colors: [habit.theme.accent, habit.theme.accent.opacity(0.7)],
                                 startPoint: .leading,
                                 endPoint: .trailing
                             )
@@ -97,13 +97,13 @@ struct RepetitionCheckboxView: View {
                 // Checkbox
                 ZStack {
                     Circle()
-                        .strokeBorder(isCompleted ? habit.theme.accentColor : Color.secondary.opacity(0.5), lineWidth: 2)
+                        .strokeBorder(isCompleted ? habit.theme.accent : Color.secondary.opacity(0.5), lineWidth: 2)
                         .frame(width: 28, height: 28)
                     
                     if isCompleted {
                         Image(systemName: "checkmark")
                             .font(.caption.bold())
-                            .foregroundColor(habit.theme.accentColor)
+                            .foregroundColor(habit.theme.accent)
                     }
                 }
                 
@@ -125,7 +125,7 @@ struct RepetitionCheckboxView: View {
             .padding(.horizontal, 12)
             .background(
                 RoundedRectangle(cornerRadius: 12)
-                    .fill(isCompleted ? habit.theme.accentColor.opacity(0.1) : Color.clear)
+                    .fill(isCompleted ? habit.theme.accent.opacity(0.1) : Color.clear)
             )
         }
         .buttonStyle(.plain)
