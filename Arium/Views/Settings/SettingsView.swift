@@ -47,12 +47,20 @@ struct SettingsView: View {
     @State private var duplicateHabit: Habit?
     @State private var duplicateItemId: UUID?
     
-    var body: some View {
+    private var currentDisplayLanguage: String {
         let systemLang = L10nManager.detectSystemLanguage()
         let hasSystemLanguage = systemLang != nil
-        let currentLanguage = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
-        
-        return NavigationStack {
+        return isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+    }
+    
+    private var languageText: String {
+        currentDisplayLanguage == "system" 
+            ? L10n.t("settings.language.system")
+            : Self.languageDisplayName(for: currentDisplayLanguage)
+    }
+    
+    var body: some View {
+        NavigationStack {
             List {
                 // Language Section
                 Section {
@@ -81,11 +89,7 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                let displayText = currentLanguage == "system" 
-                                    ? L10n.t("settings.language.system")
-                                    : Self.languageDisplayName(for: currentLanguage)
-                                
-                                Text(displayText)
+                                Text(languageText)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
