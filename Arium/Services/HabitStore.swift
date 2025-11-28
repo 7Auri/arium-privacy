@@ -8,6 +8,7 @@
 import Foundation
 import SwiftUI
 import WatchConnectivity
+import ActivityKit
 
 @MainActor
 class HabitStore: NSObject, ObservableObject {
