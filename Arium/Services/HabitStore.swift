@@ -47,8 +47,8 @@ class HabitStore: NSObject, ObservableObject {
         }
         
         // Update status and request notifications asynchronously (non-blocking)
-        Task { @MainActor in
-            updateTodayStatus()
+        Task {
+            await updateTodayStatus()
             _ = await notificationManager.requestAuthorization()
         }
     }
@@ -176,7 +176,8 @@ class HabitStore: NSObject, ObservableObject {
         }
     }
     
-    func updateTodayStatus() {
+    @MainActor
+    func updateTodayStatus() async {
         for index in habits.indices {
             habits[index].isCompletedToday = habits[index].checkIfCompletedToday()
             habits[index].calculateStreak()
