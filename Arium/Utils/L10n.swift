@@ -205,6 +205,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sync data",
             "quickAction.viewStatistics": "View Statistics",
             "quickAction.viewStatistics.subtitle": "View progress",
+            
+            // Template View
+            "template.search.placeholder": "Search templates...",
+            "template.filter.popular": "Popular",
+            "template.filter.free": "Free",
+            "template.section.popular": "Popular Templates",
+            "template.section.all": "All Templates",
+            "template.count": "%d templates",
             "widget.error.message": "Please open the app to sync your habits",
             "widget.empty.title": "No Habits Yet",
             "widget.empty.message": "Add your first habit in the app",
@@ -550,6 +558,14 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Verileri senkronize et",
             "quickAction.viewStatistics": "İstatistikleri Gör",
             "quickAction.viewStatistics.subtitle": "İlerlemeyi gör",
+            
+            // Template View
+            "template.search.placeholder": "Şablon ara...",
+            "template.filter.popular": "Popüler",
+            "template.filter.free": "Ücretsiz",
+            "template.section.popular": "Popüler Şablonlar",
+            "template.section.all": "Tüm Şablonlar",
+            "template.count": "%d şablon",
             "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
             "widget.empty.title": "Henüz Alışkanlık Yok",
             "widget.empty.message": "İlk alışkanlığınızı uygulamada ekleyin",

@@ -61,7 +61,7 @@ struct ImprovedTemplatesView: View {
             Image(systemName: "magnifyingglass")
                 .foregroundColor(.secondary)
             
-            TextField("Search templates...", text: $searchText)
+            TextField(L10n.t("template.search.placeholder"), text: $searchText)
                 .textFieldStyle(.plain)
             
             if !searchText.isEmpty {
@@ -85,7 +85,7 @@ struct ImprovedTemplatesView: View {
             HStack(spacing: 12) {
                 // Popular filter
                 FilterChip(
-                    title: "⭐ Popular",
+                    title: "⭐ " + L10n.t("template.filter.popular"),
                     isSelected: showOnlyPopular
                 ) {
                     showOnlyPopular.toggle()
@@ -97,7 +97,7 @@ struct ImprovedTemplatesView: View {
                 // Free filter
                 if !premiumManager.isPremium {
                     FilterChip(
-                        title: "🆓 Free",
+                        title: "🆓 " + L10n.t("template.filter.free"),
                         isSelected: showOnlyFree
                     ) {
                         showOnlyFree.toggle()
@@ -135,7 +135,7 @@ struct ImprovedTemplatesView: View {
             HStack {
                 Image(systemName: "star.fill")
                     .foregroundColor(.orange)
-                Text("Popular Templates")
+                Text(L10n.t("template.section.popular"))
                     .font(.headline)
                 Spacer()
             }
@@ -159,7 +159,7 @@ struct ImprovedTemplatesView: View {
                 Text(sectionTitle)
                     .font(.headline)
                 Spacer()
-                Text("\(filteredTemplates.count) templates")
+                Text(String(format: L10n.t("template.count"), filteredTemplates.count))
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
@@ -213,13 +213,13 @@ struct ImprovedTemplatesView: View {
     
     private var sectionTitle: String {
         if let category = selectedCategory {
-            return L10n.t("category.\(category.rawValue)") + " Templates"
+            return L10n.t("category.\(category.rawValue)") + " " + L10n.t("template.section.all")
         } else if showOnlyPopular {
-            return "Popular Templates"
+            return L10n.t("template.section.popular")
         } else if showOnlyFree {
-            return "Free Templates"
+            return L10n.t("template.filter.free") + " " + L10n.t("template.section.all")
         } else {
-            return "All Templates"
+            return L10n.t("template.section.all")
         }
     }
     
