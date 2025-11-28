@@ -7,6 +7,7 @@
 
 import AppIntents
 import WidgetKit
+import Foundation
 
 struct ToggleHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "Toggle Habit"

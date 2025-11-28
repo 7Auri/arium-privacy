@@ -7,6 +7,7 @@
 
 import AppIntents
 import SwiftUI
+import Foundation
 
 /// Siri Shortcut: Complete a habit
 struct CompleteHabitIntent: AppIntent {
