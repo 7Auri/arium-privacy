@@ -1166,6 +1166,21 @@ enum L10n {
             "template.section.popular": "Beliebte Vorlagen",
             "template.section.all": "Alle Vorlagen",
             "template.count": "%d Vorlagen",
+            
+            // Daily Repetitions (Premium)
+            "repetition.title": "Tägliche Wiederholungen",
+            "repetition.subtitle": "Wie oft pro Tag?",
+            "repetition.once": "Einmal",
+            "repetition.morning": "Morgen",
+            "repetition.noon": "Mittag",
+            "repetition.afternoon": "Nachmittag",
+            "repetition.evening": "Abend",
+            "repetition.night": "Nacht",
+            "repetition.time": "Zeit",
+            "repetition.custom.label": "Benutzerdefiniertes Label",
+            "repetition.progress": "%d von %d abgeschlossen",
+            "repetition.premium.title": "Premium-Funktion",
+            "repetition.premium.message": "Tägliche Wiederholungen sind eine Premium-Funktion. Upgraden Sie, um mehrere Abschlüsse pro Tag zu verfolgen!",
         ],
         "fr": [
             // Home
@@ -1517,6 +1532,21 @@ enum L10n {
             "template.section.popular": "Modèles populaires",
             "template.section.all": "Tous les modèles",
             "template.count": "%d modèles",
+            
+            // Daily Repetitions (Premium)
+            "repetition.title": "Répétitions quotidiennes",
+            "repetition.subtitle": "Combien de fois par jour?",
+            "repetition.once": "Une fois",
+            "repetition.morning": "Matin",
+            "repetition.noon": "Midi",
+            "repetition.afternoon": "Après-midi",
+            "repetition.evening": "Soir",
+            "repetition.night": "Nuit",
+            "repetition.time": "Heure",
+            "repetition.custom.label": "Étiquette personnalisée",
+            "repetition.progress": "%d sur %d complétés",
+            "repetition.premium.title": "Fonction Premium",
+            "repetition.premium.message": "Les répétitions quotidiennes sont une fonctionnalité Premium. Passez à la version supérieure pour suivre plusieurs complétions par jour!",
         ],
         "es": [
             // Home
@@ -1868,6 +1898,21 @@ enum L10n {
             "template.section.popular": "Plantillas populares",
             "template.section.all": "Todas las plantillas",
             "template.count": "%d plantillas",
+            
+            // Daily Repetitions (Premium)
+            "repetition.title": "Repeticiones diarias",
+            "repetition.subtitle": "¿Cuántas veces al día?",
+            "repetition.once": "Una vez",
+            "repetition.morning": "Mañana",
+            "repetition.noon": "Mediodía",
+            "repetition.afternoon": "Tarde",
+            "repetition.evening": "Noche",
+            "repetition.night": "Madrugada",
+            "repetition.time": "Hora",
+            "repetition.custom.label": "Etiqueta personalizada",
+            "repetition.progress": "%d de %d completados",
+            "repetition.premium.title": "Función Premium",
+            "repetition.premium.message": "Las repeticiones diarias son una función Premium. ¡Actualiza para rastrear múltiples completaciones por día!",
         ],
         "it": [
             // Home
@@ -2219,6 +2264,21 @@ enum L10n {
             "template.section.popular": "Modelli popolari",
             "template.section.all": "Tutti i modelli",
             "template.count": "%d modelli",
+            
+            // Daily Repetitions (Premium)
+            "repetition.title": "Ripetizioni giornaliere",
+            "repetition.subtitle": "Quante volte al giorno?",
+            "repetition.once": "Una volta",
+            "repetition.morning": "Mattina",
+            "repetition.noon": "Mezzogiorno",
+            "repetition.afternoon": "Pomeriggio",
+            "repetition.evening": "Sera",
+            "repetition.night": "Notte",
+            "repetition.time": "Ora",
+            "repetition.custom.label": "Etichetta personalizzata",
+            "repetition.progress": "%d di %d completati",
+            "repetition.premium.title": "Funzione Premium",
+            "repetition.premium.message": "Le ripetizioni giornaliere sono una funzione Premium. Aggiorna per tracciare più completamenti al giorno!",
         ]
     ]
 }
