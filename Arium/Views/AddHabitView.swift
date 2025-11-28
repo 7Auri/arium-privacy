@@ -129,10 +129,10 @@ struct AddHabitView: View {
                             y: premiumManager.isPremium ? 4 : 0
                         )
                     }
-                    .sheet(isPresented: $showingTemplates) {
-                        HabitTemplatesView(viewModel: viewModel)
-                            .environmentObject(habitStore)
-                    }
+        .sheet(isPresented: $showingTemplates) {
+            ImprovedTemplatesView(viewModel: viewModel)
+                .environmentObject(habitStore)
+        }
                     
                     // Title Input
                     VStack(alignment: .leading, spacing: 8) {
