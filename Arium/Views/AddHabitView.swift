@@ -484,6 +484,17 @@ struct AddHabitView: View {
             } message: {
                 Text(L10n.t("premium.purchase.success.message"))
             }
+            .alert(L10n.t("goalDays.custom.prompt"), isPresented: $viewModel.showingCustomGoalInput) {
+                TextField(L10n.t("goalDays.custom.placeholder"), text: $viewModel.customGoalDays)
+                    .keyboardType(.numberPad)
+                Button(L10n.t("button.ok")) {
+                    viewModel.setCustomGoalDays(viewModel.customGoalDays)
+                    viewModel.customGoalDays = ""
+                }
+                Button(L10n.t("button.cancel"), role: .cancel) {
+                    viewModel.customGoalDays = ""
+                }
+            }
             .onAppear {
                 // Free kullanıcılar için kategoriyi Personal olarak sabitle
                 if !premiumManager.isPremium {
