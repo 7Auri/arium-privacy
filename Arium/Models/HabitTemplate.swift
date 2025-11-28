@@ -16,6 +16,8 @@ struct HabitTemplate: Identifiable, Codable {
     let icon: String
     let isPopular: Bool
     let isPremium: Bool
+    let dailyRepetitions: Int
+    let repetitionLabels: [String]?
     
     static let templates: [HabitTemplate] = [
         // HEALTH & FITNESS (Popular)
@@ -27,7 +29,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "figure.run",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -37,7 +41,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "drop.fill",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -47,7 +53,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "moon.fill",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -57,7 +65,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "figure.mind.and.body",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -67,7 +77,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "figure.walk",
             isPopular: false,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -77,7 +89,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 60,
             icon: "pills.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // PERSONAL DEVELOPMENT (Popular)
@@ -89,7 +103,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "brain.head.profile",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -99,7 +115,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "book.fill",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -109,7 +127,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "heart.fill",
             isPopular: false,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -119,7 +139,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "hand.raised.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -129,7 +151,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "sunrise.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -139,7 +163,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "quote.bubble.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // LEARNING & PRODUCTIVITY (Popular)
@@ -151,7 +177,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "book.closed.fill",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -161,7 +189,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 60,
             icon: "globe",
             isPopular: false,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -171,7 +201,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "chevron.left.forwardslash.chevron.right",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -181,7 +213,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "headphones",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -191,7 +225,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 60,
             icon: "graduationcap.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // WORK & CAREER
@@ -203,7 +239,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 14,
             icon: "envelope.badge.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -213,7 +251,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "brain.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -223,7 +263,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 60,
             icon: "person.2.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // FINANCE
@@ -235,7 +277,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 90,
             icon: "banknote.fill",
             isPopular: false,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -245,7 +289,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "chart.pie.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -255,7 +301,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "cart.fill.badge.minus",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // SOCIAL & RELATIONSHIPS
@@ -267,7 +315,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 7,
             icon: "phone.fill",
             isPopular: false,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -277,7 +327,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 14,
             icon: "person.3.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -287,7 +339,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "hand.thumbsup.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         
         // ADDITIONAL HABITS
@@ -299,7 +353,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 7,
             icon: "sparkles",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -309,7 +365,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "wineglass",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -319,7 +377,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "figure.flexibility",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
         HabitTemplate(
             id: UUID(),
@@ -329,7 +389,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 21,
             icon: "mouth.fill",
             isPopular: true,
-            isPremium: false
+            isPremium: false,
+            dailyRepetitions: 2,
+            repetitionLabels: [L10n.t("repetition.morning"), L10n.t("repetition.evening")]
         ),
         HabitTemplate(
             id: UUID(),
@@ -339,7 +401,9 @@ struct HabitTemplate: Identifiable, Codable {
             suggestedGoalDays: 30,
             icon: "face.smiling.fill",
             isPopular: false,
-            isPremium: true
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
         ),
     ]
     
