@@ -1824,6 +1824,88 @@ enum L10n {
             "goalDays.custom": "Personnalisé",
             "goalDays.custom.prompt": "Entrez les jours objectif",
             "goalDays.custom.placeholder": "p.ex. 45",
+            
+            // Achievements (FR)
+            "achievement.category.streak": "Série",
+            "achievement.category.completion": "Achèvement",
+            "achievement.category.consistency": "Cohérence",
+            "achievement.category.variety": "Variété",
+            "achievement.category.premium": "Premium",
+            "achievement.category.social": "Social",
+            
+            "achievement.tier.bronze": "Bronze",
+            "achievement.tier.silver": "Argent",
+            "achievement.tier.gold": "Or",
+            "achievement.tier.platinum": "Platine",
+            "achievement.tier.diamond": "Diamant",
+            
+            "achievement.streak7.title": "Feu de 7 jours",
+            "achievement.streak7.description": "7 jours consécutifs",
+            "achievement.streak30.title": "Champion de 30 jours",
+            "achievement.streak30.description": "30 jours consécutifs",
+            "achievement.streak100.title": "Légende de 100 jours",
+            "achievement.streak100.description": "100 jours consécutifs",
+            "achievement.streak365.title": "Héros annuel",
+            "achievement.streak365.description": "365 jours consécutifs",
+            
+            "achievement.complete10.title": "Premiers pas",
+            "achievement.complete10.description": "Compléter 10 habitudes",
+            "achievement.complete100.title": "Centenaire",
+            "achievement.complete100.description": "Compléter 100 habitudes",
+            "achievement.complete500.title": "Cinq cents",
+            "achievement.complete500.description": "Compléter 500 habitudes",
+            "achievement.complete1000.title": "Maître du millier",
+            "achievement.complete1000.description": "Compléter 1000 habitudes",
+            
+            "achievement.perfectWeek.title": "Semaine parfaite",
+            "achievement.perfectWeek.description": "Toutes les habitudes pendant une semaine",
+            "achievement.perfectMonth.title": "Mois parfait",
+            "achievement.perfectMonth.description": "Toutes les habitudes pendant un mois",
+            
+            "achievement.multiCategory.title": "Polyvalent",
+            "achievement.multiCategory.description": "Habitudes dans 4 catégories",
+            "achievement.habitMaster.title": "Maître des habitudes",
+            "achievement.habitMaster.description": "10 habitudes différentes",
+            
+            "achievement.premiumMember.title": "Membre Premium",
+            "achievement.premiumMember.description": "Passer à Premium",
+            "achievement.templateCreator.title": "Créateur de modèles",
+            "achievement.templateCreator.description": "Créer votre premier modèle",
+            
+            "achievement.unlocked": "Déverrouillé",
+            "achievement.xp": "%d XP",
+            "achievement.progress": "%d / %d",
+            "achievement.locked": "Verrouillé",
+            "achievement.new": "NOUVEAU",
+            "achievements.title": "Réalisations",
+            "achievements.viewAll": "Voir toutes",
+            
+            // Data Export (FR)
+            "export.title": "Exporter les données",
+            "export.subtitle": "Exporter vos habitudes",
+            "export.csv": "Exporter en CSV",
+            "export.json": "Exporter en JSON",
+            "export.pdf": "Créer un rapport PDF",
+            "export.success": "Exporté avec succès!",
+            "export.error.noData": "Aucune donnée à exporter",
+            "export.error.failed": "Exportation échouée",
+            "export.error.pdfFailed": "Génération PDF échouée",
+            "export.choose": "Choisir le format",
+            
+            // Fonts (FR)
+            "font.system": "Police système",
+            "font.rounded": "Arrondi",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.title": "Police",
+            
+            // Widget Themes (FR)
+            "widgetTheme.light": "Clair",
+            "widgetTheme.dark": "Sombre",
+            "widgetTheme.gradient": "Dégradé",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Coloré",
+            "widgetTheme.title": "Thème du widget",
         ],
         "es": [
             // Home
@@ -2196,6 +2278,88 @@ enum L10n {
             "goalDays.custom": "Personalizado",
             "goalDays.custom.prompt": "Ingresa días objetivo",
             "goalDays.custom.placeholder": "ej. 45",
+            
+            // Achievements (ES)
+            "achievement.category.streak": "Racha",
+            "achievement.category.completion": "Completación",
+            "achievement.category.consistency": "Consistencia",
+            "achievement.category.variety": "Variedad",
+            "achievement.category.premium": "Premium",
+            "achievement.category.social": "Social",
+            
+            "achievement.tier.bronze": "Bronce",
+            "achievement.tier.silver": "Plata",
+            "achievement.tier.gold": "Oro",
+            "achievement.tier.platinum": "Platino",
+            "achievement.tier.diamond": "Diamante",
+            
+            "achievement.streak7.title": "Fuego de 7 días",
+            "achievement.streak7.description": "7 días consecutivos",
+            "achievement.streak30.title": "Campeón de 30 días",
+            "achievement.streak30.description": "30 días consecutivos",
+            "achievement.streak100.title": "Leyenda de 100 días",
+            "achievement.streak100.description": "100 días consecutivos",
+            "achievement.streak365.title": "Héroe anual",
+            "achievement.streak365.description": "365 días consecutivos",
+            
+            "achievement.complete10.title": "Primeros pasos",
+            "achievement.complete10.description": "Completar 10 hábitos",
+            "achievement.complete100.title": "Centenario",
+            "achievement.complete100.description": "Completar 100 hábitos",
+            "achievement.complete500.title": "Quinientos",
+            "achievement.complete500.description": "Completar 500 hábitos",
+            "achievement.complete1000.title": "Maestro del mil",
+            "achievement.complete1000.description": "Completar 1000 hábitos",
+            
+            "achievement.perfectWeek.title": "Semana perfecta",
+            "achievement.perfectWeek.description": "Todos los hábitos durante una semana",
+            "achievement.perfectMonth.title": "Mes perfecto",
+            "achievement.perfectMonth.description": "Todos los hábitos durante un mes",
+            
+            "achievement.multiCategory.title": "Versátil",
+            "achievement.multiCategory.description": "Hábitos en 4 categorías",
+            "achievement.habitMaster.title": "Maestro de hábitos",
+            "achievement.habitMaster.description": "10 hábitos diferentes",
+            
+            "achievement.premiumMember.title": "Miembro Premium",
+            "achievement.premiumMember.description": "Actualizar a Premium",
+            "achievement.templateCreator.title": "Creador de plantillas",
+            "achievement.templateCreator.description": "Crear tu primera plantilla",
+            
+            "achievement.unlocked": "Desbloqueado",
+            "achievement.xp": "%d XP",
+            "achievement.progress": "%d / %d",
+            "achievement.locked": "Bloqueado",
+            "achievement.new": "NUEVO",
+            "achievements.title": "Logros",
+            "achievements.viewAll": "Ver todos",
+            
+            // Data Export (ES)
+            "export.title": "Exportar datos",
+            "export.subtitle": "Exportar tus hábitos",
+            "export.csv": "Exportar como CSV",
+            "export.json": "Exportar como JSON",
+            "export.pdf": "Crear informe PDF",
+            "export.success": "¡Exportado con éxito!",
+            "export.error.noData": "No hay datos para exportar",
+            "export.error.failed": "Exportación fallida",
+            "export.error.pdfFailed": "Generación de PDF fallida",
+            "export.choose": "Elegir formato",
+            
+            // Fonts (ES)
+            "font.system": "Fuente del sistema",
+            "font.rounded": "Redondeado",
+            "font.serif": "Serif",
+            "font.monospaced": "Monoespaciado",
+            "font.title": "Fuente",
+            
+            // Widget Themes (ES)
+            "widgetTheme.light": "Claro",
+            "widgetTheme.dark": "Oscuro",
+            "widgetTheme.gradient": "Degradado",
+            "widgetTheme.minimal": "Minimalista",
+            "widgetTheme.colorful": "Colorido",
+            "widgetTheme.title": "Tema del widget",
         ],
         "it": [
             // Home
