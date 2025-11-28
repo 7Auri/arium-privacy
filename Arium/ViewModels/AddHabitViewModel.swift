@@ -19,8 +19,10 @@ class AddHabitViewModel: ObservableObject {
     @Published var goalDays: Int = 21
     @Published var dailyRepetitions: Int = 1
     @Published var repetitionLabels: [String]? = nil
+    @Published var showingCustomGoalInput: Bool = false
+    @Published var customGoalDays: String = ""
     
-    let goalOptions = [7, 14, 21, 30, 60, 90]
+    let goalOptions = [7, 14, 21, 30, 60, 90, -1] // -1 = custom
     
     var canSave: Bool {
         !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
@@ -49,6 +51,14 @@ class AddHabitViewModel: ObservableObject {
         goalDays = 21
         dailyRepetitions = 1
         repetitionLabels = nil
+        showingCustomGoalInput = false
+        customGoalDays = ""
+    }
+    
+    func setCustomGoalDays(_ value: String) {
+        if let days = Int(value), days > 0, days <= 365 {
+            goalDays = days
+        }
     }
 }
 

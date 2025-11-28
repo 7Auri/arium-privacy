@@ -351,14 +351,50 @@ struct AddHabitView: View {
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(viewModel.goalOptions, id: \.self) { days in
+                                        if days == -1 {
+                                            // Custom button
+                                            Button(action: {
+                                                viewModel.showingCustomGoalInput = true
+                                            }) {
+                                                VStack(spacing: 4) {
+                                                    Text(L10n.t("goalDays.custom"))
+                                                        .font(.system(size: 14, weight: .semibold))
+                                                    Image(systemName: "pencil.circle")
+                                                        .font(.caption)
+                                                }
+                                                .foregroundColor(viewModel.selectedTheme.accent)
+                                                .frame(width: 70, height: 60)
+                                                .background(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .fill(viewModel.selectedTheme.accent.opacity(0.1))
+                                                )
+                                                .overlay(
+                                                    RoundedRectangle(cornerRadius: 12)
+                                                        .stroke(viewModel.selectedTheme.accent, lineWidth: 1.5)
+                                                )
+                                            }
+                                            .buttonStyle(.plain)
+                                        } else {
+                                            GoalDayButton(
+                                                days: days,
+                                                isSelected: viewModel.goalDays == days && !viewModel.goalOptions.contains(viewModel.goalDays) == false,
+                                                accentColor: viewModel.selectedTheme.accent
+                                            ) {
+                                                withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
+                                                    viewModel.goalDays = days
+                                                }
+                                            }
+                                        }
+                                    }
+                                    
+                                    // Show custom value if set
+                                    if !viewModel.goalOptions.dropLast().contains(viewModel.goalDays) && viewModel.goalDays != -1 {
                                         GoalDayButton(
-                                            days: days,
-                                            isSelected: viewModel.goalDays == days,
+                                            days: viewModel.goalDays,
+                                            isSelected: true,
                                             accentColor: viewModel.selectedTheme.accent
                                         ) {
-                                            withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                                                viewModel.goalDays = days
-                                            }
+                                            // Already selected
                                         }
                                     }
                                 }
