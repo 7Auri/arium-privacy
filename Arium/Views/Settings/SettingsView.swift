@@ -187,6 +187,7 @@ struct SettingsView: View {
                                 Image(systemName: "paintpalette.fill")
                                     .font(.system(size: 20, weight: .semibold))
                                     .foregroundStyle(appThemeManager.accentColor.color)
+                                    .symbolRenderingMode(.hierarchical)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -234,7 +235,7 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 
-                // Achievements Section (NEW!)
+                // Achievements Section
                 Section {
                     NavigationLink(destination: AchievementsView()) {
                         HStack(spacing: 16) {
@@ -242,15 +243,16 @@ struct SettingsView: View {
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.orange.opacity(0.2), Color.purple.opacity(0.1)],
+                                            colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .frame(width: 44, height: 44)
                                 
-                                Text("🏆")
-                                    .font(.system(size: 22))
+                                Image(systemName: "trophy.fill")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.orange)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -260,8 +262,8 @@ struct SettingsView: View {
                                 
                                 if AchievementManager.shared.newAchievementsCount > 0 {
                                     Text("\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new"))
-                                        .font(.caption.bold())
-                                        .foregroundColor(.orange)
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundStyle(.secondary)
                                 } else {
                                     Text(L10n.t("achievements.viewAll"))
                                         .font(.system(size: 14, weight: .regular))
@@ -288,7 +290,7 @@ struct SettingsView: View {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 
-                // Customization Section (NEW!)
+                // Customization Section
                 Section {
                     NavigationLink(destination: CustomizationView()) {
                         HStack(spacing: 16) {
@@ -296,15 +298,16 @@ struct SettingsView: View {
                                 Circle()
                                     .fill(
                                         LinearGradient(
-                                            colors: [Color.pink.opacity(0.2), Color.purple.opacity(0.1)],
+                                            colors: [Color.pink.opacity(0.2), Color.pink.opacity(0.1)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .frame(width: 44, height: 44)
                                 
-                                Text("🎨")
-                                    .font(.system(size: 22))
+                                Image(systemName: "paintbrush.fill")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.pink)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -336,54 +339,6 @@ struct SettingsView: View {
                 .listRowBackground(Color.clear)
                 .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 
-                // Data Export Section (NEW!)
-                Section {
-                    NavigationLink(destination: DataExportView()) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.blue.opacity(0.2), Color.cyan.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "square.and.arrow.up")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundColor(.blue)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("export.title"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(L10n.t("export.subtitle"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 
                 // Premium Section
                 Section {
@@ -632,8 +587,9 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
                 }
                 
-                // Export/Import Section
+                // Export/Import/Backup Section
                 Section {
+                    // Dışarı Aktar (Export Habits)
                     Button {
                         guard !habitStore.habits.isEmpty else {
                             exportError = ExportError.exportFailed
@@ -643,36 +599,146 @@ struct SettingsView: View {
                         selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
                         showingExportHabitPicker = true
                     } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "square.and.arrow.up.fill")
-                                .font(.body)
-                                .foregroundStyle(.blue.opacity(0.8))
-                                .frame(width: 28, alignment: .center)
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "square.and.arrow.up")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.blue)
+                            }
                             
-                            Text(L10n.t("settings.export.habits"))
-                                .foregroundStyle(.primary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("settings.export.habits"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                Text(L10n.t("export.subtitle"))
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
                             
                             Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
                         }
+                        .padding(16)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        )
                     }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    .buttonStyle(PlainButtonStyle())
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                     
+                    // İçeri Aktar (Import Habits)
                     Button {
                         showingImportPicker = true
                     } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "square.and.arrow.down.fill")
-                                .font(.body)
-                                .foregroundStyle(.green.opacity(0.8))
-                                .frame(width: 28, alignment: .center)
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.green.opacity(0.2), Color.green.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "square.and.arrow.down")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.green)
+                            }
                             
-                            Text(L10n.t("settings.import"))
-                                .foregroundStyle(.primary)
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("settings.import"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                Text(L10n.t("import.subtitle"))
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
                             
                             Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
                         }
+                        .padding(16)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        )
                     }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    .buttonStyle(PlainButtonStyle())
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                    
+                    // Yedekle (Backup)
+                    NavigationLink(destination: DataExportView()) {
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.purple.opacity(0.2), Color.purple.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "externaldrive.badge.icloud")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.purple)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("settings.backup"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                Text(L10n.t("settings.backup.subtitle"))
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(16)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 } header: {
                     Text(L10n.t("settings.data"))
                         .font(.footnote)

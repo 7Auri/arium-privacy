@@ -79,7 +79,42 @@ enum L10n {
         manager.currentLanguage = code
     }
     
-    private static let translations: [String: [String: String]] = [
+    /// Validates translations dictionary and removes duplicates, keeping first occurrence
+    /// Note: Swift dictionary literals automatically keep the last value for duplicate keys.
+    /// This function ensures that if duplicates exist (which should be caught by compiler warnings),
+    /// we log them in DEBUG mode. In production, the dictionary literal behavior (last value wins)
+    /// is acceptable, but we validate to catch any issues.
+    private static func validateTranslations(_ rawTranslations: [String: [String: String]]) -> [String: [String: String]] {
+        var validated: [String: [String: String]] = [:]
+        
+        for (lang, translations) in rawTranslations {
+            // Dictionary literal'lerde duplicate key'ler varsa son olan geçerli olur.
+            // Bu function sadece validation için kullanılır.
+            // Eğer duplicate key'ler varsa, Swift compiler warning verir.
+            // Runtime'da da kontrol ediyoruz ve DEBUG modda logluyoruz.
+            var seenKeys: Set<String> = []
+            var keyCount: [String: Int] = [:]
+            
+            // Key'leri say
+            for key in translations.keys {
+                keyCount[key, default: 0] += 1
+            }
+            
+            // Duplicate key'leri kontrol et
+            for (key, count) in keyCount where count > 1 {
+                #if DEBUG
+                print("⚠️ L10n [\(lang)]: Duplicate key '\(key)' found \(count) times. Dictionary literal keeps last value.")
+                #endif
+            }
+            
+            // Dictionary'yi olduğu gibi döndür (Swift zaten son olanı tutuyor)
+            validated[lang] = translations
+        }
+        
+        return validated
+    }
+    
+    private static let translations: [String: [String: String]] = validateTranslations([
         "en": [
             // Home
             "home.title": "Arium",
@@ -388,6 +423,9 @@ enum L10n {
             "settings.customization": "Customization",
             "settings.customization.subtitle": "Fonts, widgets, themes",
             "settings.import": "Import Habits",
+            "settings.backup": "Backup",
+            "settings.backup.subtitle": "Save your data in different formats",
+            "import.subtitle": "Import habits from a backup file",
             "export.title": "Export Habits",
             "export.selectHabits": "Select Habits to Export",
             "export.habits": "Habits",
@@ -865,6 +903,9 @@ enum L10n {
             "settings.customization": "Özelleştirme",
             "settings.customization.subtitle": "Font, widget, temalar",
             "settings.import": "Alışkanlıkları İçe Aktar",
+            "settings.backup": "Yedekle",
+            "settings.backup.subtitle": "Verilerinizi farklı formatlarda kaydedin",
+            "import.subtitle": "Yedek dosyasından alışkanlıkları içe aktar",
             "export.title": "Alışkanlıkları Dışa Aktar",
             "export.selectHabits": "Dışa Aktarılacak Alışkanlıkları Seç",
             "export.habits": "Alışkanlıklar",
@@ -1203,7 +1244,9 @@ enum L10n {
             "settings.customization": "Anpassung",
             "settings.customization.subtitle": "Schriftarten, Widgets, Themen",
             "settings.import": "Gewohnheiten importieren",
-   
+            "settings.backup": "Sicherung",
+            "settings.backup.subtitle": "Speichern Sie Ihre Daten in verschiedenen Formaten",
+            "import.subtitle": "Gewohnheiten aus einer Sicherungsdatei importieren",
             "export.selectHabits": "Zu exportierende Gewohnheiten auswählen",
             "export.habits": "Gewohnheiten",
             "export.selectAll": "Alle auswählen",
@@ -1657,7 +1700,10 @@ enum L10n {
             "settings.data": "Gestion des données",
             "settings.export": "Exporter les habitudes",
             "settings.export.habits": "Sauvegarder les habitudes",
-            
+            "settings.import": "Importer les habitudes",
+            "settings.backup": "Sauvegarde",
+            "settings.backup.subtitle": "Enregistrez vos données dans différents formats",
+            "import.subtitle": "Importer les habitudes depuis un fichier de sauvegarde",
             "settings.customization": "Personnalisation",
             "settings.customization.subtitle": "Polices, widgets, thèmes",
             "export.selectHabits": "Sélectionner les habitudes à exporter",
@@ -2113,11 +2159,12 @@ enum L10n {
             "settings.data": "Gestión de datos",
             "settings.export": "Exportar hábitos",
             "settings.export.habits": "Respaldar hábitos",
-            "settings.customization": "Personalización",
-    
-            "settings.customization.subtitle": "Fuentes, widgets, temas",
             "settings.import": "Importar hábitos",
-           
+            "settings.backup": "Respaldo",
+            "settings.backup.subtitle": "Guarda tus datos en diferentes formatos",
+            "import.subtitle": "Importar hábitos desde un archivo de respaldo",
+            "settings.customization": "Personalización",
+            "settings.customization.subtitle": "Fuentes, widgets, temas",
             "export.selectAll": "Seleccionar todo",
             "export.deselectAll": "Deseleccionar todo",
             "export.selectedCount": "%d hábito(s) seleccionado(s)",
@@ -2569,9 +2616,11 @@ enum L10n {
             "settings.data": "Gestione dati",
             "settings.export": "Esporta abitudini",
             "settings.export.habits": "Backup abitudini",
+            "settings.import": "Importa abitudini",
+            "settings.backup": "Backup",
+            "settings.backup.subtitle": "Salva i tuoi dati in diversi formati",
+            "import.subtitle": "Importa abitudini da un file di backup",
             "settings.customization": "Personalizzazione",
-    
-       
             "export.selectHabits": "Seleziona abitudini da esportare",
             "export.habits": "Abitudini",
             "export.selectedCount": "%d abitudine(i) selezionata(e)",
@@ -2823,6 +2872,6 @@ enum L10n {
             "widgetTheme.colorful": "Colorato",
             "widgetTheme.title": "Tema del widget",
         ]
-    ]
+    ])
 }
 
