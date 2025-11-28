@@ -550,6 +550,12 @@ struct HabitDetailView: View {
                 headerView
                 notesView
                 statsView
+                
+                // Daily Repetitions Section (Premium)
+                if viewModel.habit.dailyRepetitions > 1 {
+                    repetitionsView
+                }
+                
                 startDateView
                 goalDaysView
                 themeView
@@ -563,6 +569,47 @@ struct HabitDetailView: View {
             .padding(20)
         }
         .background(Color(.systemBackground))
+    }
+    
+    // MARK: - Repetitions View (Premium)
+    
+    private var repetitionsView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            // Repetition progress header
+            RepetitionProgressView(habit: viewModel.habit, compact: false)
+            
+            // Individual repetition checkboxes
+            VStack(spacing: 8) {
+                ForEach(0..<viewModel.habit.dailyRepetitions, id: \.self) { index in
+                    RepetitionCheckboxView(
+                        habit: viewModel.habit,
+                        index: index,
+                        onToggle: { index in
+                            var updatedHabit = viewModel.habit
+                            updatedHabit.toggleRepetition(at: index)
+                            do {
+                                try habitStore.updateHabit(updatedHabit)
+                                viewModel.habit = updatedHabit
+                                HapticManager.success()
+                            } catch {
+                                HapticManager.error()
+                            }
+                        }
+                    )
+                }
+            }
+            .padding(.vertical, 8)
+        }
+        .padding(16)
+        .background(
+            RoundedRectangle(cornerRadius: 16)
+                .fill(Color(.systemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 16)
+                .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
+        )
     }
     
     private var habitNotFoundView: some View {

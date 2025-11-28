@@ -454,19 +454,26 @@ struct ModernHabitCard: View {
                         .lineLimit(2)
                 }
                 
-                // Category Badge
-                HStack(spacing: 4) {
-                    Image(systemName: habit.category.icon)
-                        .font(.caption2)
-                    Text(habit.category.localizedName)
-                        .font(.caption2)
-                        .fontWeight(.medium)
+                // Category Badge & Repetition Progress
+                HStack(spacing: 8) {
+                    HStack(spacing: 4) {
+                        Text(habit.category.icon)
+                            .font(.caption2)
+                        Text(habit.category.localizedName)
+                            .font(.caption2)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundStyle(habit.category.color)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(habit.category.color.opacity(0.15))
+                    .cornerRadius(8)
+                    
+                    // Repetition Progress (if > 1)
+                    if habit.dailyRepetitions > 1 {
+                        RepetitionProgressView(habit: habit, compact: true)
+                    }
                 }
-                .foregroundStyle(habit.category.color)
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(habit.category.color.opacity(0.15))
-                .cornerRadius(8)
             }
             
             Spacer()
