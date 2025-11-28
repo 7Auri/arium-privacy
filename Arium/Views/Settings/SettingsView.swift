@@ -47,18 +47,6 @@ struct SettingsView: View {
     @State private var duplicateHabit: Habit?
     @State private var duplicateItemId: UUID?
     
-    private var currentDisplayLanguage: String {
-        let systemLang = L10nManager.detectSystemLanguage()
-        let hasSystemLanguage = systemLang != nil
-        return isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
-    }
-    
-    private var languageText: String {
-        currentDisplayLanguage == "system" 
-            ? L10n.t("settings.language.system")
-            : Self.languageDisplayName(for: currentDisplayLanguage)
-    }
-    
     var body: some View {
         NavigationStack {
             List {
@@ -89,7 +77,7 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text(languageText)
+                                Text(getLanguageDisplayText())
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
@@ -1188,7 +1176,19 @@ struct AppThemePickerSheet: View {
     
     // MARK: - Helper Functions
     
-    private static func languageDisplayName(for code: String) -> String {
+    private func getLanguageDisplayText() -> String {
+        let systemLang = L10nManager.detectSystemLanguage()
+        let hasSystemLanguage = systemLang != nil
+        let currentLang = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+        
+        if currentLang == "system" {
+            return L10n.t("settings.language.system")
+        } else {
+            return languageDisplayName(for: currentLang)
+        }
+    }
+    
+    private func languageDisplayName(for code: String) -> String {
         switch code {
         case "tr": return "Türkçe"
         case "en": return "English"
