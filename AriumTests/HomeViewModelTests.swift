@@ -29,9 +29,9 @@ final class HomeViewModelTests: XCTestCase {
     
     // MARK: - Toggle Completion Tests
     
-    func testToggleHabitCompletion() {
+    func testToggleHabitCompletion() throws {
         let habit = Habit(title: "Read")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         viewModel.toggleHabitCompletion(habit, store: habitStore)
         
@@ -40,9 +40,9 @@ final class HomeViewModelTests: XCTestCase {
     
     // MARK: - Delete Habit Tests
     
-    func testDeleteHabit() {
+    func testDeleteHabit() throws {
         let habit = Habit(title: "To Delete")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         XCTAssertEqual(habitStore.habits.count, 1)
         

@@ -103,5 +103,67 @@ final class DateExtensionsTests: XCTestCase {
         // Should contain time components
         XCTAssertTrue(localized.contains("14") || localized.contains("2") || localized.contains("PM"))
     }
+    
+    // MARK: - Localized Relative Time String Tests
+    
+    func testLocalizedRelativeTimeStringSeconds() {
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-30) // 30 seconds ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("second") || relative.contains("30"))
+    }
+    
+    func testLocalizedRelativeTimeStringMinutes() {
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-120) // 2 minutes ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("minute") || relative.contains("2"))
+    }
+    
+    func testLocalizedRelativeTimeStringHours() {
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-3600) // 1 hour ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("hour") || relative.contains("1"))
+    }
+    
+    func testLocalizedRelativeTimeStringDays() {
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-86400) // 1 day ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("day") || relative.contains("1"))
+    }
+    
+    func testLocalizedRelativeTimeStringTurkish() {
+        UserDefaults.standard.set("tr", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-60) // 1 minute ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("dakika") || relative.contains("1"))
+        
+        // Clean up
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+    }
+    
+    func testLocalizedRelativeTimeStringGerman() {
+        UserDefaults.standard.set("de", forKey: "appLanguage")
+        
+        let date = Date().addingTimeInterval(-60) // 1 minute ago
+        let relative = date.localizedRelativeTimeString()
+        
+        XCTAssertTrue(relative.contains("Minute") || relative.contains("1"))
+        
+        // Clean up
+        UserDefaults.standard.set("en", forKey: "appLanguage")
+    }
 }
 

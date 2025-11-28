@@ -38,7 +38,7 @@ final class IntegrationTests: XCTestCase {
     
     // MARK: - Complete User Flow Tests
     
-    func testCompleteUserJourney() {
+    func testCompleteUserJourney() throws {
         // 1. User creates a habit
         let addViewModel = AddHabitViewModel()
         addViewModel.title = "Morning Run"
@@ -49,7 +49,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertTrue(addViewModel.validate())
         
         let habit = addViewModel.createHabit()
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         // 2. User completes the habit
         habitStore.toggleHabitCompletion(habit.id)
@@ -73,19 +73,21 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(habitWithNote.noteForDate(Date()), "Great run today!")
     }
     
-    func testFreeToPremiumUpgrade() {
+    func testFreeToPremiumUpgrade() throws {
         habitStore.isPremium = false
         
         // Add 3 habits (free limit)
-        habitStore.addHabit(Habit(title: "Habit 1"))
-        habitStore.addHabit(Habit(title: "Habit 2"))
-        habitStore.addHabit(Habit(title: "Habit 3"))
+        try habitStore.addHabit(Habit(title: "Habit 1"))
+        try habitStore.addHabit(Habit(title: "Habit 2"))
+        try habitStore.addHabit(Habit(title: "Habit 3"))
         
         XCTAssertFalse(habitStore.canAddMoreHabits)
         
         // Try to add 4th habit - should fail
         let habit4 = Habit(title: "Habit 4")
-        habitStore.addHabit(habit4)
+        XCTAssertThrowsError(try habitStore.addHabit(habit4)) { error in
+            XCTAssertTrue(error is HabitError)
+        }
         XCTAssertEqual(habitStore.habits.count, 3)
         
         // Upgrade to premium
@@ -94,15 +96,15 @@ final class IntegrationTests: XCTestCase {
         XCTAssertTrue(habitStore.canAddMoreHabits)
         
         // Now can add 4th habit
-        habitStore.addHabit(habit4)
+        try habitStore.addHabit(habit4)
         XCTAssertEqual(habitStore.habits.count, 4)
     }
     
     // MARK: - App Groups Integration Tests
     
-    func testSharedUserDefaultsIntegration() {
+    func testSharedUserDefaultsIntegration() throws {
         let habit = Habit(title: "Test Habit", streak: 5)
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         // Verify data is saved to shared UserDefaults
         guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
@@ -119,13 +121,13 @@ final class IntegrationTests: XCTestCase {
     
     // MARK: - Data Persistence Tests
     
-    func testDataPersistenceAcrossAppRestarts() {
+    func testDataPersistenceAcrossAppRestarts() throws {
         // Simulate first app launch
         let habit1 = Habit(title: "Morning Meditation", goalDays: 21)
         let habit2 = Habit(title: "Evening Reading", goalDays: 30)
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
         habitStore.toggleHabitCompletion(habit1.id)
         
         // Simulate app restart by creating new store
@@ -139,7 +141,7 @@ final class IntegrationTests: XCTestCase {
     
     // MARK: - Streak Continuity Tests
     
-    func testStreakContinuityAcrossDays() {
+    func testStreakContinuityAcrossDays() throws {
         var habit = Habit(title: "Daily Exercise")
         let calendar = Calendar.current
         
@@ -154,7 +156,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(habit.streak, 7)
         
         // Add to store
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         // Simulate new day check
         habitStore.updateTodayStatus()
@@ -172,7 +174,7 @@ final class IntegrationTests: XCTestCase {
         
         DispatchQueue.concurrentPerform(iterations: 10) { index in
             Task { @MainActor in
-                habitStore.addHabit(Habit(title: "Habit \(index)"))
+                try? habitStore.addHabit(Habit(title: "Habit \(index)"))
             }
         }
         
@@ -188,7 +190,7 @@ final class IntegrationTests: XCTestCase {
     
     // MARK: - Statistics Accuracy Tests
     
-    func testStatisticsAccuracyWithMultipleHabits() {
+    func testStatisticsAccuracyWithMultipleHabits() throws {
         habitStore.isPremium = true
         
         // Create habits with different completion states
@@ -204,9 +206,9 @@ final class IntegrationTests: XCTestCase {
         habit3.isCompletedToday = true
         habit3.completionDates = Array(repeating: Date(), count: 3)
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
-        habitStore.addHabit(habit3)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit3)
         
         // Test statistics
         XCTAssertEqual(habitStore.getTotalCompletions(), 18) // 5 + 10 + 3

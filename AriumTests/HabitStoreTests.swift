@@ -29,62 +29,66 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Add Habit Tests
     
-    func testAddHabit() {
+    func testAddHabit() throws {
         let habit = Habit(title: "Read Books")
         
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         XCTAssertEqual(habitStore.habits.count, 1)
         XCTAssertEqual(habitStore.habits.first?.title, "Read Books")
     }
     
-    func testAddMultipleHabits() {
+    func testAddMultipleHabits() throws {
         let habit1 = Habit(title: "Read")
         let habit2 = Habit(title: "Exercise")
         let habit3 = Habit(title: "Meditate")
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
-        habitStore.addHabit(habit3)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit3)
         
         XCTAssertEqual(habitStore.habits.count, 3)
     }
     
     // MARK: - Free Tier Limit Tests
     
-    func testCanAddMoreHabitsWhenFree() {
+    func testCanAddMoreHabitsWhenFree() throws {
         habitStore.isPremium = false
         
         XCTAssertTrue(habitStore.canAddMoreHabits)
         XCTAssertEqual(habitStore.remainingFreeSlots, 3)
         
-        habitStore.addHabit(Habit(title: "Habit 1"))
+        try habitStore.addHabit(Habit(title: "Habit 1"))
         XCTAssertEqual(habitStore.remainingFreeSlots, 2)
         
-        habitStore.addHabit(Habit(title: "Habit 2"))
+        try habitStore.addHabit(Habit(title: "Habit 2"))
         XCTAssertEqual(habitStore.remainingFreeSlots, 1)
         
-        habitStore.addHabit(Habit(title: "Habit 3"))
+        try habitStore.addHabit(Habit(title: "Habit 3"))
         XCTAssertEqual(habitStore.remainingFreeSlots, 0)
         XCTAssertFalse(habitStore.canAddMoreHabits)
     }
     
-    func testCannotAddMoreThan3HabitsWhenFree() {
+    func testCannotAddMoreThan3HabitsWhenFree() throws {
         habitStore.isPremium = false
         
-        habitStore.addHabit(Habit(title: "Habit 1"))
-        habitStore.addHabit(Habit(title: "Habit 2"))
-        habitStore.addHabit(Habit(title: "Habit 3"))
-        habitStore.addHabit(Habit(title: "Habit 4")) // Should not be added
+        try habitStore.addHabit(Habit(title: "Habit 1"))
+        try habitStore.addHabit(Habit(title: "Habit 2"))
+        try habitStore.addHabit(Habit(title: "Habit 3"))
+        
+        // Should throw error when trying to add 4th habit
+        XCTAssertThrowsError(try habitStore.addHabit(Habit(title: "Habit 4"))) { error in
+            XCTAssertTrue(error is HabitError)
+        }
         
         XCTAssertEqual(habitStore.habits.count, 3)
     }
     
-    func testCanAddUnlimitedHabitsWhenPremium() {
+    func testCanAddUnlimitedHabitsWhenPremium() throws {
         habitStore.isPremium = true
         
         for i in 1...10 {
-            habitStore.addHabit(Habit(title: "Habit \(i)"))
+            try habitStore.addHabit(Habit(title: "Habit \(i)"))
         }
         
         XCTAssertEqual(habitStore.habits.count, 10)
@@ -93,9 +97,9 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Update Habit Tests
     
-    func testUpdateHabit() {
+    func testUpdateHabit() throws {
         var habit = Habit(title: "Read Books")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         habit.title = "Read 30 Pages"
         habitStore.updateHabit(habit)
@@ -114,9 +118,9 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Delete Habit Tests
     
-    func testDeleteHabit() {
+    func testDeleteHabit() throws {
         let habit = Habit(title: "Read Books")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         XCTAssertEqual(habitStore.habits.count, 1)
         
@@ -125,16 +129,16 @@ final class HabitStoreTests: XCTestCase {
         XCTAssertEqual(habitStore.habits.count, 0)
     }
     
-    func testDeleteHabitRestoresFreeSlots() {
+    func testDeleteHabitRestoresFreeSlots() throws {
         habitStore.isPremium = false
         
         let habit1 = Habit(title: "Habit 1")
         let habit2 = Habit(title: "Habit 2")
         let habit3 = Habit(title: "Habit 3")
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
-        habitStore.addHabit(habit3)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit3)
         
         XCTAssertFalse(habitStore.canAddMoreHabits)
         
@@ -146,9 +150,9 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Toggle Completion Tests
     
-    func testToggleHabitCompletion() {
+    func testToggleHabitCompletion() throws {
         let habit = Habit(title: "Read Books")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         XCTAssertFalse(habitStore.habits.first!.isCompletedToday)
         
@@ -157,10 +161,10 @@ final class HabitStoreTests: XCTestCase {
         XCTAssertTrue(habitStore.habits.first!.isCompletedToday)
     }
     
-    func testToggleHabitCompletionWithNote() {
+    func testToggleHabitCompletionWithNote() throws {
         habitStore.isPremium = true
         let habit = Habit(title: "Read Books")
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         habitStore.toggleHabitCompletion(habit.id, note: "Great progress!")
         
@@ -171,32 +175,32 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Statistics Tests
     
-    func testGetTotalCompletions() {
+    func testGetTotalCompletions() throws {
         var habit1 = Habit(title: "Read")
         habit1.completionDates = [Date(), Date()]
         
         var habit2 = Habit(title: "Exercise")
         habit2.completionDates = [Date(), Date(), Date()]
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
         
         XCTAssertEqual(habitStore.getTotalCompletions(), 5)
     }
     
-    func testGetLongestStreak() {
+    func testGetLongestStreak() throws {
         var habit1 = Habit(title: "Read", streak: 5)
         var habit2 = Habit(title: "Exercise", streak: 12)
         var habit3 = Habit(title: "Meditate", streak: 3)
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
-        habitStore.addHabit(habit3)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit3)
         
         XCTAssertEqual(habitStore.getLongestStreak(), 12)
     }
     
-    func testGetCompletionRate() {
+    func testGetCompletionRate() throws {
         var habit1 = Habit(title: "Read")
         habit1.isCompletedToday = true
         
@@ -206,9 +210,9 @@ final class HabitStoreTests: XCTestCase {
         var habit3 = Habit(title: "Meditate")
         habit3.isCompletedToday = true
         
-        habitStore.addHabit(habit1)
-        habitStore.addHabit(habit2)
-        habitStore.addHabit(habit3)
+        try habitStore.addHabit(habit1)
+        try habitStore.addHabit(habit2)
+        try habitStore.addHabit(habit3)
         
         let rate = habitStore.getCompletionRate()
         XCTAssertEqual(rate, 2.0/3.0, accuracy: 0.01)
@@ -220,7 +224,7 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Update Today Status Tests
     
-    func testUpdateTodayStatus() {
+    func testUpdateTodayStatus() throws {
         var habit = Habit(title: "Read")
         let calendar = Calendar.current
         
@@ -230,18 +234,99 @@ final class HabitStoreTests: XCTestCase {
             habit.isCompletedToday = true // Manually set (simulating old state)
         }
         
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         habitStore.updateTodayStatus()
         
         // Should be false now since last completion was yesterday
         XCTAssertFalse(habitStore.habits.first!.isCompletedToday)
     }
     
+    // MARK: - Validation Tests
+    
+    func testAddHabitWithEmptyTitle() {
+        var habit = Habit(title: "")
+        
+        XCTAssertThrowsError(try habitStore.addHabit(habit)) { error in
+            XCTAssertTrue(error is HabitError)
+            if let habitError = error as? HabitError {
+                XCTAssertEqual(habitError, HabitError.emptyTitle)
+            }
+        }
+        
+        XCTAssertEqual(habitStore.habits.count, 0)
+    }
+    
+    func testAddHabitWithWhitespaceOnlyTitle() {
+        var habit = Habit(title: "   ")
+        
+        XCTAssertThrowsError(try habitStore.addHabit(habit)) { error in
+            XCTAssertTrue(error is HabitError)
+        }
+        
+        XCTAssertEqual(habitStore.habits.count, 0)
+    }
+    
+    func testAddHabitWithNotesTooLong() {
+        var habit = Habit(title: "Read")
+        habit.notes = String(repeating: "a", count: 101) // 101 characters
+        
+        XCTAssertThrowsError(try habitStore.addHabit(habit)) { error in
+            XCTAssertTrue(error is HabitError)
+            if let habitError = error as? HabitError {
+                if case .notesTooLong(let maxLength) = habitError {
+                    XCTAssertEqual(maxLength, 100)
+                } else {
+                    XCTFail("Expected notesTooLong error")
+                }
+            }
+        }
+        
+        XCTAssertEqual(habitStore.habits.count, 0)
+    }
+    
+    func testAddHabitWithValidNotesLength() {
+        var habit = Habit(title: "Read")
+        habit.notes = String(repeating: "a", count: 100) // Exactly 100 characters
+        
+        XCTAssertNoThrow(try habitStore.addHabit(habit))
+        XCTAssertEqual(habitStore.habits.count, 1)
+    }
+    
+    func testAddHabitWithFutureStartDate() {
+        var habit = Habit(title: "Read")
+        habit.startDate = Date().addingTimeInterval(86400) // Tomorrow
+        
+        XCTAssertThrowsError(try habitStore.addHabit(habit)) { error in
+            XCTAssertTrue(error is HabitError)
+            if let habitError = error as? HabitError {
+                XCTAssertEqual(habitError, HabitError.invalidStartDate)
+            }
+        }
+        
+        XCTAssertEqual(habitStore.habits.count, 0)
+    }
+    
+    func testAddHabitWithPastStartDate() {
+        var habit = Habit(title: "Read")
+        habit.startDate = Date().addingTimeInterval(-86400) // Yesterday
+        
+        XCTAssertNoThrow(try habitStore.addHabit(habit))
+        XCTAssertEqual(habitStore.habits.count, 1)
+    }
+    
+    func testAddHabitWithTodayStartDate() {
+        var habit = Habit(title: "Read")
+        habit.startDate = Date()
+        
+        XCTAssertNoThrow(try habitStore.addHabit(habit))
+        XCTAssertEqual(habitStore.habits.count, 1)
+    }
+    
     // MARK: - Persistence Tests
     
-    func testHabitsPersistence() {
+    func testHabitsPersistence() throws {
         let habit = Habit(title: "Read Books", goalDays: 30)
-        habitStore.addHabit(habit)
+        try habitStore.addHabit(habit)
         
         // Create a new store instance (simulating app restart)
         let newStore = HabitStore()

@@ -74,8 +74,8 @@ final class HabitDetailViewModelTests: XCTestCase {
     
     // MARK: - Toggle Completion Tests
     
-    func testToggleCompletion() {
-        habitStore.addHabit(testHabit)
+    func testToggleCompletion() throws {
+        try habitStore.addHabit(testHabit)
         
         viewModel.toggleCompletion(store: habitStore)
         
@@ -140,8 +140,8 @@ final class HabitDetailViewModelTests: XCTestCase {
     
     // MARK: - Update Start Date Tests
     
-    func testUpdateStartDate() {
-        habitStore.addHabit(testHabit)
+    func testUpdateStartDate() throws {
+        try habitStore.addHabit(testHabit)
         
         let calendar = Calendar.current
         let newDate = calendar.date(byAdding: .day, value: -10, to: Date())!
@@ -154,8 +154,8 @@ final class HabitDetailViewModelTests: XCTestCase {
     
     // MARK: - Update Goal Days Tests
     
-    func testUpdateGoalDays() {
-        habitStore.addHabit(testHabit)
+    func testUpdateGoalDays() throws {
+        try habitStore.addHabit(testHabit)
         
         viewModel.updateGoalDays(30, store: habitStore)
         
