@@ -52,35 +52,10 @@ struct SettingsView: View {
             List {
                 // Language Section
                 Section {
-                    Button {
-                        showingLanguagePicker = true
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "globe")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(AriumTheme.accent)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.language"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(languageDisplayText)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
+                    languageButton
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                             
                             Spacer()
                             
@@ -1174,12 +1149,66 @@ struct AppThemePickerSheet: View {
         }
     }
     
-    // MARK: - Helper Properties
+    // MARK: - View Components
     
-    private var languageDisplayText: String {
-        let systemLang = L10nManager.detectSystemLanguage()
-        let hasSystem = systemLang != nil
-        let lang = isSystemLanguage && hasSystem ? "system" : appLanguage
+    private var languageButton: some View {
+        Button {
+            showingLanguagePicker = true
+        } label: {
+            HStack(spacing: 16) {
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: "globe")
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(AriumTheme.accent)
+                }
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(L10n.t("settings.language"))
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    
+                    Text(currentLanguageText())
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 14, weight: .semibold))
+                    .foregroundStyle(.tertiary)
+            }
+            .padding(16)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
+        .sheet(isPresented: $showingLanguagePicker) {
+            LanguagePickerSheet(
+                isSystemLanguage: $isSystemLanguage,
+                selectedLanguage: $appLanguage
+            )
+        }
+    }
+    
+    private func currentLanguageText() -> String {
+        let sysLang = L10nManager.detectSystemLanguage()
+        let hasSys = sysLang != nil
+        let lang = isSystemLanguage && hasSys ? "system" : appLanguage
         
         if lang == "system" {
             return L10n.t("settings.language.system")
