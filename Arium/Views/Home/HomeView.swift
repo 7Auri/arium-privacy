@@ -217,7 +217,7 @@ struct HomeView: View {
     private func refreshHabits() async {
         // Simulate refresh delay for better UX
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
-        habitStore.updateTodayStatus()
+        await habitStore.updateTodayStatus()
         HapticManager.light()
     }
 }
