@@ -296,11 +296,11 @@ struct SettingsView: View {
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Özelleştirme")
+                                Text(L10n.t("settings.customization"))
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text("Font, widget, temalar")
+                                Text(L10n.t("settings.customization.subtitle"))
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }

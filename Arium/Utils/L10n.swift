@@ -385,6 +385,8 @@ enum L10n {
             "settings.data": "Data Management",
             "settings.export": "Export Habits",
             "settings.export.habits": "Export Habits (JSON)",
+            "settings.customization": "Customization",
+            "settings.customization.subtitle": "Fonts, widgets, themes",
             "settings.import": "Import Habits",
             "export.title": "Export Habits",
             "export.selectHabits": "Select Habits to Export",
@@ -860,6 +862,8 @@ enum L10n {
             "settings.data": "Veri Yönetimi",
             "settings.export": "Alışkanlıkları Dışa Aktar",
             "settings.export.habits": "Alışkanlıkları Dışa Aktar (JSON)",
+            "settings.customization": "Özelleştirme",
+            "settings.customization.subtitle": "Font, widget, temalar",
             "settings.import": "Alışkanlıkları İçe Aktar",
             "export.title": "Alışkanlıkları Dışa Aktar",
             "export.selectHabits": "Dışa Aktarılacak Alışkanlıkları Seç",
@@ -1196,6 +1200,8 @@ enum L10n {
             "settings.data": "Datenverwaltung",
             "settings.export": "Gewohnheiten exportieren",
             "settings.export.habits": "Gewohnheiten exportieren (JSON)",
+            "settings.customization": "Anpassung",
+            "settings.customization.subtitle": "Schriftarten, Widgets, Themen",
             "settings.import": "Gewohnheiten importieren",
    
             "export.selectHabits": "Zu exportierende Gewohnheiten auswählen",
@@ -1651,6 +1657,8 @@ enum L10n {
             "settings.data": "Gestion des données",
             "settings.export": "Exporter les habitudes",
             "settings.export.habits": "Exporter les habitudes (JSON)",
+            "settings.customization": "Personnalisation",
+            "settings.customization.subtitle": "Polices, widgets, thèmes",
             "settings.import": "Importer les habitudes",
             
             "export.selectHabits": "Sélectionner les habitudes à exporter",
@@ -2106,6 +2114,8 @@ enum L10n {
             "settings.data": "Gestión de datos",
             "settings.export": "Exportar hábitos",
             "settings.export.habits": "Exportar hábitos (JSON)",
+            "settings.customization": "Personalización",
+            "settings.customization.subtitle": "Fuentes, widgets, temas",
             "settings.import": "Importar hábitos",
            
             "export.selectHabits": "Seleccionar hábitos para exportar",
@@ -2561,6 +2571,8 @@ enum L10n {
             "settings.data": "Gestione dati",
             "settings.export": "Esporta abitudini",
             "settings.export.habits": "Esporta abitudini (JSON)",
+            "settings.customization": "Personalizzazione",
+            "settings.customization.subtitle": "Font, widget, temi",
             "settings.import": "Importa abitudini",
        
             "export.selectHabits": "Seleziona abitudini da esportare",
