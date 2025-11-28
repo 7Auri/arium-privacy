@@ -1370,6 +1370,88 @@ enum L10n {
             "goalDays.custom": "Benutzerdefiniert",
             "goalDays.custom.prompt": "Zieltage eingeben",
             "goalDays.custom.placeholder": "z.B. 45",
+            
+            // Achievements (DE)
+            "achievement.category.streak": "Streak",
+            "achievement.category.completion": "Abschluss",
+            "achievement.category.consistency": "Beständigkeit",
+            "achievement.category.variety": "Vielfalt",
+            "achievement.category.premium": "Premium",
+            "achievement.category.social": "Sozial",
+            
+            "achievement.tier.bronze": "Bronze",
+            "achievement.tier.silver": "Silber",
+            "achievement.tier.gold": "Gold",
+            "achievement.tier.platinum": "Platin",
+            "achievement.tier.diamond": "Diamant",
+            
+            "achievement.streak7.title": "7-Tage-Feuer",
+            "achievement.streak7.description": "7 Tage hintereinander",
+            "achievement.streak30.title": "30-Tage-Champion",
+            "achievement.streak30.description": "30 Tage hintereinander",
+            "achievement.streak100.title": "100-Tage-Legende",
+            "achievement.streak100.description": "100 Tage hintereinander",
+            "achievement.streak365.title": "Jahresheld",
+            "achievement.streak365.description": "365 Tage hintereinander",
+            
+            "achievement.complete10.title": "Erste Schritte",
+            "achievement.complete10.description": "10 Gewohnheiten abschließen",
+            "achievement.complete100.title": "Jahrhundert",
+            "achievement.complete100.description": "100 Gewohnheiten abschließen",
+            "achievement.complete500.title": "Fünfhundert",
+            "achievement.complete500.description": "500 Gewohnheiten abschließen",
+            "achievement.complete1000.title": "Tausend Meister",
+            "achievement.complete1000.description": "1000 Gewohnheiten abschließen",
+            
+            "achievement.perfectWeek.title": "Perfekte Woche",
+            "achievement.perfectWeek.description": "Eine Woche lang alle Gewohnheiten",
+            "achievement.perfectMonth.title": "Perfekter Monat",
+            "achievement.perfectMonth.description": "Einen Monat lang alle Gewohnheiten",
+            
+            "achievement.multiCategory.title": "Vielseitig",
+            "achievement.multiCategory.description": "Gewohnheiten in 4 Kategorien",
+            "achievement.habitMaster.title": "Gewohnheitsmeister",
+            "achievement.habitMaster.description": "10 verschiedene Gewohnheiten",
+            
+            "achievement.premiumMember.title": "Premium-Mitglied",
+            "achievement.premiumMember.description": "Auf Premium upgraden",
+            "achievement.templateCreator.title": "Vorlagenersteller",
+            "achievement.templateCreator.description": "Erste eigene Vorlage erstellen",
+            
+            "achievement.unlocked": "Freigeschaltet",
+            "achievement.xp": "%d XP",
+            "achievement.progress": "%d / %d",
+            "achievement.locked": "Gesperrt",
+            "achievement.new": "NEU",
+            "achievements.title": "Erfolge",
+            "achievements.viewAll": "Alle Erfolge anzeigen",
+            
+            // Data Export (DE)
+            "export.title": "Daten exportieren",
+            "export.subtitle": "Gewohnheiten exportieren",
+            "export.csv": "Als CSV exportieren",
+            "export.json": "Als JSON exportieren",
+            "export.pdf": "PDF-Bericht erstellen",
+            "export.success": "Erfolgreich exportiert!",
+            "export.error.noData": "Keine Daten zum Exportieren",
+            "export.error.failed": "Export fehlgeschlagen",
+            "export.error.pdfFailed": "PDF-Erstellung fehlgeschlagen",
+            "export.choose": "Format wählen",
+            
+            // Fonts (DE)
+            "font.system": "System-Schriftart",
+            "font.rounded": "Abgerundet",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospace",
+            "font.title": "Schriftart",
+            
+            // Widget Themes (DE)
+            "widgetTheme.light": "Hell",
+            "widgetTheme.dark": "Dunkel",
+            "widgetTheme.gradient": "Farbverlauf",
+            "widgetTheme.minimal": "Minimal",
+            "widgetTheme.colorful": "Farbenfroh",
+            "widgetTheme.title": "Widget-Thema",
         ],
         "fr": [
             // Home
