@@ -233,11 +233,14 @@ class HabitStore: NSObject, ObservableObject {
             do {
                 let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
                 habits = decoded
+                print("✅ Loaded \(decoded.count) habits from local storage")
             } catch {
-                self.error = HabitError.loadFailed
-                isLoading = false
+                // If decoding fails (old data format), clear and start fresh
                 print("❌ Failed to load habits: \(error)")
-                return
+                print("ℹ️ Clearing old data and starting fresh...")
+                UserDefaults.standard.removeObject(forKey: saveKey)
+                habits = []
+                self.error = nil // Don't show error to user
             }
         }
         

@@ -19,7 +19,25 @@ enum CodingCache {
     
     static let decoder: JSONDecoder = {
         let decoder = JSONDecoder()
-        decoder.dateDecodingStrategy = .iso8601
+        // Support both ISO8601 and timestamp for backward compatibility
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let container = try decoder.singleValueContainer()
+            
+            // Try ISO8601 String first
+            if let dateString = try? container.decode(String.self),
+               let date = ISO8601DateFormatter().date(from: dateString) {
+                return date
+            }
+            
+            // Try timestamp (Double or Int)
+            if let timestamp = try? container.decode(Double.self) {
+                return Date(timeIntervalSince1970: timestamp)
+            }
+            
+            // Fallback: current date
+            print("⚠️ Could not decode date, using current date")
+            return Date()
+        }
         return decoder
     }()
     
