@@ -77,7 +77,7 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text(getLanguageDisplayText())
+                                Text(languageDisplayText)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
@@ -1174,22 +1174,18 @@ struct AppThemePickerSheet: View {
         }
     }
     
-    // MARK: - Helper Functions
+    // MARK: - Helper Properties
     
-    private func getLanguageDisplayText() -> String {
+    private var languageDisplayText: String {
         let systemLang = L10nManager.detectSystemLanguage()
-        let hasSystemLanguage = systemLang != nil
-        let currentLang = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+        let hasSystem = systemLang != nil
+        let lang = isSystemLanguage && hasSystem ? "system" : appLanguage
         
-        if currentLang == "system" {
+        if lang == "system" {
             return L10n.t("settings.language.system")
-        } else {
-            return languageDisplayName(for: currentLang)
         }
-    }
-    
-    private func languageDisplayName(for code: String) -> String {
-        switch code {
+        
+        switch lang {
         case "tr": return "Türkçe"
         case "en": return "English"
         case "de": return "Deutsch"
