@@ -21,7 +21,11 @@ Her extension için ayrı `SharedCodingCache.swift` dosyaları oluşturduk:
    - Watch widget extension için CodingCache
    - Aynı interface
 
-3. **Arium/Utils/CodingCache.swift**
+3. **AriumWatch Watch App/SharedCodingCache.swift**
+   - Watch app için CodingCache
+   - `WatchHabitViewModel` ve `ComplicationController` için
+
+4. **Arium/Utils/CodingCache.swift**
    - Ana app için mevcut CodingCache
    - `encoder`, `decoder`, `compactEncoder` aliases eklendi
 
@@ -109,6 +113,8 @@ Product → Run (⌘R)
 ## 📊 Commit Geçmişi
 
 ```bash
+306ed40 Fix: Add SharedCodingCache for Watch app
+b297238 Add build fix documentation
 a890dc3 Fix: Add SharedCodingCache for widget extensions
 833fac2 Add complete translations for all languages
 aad1309 Add template system improvements documentation
