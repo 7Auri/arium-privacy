@@ -84,7 +84,7 @@ struct SettingsView: View {
                                 Text(
                                     currentLanguage == "system" 
                                     ? L10n.t("settings.language.system")
-                                    : (currentLanguage == "en" ? "English" : "Türkçe")
+                                    : languageDisplayName(for: currentLanguage)
                                 )
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
@@ -637,7 +637,7 @@ struct SettingsView: View {
                                 .foregroundStyle(.blue.opacity(0.8))
                                 .frame(width: 28, alignment: .center)
                             
-                            Text(L10n.t("settings.export"))
+                            Text(L10n.t("settings.export.habits"))
                                 .foregroundStyle(.primary)
                             
                             Spacer()
@@ -1179,6 +1179,20 @@ struct AppThemePickerSheet: View {
                     }
                 }
             }
+        }
+    }
+    
+    // MARK: - Helper Functions
+    
+    private func languageDisplayName(for code: String) -> String {
+        switch code {
+        case "tr": return "Türkçe"
+        case "en": return "English"
+        case "de": return "Deutsch"
+        case "fr": return "Français"
+        case "es": return "Español"
+        case "it": return "Italiano"
+        default: return "English"
         }
     }
 }

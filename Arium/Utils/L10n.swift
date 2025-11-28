@@ -384,6 +384,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Download your habits from iCloud",
             "settings.data": "Data Management",
             "settings.export": "Export Habits",
+            "settings.export.habits": "Export Habits (JSON)",
             "settings.import": "Import Habits",
             "export.title": "Export Habits",
             "export.selectHabits": "Select Habits to Export",
@@ -858,6 +859,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Alışkanlıklarınızı iCloud'dan indirin",
             "settings.data": "Veri Yönetimi",
             "settings.export": "Alışkanlıkları Dışa Aktar",
+            "settings.export.habits": "Alışkanlıkları Dışa Aktar (JSON)",
             "settings.import": "Alışkanlıkları İçe Aktar",
             "export.title": "Alışkanlıkları Dışa Aktar",
             "export.selectHabits": "Dışa Aktarılacak Alışkanlıkları Seç",
@@ -1193,6 +1195,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Ihre Gewohnheiten von iCloud herunterladen",
             "settings.data": "Datenverwaltung",
             "settings.export": "Gewohnheiten exportieren",
+            "settings.export.habits": "Gewohnheiten exportieren (JSON)",
             "settings.import": "Gewohnheiten importieren",
    
             "export.selectHabits": "Zu exportierende Gewohnheiten auswählen",
@@ -1647,6 +1650,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Télécharger vos habitudes depuis iCloud",
             "settings.data": "Gestion des données",
             "settings.export": "Exporter les habitudes",
+            "settings.export.habits": "Exporter les habitudes (JSON)",
             "settings.import": "Importer les habitudes",
             
             "export.selectHabits": "Sélectionner les habitudes à exporter",
@@ -2101,6 +2105,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Descargar tus hábitos desde iCloud",
             "settings.data": "Gestión de datos",
             "settings.export": "Exportar hábitos",
+            "settings.export.habits": "Exportar hábitos (JSON)",
             "settings.import": "Importar hábitos",
            
             "export.selectHabits": "Seleccionar hábitos para exportar",
@@ -2555,6 +2560,7 @@ enum L10n {
             "settings.icloud.loadFromCloud.description": "Scarica le tue abitudini da iCloud",
             "settings.data": "Gestione dati",
             "settings.export": "Esporta abitudini",
+            "settings.export.habits": "Esporta abitudini (JSON)",
             "settings.import": "Importa abitudini",
        
             "export.selectHabits": "Seleziona abitudini da esportare",
