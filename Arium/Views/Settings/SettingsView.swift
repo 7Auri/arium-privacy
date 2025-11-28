@@ -48,14 +48,59 @@ struct SettingsView: View {
     @State private var duplicateItemId: UUID?
     
     var body: some View {
-        NavigationStack {
+        let systemLang = L10nManager.detectSystemLanguage()
+        let hasSystemLanguage = systemLang != nil
+        let currentLanguage = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+        
+        return NavigationStack {
             List {
                 // Language Section
                 Section {
-                    languageButton
-                }
-                .listRowBackground(Color.clear)
-                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                    Button {
+                        showingLanguagePicker = true
+                    } label: {
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "globe")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(AriumTheme.accent)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("settings.language"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                Group {
+                                    if currentLanguage == "system" {
+                                        Text(L10n.t("settings.language.system"))
+                                    } else if currentLanguage == "tr" {
+                                        Text("Türkçe")
+                                    } else if currentLanguage == "de" {
+                                        Text("Deutsch")
+                                    } else if currentLanguage == "fr" {
+                                        Text("Français")
+                                    } else if currentLanguage == "es" {
+                                        Text("Español")
+                                    } else if currentLanguage == "it" {
+                                        Text("Italiano")
+                                    } else {
+                                        Text("English")
+                                    }
+                                }
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
+                            }
                             
                             Spacer()
                             
@@ -70,6 +115,50 @@ struct SettingsView: View {
                             RoundedRectangle(cornerRadius: 16)
                                 .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
                         )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                    .sheet(isPresented: $showingLanguagePicker) {
+                        LanguagePickerSheet(
+                            currentLanguage: Binding(
+                                get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
+                                set: { newValue in
+                                    if newValue == "system" && hasSystemLanguage {
+                                        isSystemLanguage = true
+                                        if let systemLang = systemLang {
+                                            L10n.setLanguage(systemLang)
+                                        }
+                                    } else {
+                                        isSystemLanguage = false
+                                        appLanguage = newValue
+                                        L10n.setLanguage(newValue)
+                                    }
+                                    showingLanguagePicker = false
+                                }
+                            ),
+                            hasSystemLanguage: hasSystemLanguage
+                        )
+                    }
+                    .onAppear {
+                        // İlk açılışta sistem dilini kontrol et
+                        if UserDefaults.standard.string(forKey: "appLanguage") == nil {
+                            if hasSystemLanguage {
+                                isSystemLanguage = true
+                                if let systemLang = systemLang {
+                                    L10n.setLanguage(systemLang)
+                                }
+                            } else {
+                                // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
+                                L10n.setLanguage("en")
+                            }
+                        } else {
+                            // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
+                            if hasSystemLanguage {
+                                let currentLang = L10nManager.shared.currentLanguage
+                                isSystemLanguage = (currentLang == systemLang)
+                            } else {
+                                isSystemLanguage = false
+                            }
+                        }
                     }
                 } header: {
                     Text(L10n.t("settings.language"))
@@ -1105,84 +1194,6 @@ struct AppThemePickerSheet: View {
         }
     }
     
-    // MARK: - View Components
-    
-    @ViewBuilder
-    private var languageButton: some View {
-        let displayText = currentLanguageText()
-        
-        Button {
-            showingLanguagePicker = true
-        } label: {
-            HStack(spacing: 16) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 44, height: 44)
-                    
-                    Image(systemName: "globe")
-                        .font(.system(size: 20, weight: .semibold))
-                        .foregroundStyle(AriumTheme.accent)
-                }
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L10n.t("settings.language"))
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.primary)
-                    
-                    Text(displayText)
-                        .font(.system(size: 14, weight: .regular))
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                Image(systemName: "chevron.right")
-                    .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(.tertiary)
-            }
-            .padding(16)
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(16)
-            .overlay(
-                RoundedRectangle(cornerRadius: 16)
-                    .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $showingLanguagePicker) {
-            LanguagePickerSheet(
-                isSystemLanguage: $isSystemLanguage,
-                selectedLanguage: $appLanguage
-            )
-        }
-    }
-    
-    private func currentLanguageText() -> String {
-        let sysLang = L10nManager.detectSystemLanguage()
-        let hasSys = sysLang != nil
-        let lang = isSystemLanguage && hasSys ? "system" : appLanguage
-        
-        if lang == "system" {
-            return L10n.t("settings.language.system")
-        }
-        
-        switch lang {
-        case "tr": return "Türkçe"
-        case "en": return "English"
-        case "de": return "Deutsch"
-        case "fr": return "Français"
-        case "es": return "Español"
-        case "it": return "Italiano"
-        default: return "English"
-        }
-    }
 }
 
 // MARK: - Export Habit Picker Sheet
