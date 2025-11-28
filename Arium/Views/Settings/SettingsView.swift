@@ -71,50 +71,6 @@ struct SettingsView: View {
                                 .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
                         )
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .sheet(isPresented: $showingLanguagePicker) {
-                        LanguagePickerSheet(
-                            currentLanguage: Binding(
-                                get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
-                                set: { newValue in
-                                    if newValue == "system" && hasSystemLanguage {
-                                        isSystemLanguage = true
-                                        if let systemLang = systemLang {
-                                            L10n.setLanguage(systemLang)
-                                        }
-                                    } else {
-                                        isSystemLanguage = false
-                                        appLanguage = newValue
-                                        L10n.setLanguage(newValue)
-                                    }
-                                    showingLanguagePicker = false
-                                }
-                            ),
-                            hasSystemLanguage: hasSystemLanguage
-                        )
-                    }
-                    .onAppear {
-                        // İlk açılışta sistem dilini kontrol et
-                        if UserDefaults.standard.string(forKey: "appLanguage") == nil {
-                            if hasSystemLanguage {
-                                isSystemLanguage = true
-                                if let systemLang = systemLang {
-                                    L10n.setLanguage(systemLang)
-                                }
-                            } else {
-                                // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
-                                L10n.setLanguage("en")
-                            }
-                        } else {
-                            // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
-                            if hasSystemLanguage {
-                                let currentLang = L10nManager.shared.currentLanguage
-                                isSystemLanguage = (currentLang == systemLang)
-                            } else {
-                                isSystemLanguage = false
-                            }
-                        }
-                    }
                 } header: {
                     Text(L10n.t("settings.language"))
                         .font(.footnote)
@@ -1197,12 +1153,6 @@ struct AppThemePickerSheet: View {
             )
         }
         .buttonStyle(PlainButtonStyle())
-        .sheet(isPresented: $showingLanguagePicker) {
-            LanguagePickerSheet(
-                isSystemLanguage: $isSystemLanguage,
-                selectedLanguage: $appLanguage
-            )
-        }
     }
     
     private func currentLanguageText() -> String {
