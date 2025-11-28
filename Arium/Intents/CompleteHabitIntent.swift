@@ -9,51 +9,28 @@ import AppIntents
 import SwiftUI
 import Foundation
 
-/// Siri Shortcut: Complete a habit
+/// Siri Shortcut: Complete a habit (opens app)
 struct CompleteHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "Complete Habit"
-    static var description = IntentDescription("Mark a habit as completed for today")
-    
-    @Parameter(title: "Habit Name")
-    var habitName: String
-    
-    static var parameterSummary: some ParameterSummary {
-        Summary("Complete \(\.$habitName)")
-    }
+    static var description = IntentDescription("Open Arium to complete a habit")
+    static var openAppWhenRun: Bool = true
     
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
-        // Load habits from App Groups
+        // Load habits to show count
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
-              var habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
-            return .result(dialog: "Couldn't find any habits")
+              let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
+            return .result(dialog: "Opening Arium...")
         }
         
-        // Find habit by name (case insensitive)
-        guard let index = habits.firstIndex(where: { 
-            $0.title.localizedCaseInsensitiveContains(habitName) 
-        }) else {
-            return .result(dialog: "Couldn't find habit '\(habitName)'")
+        let remaining = habits.filter { !$0.isCompletedToday }.count
+        
+        if remaining == 0 {
+            return .result(dialog: "All habits completed! Opening Arium...")
+        } else {
+            return .result(dialog: "You have \(remaining) habit\(remaining == 1 ? "" : "s") left today. Opening Arium...")
         }
-        
-        let habit = habits[index]
-        
-        // Check if already completed
-        if habit.isCompletedToday {
-            return .result(dialog: "'\(habit.title)' is already completed today!")
-        }
-        
-        // Toggle completion
-        habits[index].toggleCompletion()
-        
-        // Save back
-        if let encoded = try? CodingCache.compactEncoder.encode(habits) {
-            sharedDefaults.set(encoded, forKey: "SavedHabits")
-            sharedDefaults.synchronize()
-        }
-        
-        return .result(dialog: "Great job! '\(habit.title)' is completed for today!")
     }
 }
 
@@ -90,9 +67,9 @@ struct AriumShortcuts: AppShortcutsProvider {
         AppShortcut(
             intent: CompleteHabitIntent(),
             phrases: [
-                "Complete my \(\.$habitName) habit in \(.applicationName)",
-                "Mark \(\.$habitName) as done in \(.applicationName)",
-                "Finish \(\.$habitName) in \(.applicationName)"
+                "Complete a habit in \(.applicationName)",
+                "Mark habit as done in \(.applicationName)",
+                "Finish my habit in \(.applicationName)"
             ],
             shortTitle: "Complete Habit",
             systemImageName: "checkmark.circle.fill"
