@@ -394,6 +394,12 @@ struct AddHabitView: View {
                     )
                     .opacity(premiumManager.isPremium ? 1.0 : 0.7)
                     
+                    // Daily Repetitions Section (Premium)
+                    DailyRepetitionSettingsView(
+                        dailyRepetitions: $viewModel.dailyRepetitions,
+                        repetitionLabels: $viewModel.repetitionLabels
+                    )
+                    
                     Spacer(minLength: 40)
                 }
                 .padding(20)
