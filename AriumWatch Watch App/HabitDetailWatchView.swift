@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WatchKit
 
 struct HabitDetailWatchView: View {
     let habit: Habit
@@ -52,6 +53,13 @@ struct HabitDetailWatchView: View {
                 
                 // Completion Button
                 Button(action: {
+                    // Haptic feedback
+                    if habit.isCompletedToday {
+                        WKInterfaceDevice.current().play(.click)
+                    } else {
+                        WKInterfaceDevice.current().play(.success)
+                    }
+                    
                     viewModel.toggleHabit(habit)
                     dismiss()
                 }) {

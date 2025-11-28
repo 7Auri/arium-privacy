@@ -195,6 +195,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Today's Habits",
             "widget.pending": "Pending",
+            "widget.loading": "Loading...",
             "widget.error.title": "Unable to Load",
             "widget.error.message": "Please open the app to sync your habits",
             "widget.empty.title": "No Habits Yet",
@@ -489,6 +490,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Bugünün Alışkanlıkları",
             "widget.pending": "Bekleyen",
+            "widget.loading": "Yükleniyor...",
             "widget.error.title": "Yüklenemedi",
             "widget.error.message": "Lütfen alışkanlıklarınızı senkronize etmek için uygulamayı açın",
             "widget.empty.title": "Henüz Alışkanlık Yok",
@@ -783,6 +785,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Heutige Gewohnheiten",
             "widget.pending": "Ausstehend",
+            "widget.loading": "Wird geladen...",
             "widget.error.title": "Kann nicht geladen werden",
             "widget.error.message": "Bitte öffne die App, um deine Gewohnheiten zu synchronisieren",
             "widget.empty.title": "Noch keine Gewohnheiten",
@@ -1075,6 +1078,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Habitudes d'aujourd'hui",
             "widget.pending": "En attente",
+            "widget.loading": "Chargement...",
             "widget.error.title": "Impossible de charger",
             "widget.error.message": "Veuillez ouvrir l'application pour synchroniser vos habitudes",
             "widget.empty.title": "Aucune habitude pour le moment",
@@ -1367,6 +1371,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Hábitos de hoy",
             "widget.pending": "Pendiente",
+            "widget.loading": "Cargando...",
             "widget.error.title": "No se puede cargar",
             "widget.error.message": "Por favor, abre la aplicación para sincronizar tus hábitos",
             "widget.empty.title": "Aún no hay hábitos",
@@ -1659,6 +1664,7 @@ enum L10n {
             // Widget
             "widget.todaysHabits": "Abitudini di oggi",
             "widget.pending": "In attesa",
+            "widget.loading": "Caricamento...",
             "widget.error.title": "Impossibile caricare",
             "widget.error.message": "Apri l'app per sincronizzare le tue abitudini",
             "widget.empty.title": "Nessuna abitudine ancora",

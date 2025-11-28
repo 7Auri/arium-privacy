@@ -1028,6 +1028,7 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -1061,6 +1062,7 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

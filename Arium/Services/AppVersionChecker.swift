@@ -16,16 +16,18 @@ class AppVersionChecker: ObservableObject {
     @Published var latestVersion: String?
     @Published var updateURL: URL?
     
-    private let appStoreID: String = "YOUR_APP_STORE_ID" // App Store Connect'ten alınacak
     private let appStoreURL: String = "https://apps.apple.com/app/id"
     
     private init() {}
     
     func checkForUpdates() async {
+        // App Store ID'yi Info.plist'ten al
         guard let appStoreID = Bundle.main.infoDictionary?["APP_STORE_ID"] as? String,
-              !appStoreID.isEmpty,
-              appStoreID != "YOUR_APP_STORE_ID" else {
+              !appStoreID.isEmpty else {
             // App Store ID henüz ayarlanmamış, kontrol yapma
+            #if DEBUG
+            print("ℹ️ App Store ID not configured. Update check skipped.")
+            #endif
             return
         }
         
@@ -85,7 +87,6 @@ class AppVersionChecker: ObservableObject {
             // Fallback: App Store sayfasını aç
             if let appStoreID = Bundle.main.infoDictionary?["APP_STORE_ID"] as? String,
                !appStoreID.isEmpty,
-               appStoreID != "YOUR_APP_STORE_ID",
                let url = URL(string: "https://apps.apple.com/app/id\(appStoreID)") {
                 UIApplication.shared.open(url)
             }

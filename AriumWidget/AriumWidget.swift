@@ -92,7 +92,9 @@ struct AriumWidgetEntryView : View {
     @Environment(\.widgetFamily) var family
 
     var body: some View {
-        if entry.hasError {
+        if entry.isLoading {
+            WidgetLoadingView()
+        } else if entry.hasError {
             WidgetErrorView()
         } else if entry.habits.isEmpty {
             WidgetEmptyView()
@@ -376,6 +378,31 @@ struct WidgetErrorView: View {
                 .font(.caption)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
+        }
+        .padding()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(
+            LinearGradient(
+                colors: [Color.purple.opacity(0.1), Color.blue.opacity(0.1)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+        )
+    }
+}
+
+// MARK: - Widget Loading View
+
+struct WidgetLoadingView: View {
+    var body: some View {
+        VStack(spacing: 12) {
+            ProgressView()
+                .scaleEffect(1.2)
+                .tint(.purple)
+            
+            Text(L10n.t("widget.loading"))
+                .font(.caption)
+                .foregroundColor(.secondary)
         }
         .padding()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
