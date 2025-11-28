@@ -36,9 +36,9 @@ class CalendarIntegrationManager: ObservableObject {
     }
     
     func addHabitToCalendar(_ habit: Habit) async -> Bool {
-        guard isAuthorized else {
-            _ = await requestAuthorization()
-            guard isAuthorized else { return false }
+        if !isAuthorized {
+            let granted = await requestAuthorization()
+            guard granted else { return false }
         }
         
         let event = EKEvent(eventStore: eventStore)
