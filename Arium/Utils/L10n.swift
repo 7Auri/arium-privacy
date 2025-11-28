@@ -2732,6 +2732,88 @@ enum L10n {
             "goalDays.custom": "Personalizzato",
             "goalDays.custom.prompt": "Inserisci giorni obiettivo",
             "goalDays.custom.placeholder": "es. 45",
+            
+            // Achievements (IT)
+            "achievement.category.streak": "Serie",
+            "achievement.category.completion": "Completamento",
+            "achievement.category.consistency": "Coerenza",
+            "achievement.category.variety": "Varietà",
+            "achievement.category.premium": "Premium",
+            "achievement.category.social": "Sociale",
+            
+            "achievement.tier.bronze": "Bronzo",
+            "achievement.tier.silver": "Argento",
+            "achievement.tier.gold": "Oro",
+            "achievement.tier.platinum": "Platino",
+            "achievement.tier.diamond": "Diamante",
+            
+            "achievement.streak7.title": "Fuoco di 7 giorni",
+            "achievement.streak7.description": "7 giorni consecutivi",
+            "achievement.streak30.title": "Campione di 30 giorni",
+            "achievement.streak30.description": "30 giorni consecutivi",
+            "achievement.streak100.title": "Leggenda di 100 giorni",
+            "achievement.streak100.description": "100 giorni consecutivi",
+            "achievement.streak365.title": "Eroe annuale",
+            "achievement.streak365.description": "365 giorni consecutivi",
+            
+            "achievement.complete10.title": "Primi passi",
+            "achievement.complete10.description": "Completare 10 abitudini",
+            "achievement.complete100.title": "Centenario",
+            "achievement.complete100.description": "Completare 100 abitudini",
+            "achievement.complete500.title": "Cinquecento",
+            "achievement.complete500.description": "Completare 500 abitudini",
+            "achievement.complete1000.title": "Maestro del mille",
+            "achievement.complete1000.description": "Completare 1000 abitudini",
+            
+            "achievement.perfectWeek.title": "Settimana perfetta",
+            "achievement.perfectWeek.description": "Tutte le abitudini per una settimana",
+            "achievement.perfectMonth.title": "Mese perfetto",
+            "achievement.perfectMonth.description": "Tutte le abitudini per un mese",
+            
+            "achievement.multiCategory.title": "Versatile",
+            "achievement.multiCategory.description": "Abitudini in 4 categorie",
+            "achievement.habitMaster.title": "Maestro delle abitudini",
+            "achievement.habitMaster.description": "10 abitudini diverse",
+            
+            "achievement.premiumMember.title": "Membro Premium",
+            "achievement.premiumMember.description": "Aggiorna a Premium",
+            "achievement.templateCreator.title": "Creatore di modelli",
+            "achievement.templateCreator.description": "Crea il tuo primo modello",
+            
+            "achievement.unlocked": "Sbloccato",
+            "achievement.xp": "%d XP",
+            "achievement.progress": "%d / %d",
+            "achievement.locked": "Bloccato",
+            "achievement.new": "NUOVO",
+            "achievements.title": "Obiettivi",
+            "achievements.viewAll": "Vedi tutti",
+            
+            // Data Export (IT)
+            "export.title": "Esporta dati",
+            "export.subtitle": "Esporta le tue abitudini",
+            "export.csv": "Esporta come CSV",
+            "export.json": "Esporta come JSON",
+            "export.pdf": "Crea report PDF",
+            "export.success": "Esportato con successo!",
+            "export.error.noData": "Nessun dato da esportare",
+            "export.error.failed": "Esportazione fallita",
+            "export.error.pdfFailed": "Generazione PDF fallita",
+            "export.choose": "Scegli formato",
+            
+            // Fonts (IT)
+            "font.system": "Font di sistema",
+            "font.rounded": "Arrotondato",
+            "font.serif": "Serif",
+            "font.monospaced": "Monospazio",
+            "font.title": "Font",
+            
+            // Widget Themes (IT)
+            "widgetTheme.light": "Chiaro",
+            "widgetTheme.dark": "Scuro",
+            "widgetTheme.gradient": "Sfumatura",
+            "widgetTheme.minimal": "Minimale",
+            "widgetTheme.colorful": "Colorato",
+            "widgetTheme.title": "Tema del widget",
         ]
     ]
 }
