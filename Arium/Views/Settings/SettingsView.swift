@@ -81,11 +81,11 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text(
-                                    currentLanguage == "system" 
+                                let displayText = currentLanguage == "system" 
                                     ? L10n.t("settings.language.system")
-                                    : languageDisplayName(for: currentLanguage)
-                                )
+                                    : Self.languageDisplayName(for: currentLanguage)
+                                
+                                Text(displayText)
                                     .font(.system(size: 14, weight: .regular))
                                     .foregroundStyle(.secondary)
                             }
@@ -1184,7 +1184,7 @@ struct AppThemePickerSheet: View {
     
     // MARK: - Helper Functions
     
-    private func languageDisplayName(for code: String) -> String {
+    private static func languageDisplayName(for code: String) -> String {
         switch code {
         case "tr": return "Türkçe"
         case "en": return "English"
