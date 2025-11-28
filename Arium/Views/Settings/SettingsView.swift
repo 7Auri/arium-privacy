@@ -222,6 +222,60 @@ struct SettingsView: View {
                         .foregroundStyle(.secondary)
                 }
                 
+                // Achievements Section (NEW!)
+                Section {
+                    NavigationLink(destination: AchievementsView()) {
+                        HStack(spacing: 16) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.orange.opacity(0.2), Color.purple.opacity(0.1)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Text("🏆")
+                                    .font(.system(size: 22))
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text(L10n.t("achievements.title"))
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.primary)
+                                
+                                if AchievementManager.shared.newAchievementsCount > 0 {
+                                    Text("\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new"))
+                                        .font(.caption.bold())
+                                        .foregroundColor(.orange)
+                                } else {
+                                    Text(L10n.t("achievements.viewAll"))
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundStyle(.secondary)
+                                }
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .padding(16)
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(PlainButtonStyle())
+                }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                
                 // Premium Section
                 Section {
                     HStack(spacing: 12) {
