@@ -56,67 +56,31 @@ struct SettingsView: View {
             List {
                 // Language Section
                 Section {
-                    Button {
-                        showingLanguagePicker = true
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "globe")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(AriumTheme.accent)
+                    SettingsRow(
+                        iconName: "globe",
+                        iconColor: AriumTheme.accent,
+                        title: L10n.t("settings.language"),
+                        description: {
+                            if currentLanguage == "system" {
+                                return L10n.t("settings.language.system")
+                            } else if currentLanguage == "tr" {
+                                return "Türkçe"
+                            } else if currentLanguage == "de" {
+                                return "Deutsch"
+                            } else if currentLanguage == "fr" {
+                                return "Français"
+                            } else if currentLanguage == "es" {
+                                return "Español"
+                            } else if currentLanguage == "it" {
+                                return "Italiano"
+                            } else {
+                                return "English"
                             }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.language"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Group {
-                                    if currentLanguage == "system" {
-                                        Text(L10n.t("settings.language.system"))
-                                    } else if currentLanguage == "tr" {
-                                        Text("Türkçe")
-                                    } else if currentLanguage == "de" {
-                                        Text("Deutsch")
-                                    } else if currentLanguage == "fr" {
-                                        Text("Français")
-                                    } else if currentLanguage == "es" {
-                                        Text("Español")
-                                    } else if currentLanguage == "it" {
-                                        Text("Italiano")
-                                    } else {
-                                        Text("English")
-                                    }
-                                }
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
+                        }(),
+                        action: {
+                            showingLanguagePicker = true
                         }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    )
                     .sheet(isPresented: $showingLanguagePicker) {
                         LanguagePickerSheet(
                             currentLanguage: Binding(
@@ -169,39 +133,12 @@ struct SettingsView: View {
                 
                 // App Theme Section
                 Section {
-                    Button {
-                        showingThemePicker = true
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [appThemeManager.accentColor.color.opacity(0.2), appThemeManager.accentColor.color.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "paintpalette.fill")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(appThemeManager.accentColor.color)
-                                    .symbolRenderingMode(.hierarchical)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.appTheme"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(appThemeManager.accentColor.name)
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
+                    SettingsRow(
+                        iconName: "paintpalette.fill",
+                        iconColor: appThemeManager.accentColor.color,
+                        title: L10n.t("settings.appTheme"),
+                        description: appThemeManager.accentColor.name,
+                        rightIndicator: AnyView(
                             Circle()
                                 .fill(appThemeManager.accentColor.color)
                                 .frame(width: 24, height: 24)
@@ -209,20 +146,11 @@ struct SettingsView: View {
                                     Circle()
                                         .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
                                 )
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
+                        ),
+                        action: {
+                            showingThemePicker = true
                         }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    )
                     .sheet(isPresented: $showingThemePicker) {
                         AppThemePickerSheet(
                             selectedColor: $appThemeManager.accentColor
@@ -238,51 +166,15 @@ struct SettingsView: View {
                 // Achievements Section
                 Section {
                     NavigationLink(destination: AchievementsView()) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "trophy.fill")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.orange)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("achievements.title"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                if AchievementManager.shared.newAchievementsCount > 0 {
-                                    Text("\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new"))
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundStyle(.secondary)
-                                } else {
-                                    Text(L10n.t("achievements.viewAll"))
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundStyle(.secondary)
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        SettingsRow(
+                            iconName: "trophy.fill",
+                            iconColor: .orange,
+                            title: L10n.t("achievements.title"),
+                            description: AchievementManager.shared.newAchievementsCount > 0
+                                ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
+                                : L10n.t("achievements.viewAll"),
+                            showChevron: false,
+                            action: {}
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -293,45 +185,13 @@ struct SettingsView: View {
                 // Customization Section
                 Section {
                     NavigationLink(destination: CustomizationView()) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.pink.opacity(0.2), Color.pink.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "paintbrush.fill")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.pink)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.customization"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(L10n.t("settings.customization.subtitle"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        SettingsRow(
+                            iconName: "paintbrush.fill",
+                            iconColor: .pink,
+                            title: L10n.t("settings.customization"),
+                            description: L10n.t("settings.customization.subtitle"),
+                            showChevron: false,
+                            action: {}
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -590,150 +450,46 @@ struct SettingsView: View {
                 // Export/Import/Backup Section
                 Section {
                     // Dışarı Aktar (Export Habits)
-                    Button {
-                        guard !habitStore.habits.isEmpty else {
-                            exportError = ExportError.exportFailed
-                            return
-                        }
-                        // Initialize with all habits selected
-                        selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
-                        showingExportHabitPicker = true
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "square.and.arrow.up")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.blue)
+                    SettingsRow(
+                        iconName: "square.and.arrow.up",
+                        iconColor: .blue,
+                        title: L10n.t("settings.export.habits"),
+                        description: L10n.t("export.subtitle"),
+                        action: {
+                            guard !habitStore.habits.isEmpty else {
+                                exportError = ExportError.exportFailed
+                                return
                             }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.export.habits"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(L10n.t("export.subtitle"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
+                            // Initialize with all habits selected
+                            selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
+                            showingExportHabitPicker = true
                         }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    )
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                     
                     // İçeri Aktar (Import Habits)
-                    Button {
-                        showingImportPicker = true
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.green.opacity(0.2), Color.green.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "square.and.arrow.down")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.green)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.import"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(L10n.t("import.subtitle"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
+                    SettingsRow(
+                        iconName: "square.and.arrow.down",
+                        iconColor: .green,
+                        title: L10n.t("settings.import"),
+                        description: L10n.t("import.subtitle"),
+                        action: {
+                            showingImportPicker = true
                         }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
+                    )
                     .listRowBackground(Color.clear)
                     .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                     
                     // Yedekle (Backup)
                     NavigationLink(destination: DataExportView()) {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.purple.opacity(0.2), Color.purple.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "externaldrive.badge.icloud")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.purple)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.backup"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                Text(L10n.t("settings.backup.subtitle"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
-                            }
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.system(size: 14, weight: .semibold))
-                                .foregroundStyle(.tertiary)
-                        }
-                        .padding(16)
-                        .background(Color(.secondarySystemBackground))
-                        .cornerRadius(16)
-                        .overlay(
-                            RoundedRectangle(cornerRadius: 16)
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+                        SettingsRow(
+                            iconName: "externaldrive.badge.icloud",
+                            iconColor: .purple,
+                            title: L10n.t("settings.backup"),
+                            description: L10n.t("settings.backup.subtitle"),
+                            showChevron: false,
+                            action: {}
                         )
                     }
                     .buttonStyle(PlainButtonStyle())
@@ -748,27 +504,17 @@ struct SettingsView: View {
                 
                 // Statistics Section
                 Section {
-                    Button {
-                        showingStatistics = true
-                    } label: {
-                        HStack(spacing: 12) {
-                            Image(systemName: "chart.bar.fill")
-                                .font(.body)
-                                .foregroundStyle(AriumTheme.accent.opacity(0.8))
-                                .frame(width: 28, alignment: .center)
-                            
-                            Text(L10n.t("statistics.viewStats"))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "chevron.right")
-                                .font(.caption)
-                                .fontWeight(.semibold)
-                                .foregroundStyle(.tertiary)
+                    SettingsRow(
+                        iconName: "chart.bar.fill",
+                        iconColor: AriumTheme.accent,
+                        title: L10n.t("statistics.viewStats"),
+                        description: L10n.t("statistics.title"),
+                        action: {
+                            showingStatistics = true
                         }
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
+                    )
+                    .listRowBackground(Color.clear)
+                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                 } header: {
                     Text(L10n.t("statistics.title"))
                         .font(.footnote)
@@ -1661,6 +1407,91 @@ struct ImportHabitRow: View {
         }
         .buttonStyle(PlainButtonStyle())
         .disabled(item.isExisting || (!item.isSelected && !canSelectMore))
+    }
+}
+
+// MARK: - Settings Row Component
+
+struct SettingsRow: View {
+    let iconName: String
+    let iconColor: Color
+    let title: String
+    let description: String
+    let rightIndicator: AnyView?
+    let showChevron: Bool
+    let action: () -> Void
+    
+    init(
+        iconName: String,
+        iconColor: Color,
+        title: String,
+        description: String,
+        rightIndicator: AnyView? = nil,
+        showChevron: Bool = true,
+        action: @escaping () -> Void
+    ) {
+        self.iconName = iconName
+        self.iconColor = iconColor
+        self.title = title
+        self.description = description
+        self.rightIndicator = rightIndicator
+        self.showChevron = showChevron
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                // Icon
+                ZStack {
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [iconColor.opacity(0.2), iconColor.opacity(0.1)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 44, height: 44)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 20, weight: .semibold))
+                        .foregroundStyle(iconColor)
+                }
+                
+                // Title and Description
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.primary)
+                    
+                    Text(description)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                // Right Indicator (optional) + Chevron
+                if let indicator = rightIndicator {
+                    indicator
+                }
+                
+                if showChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(16)
+            .background(Color(.secondarySystemBackground))
+            .cornerRadius(16)
+            .overlay(
+                RoundedRectangle(cornerRadius: 16)
+                    .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
+            )
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 
