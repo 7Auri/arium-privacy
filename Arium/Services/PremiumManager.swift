@@ -18,6 +18,9 @@ class PremiumManager: ObservableObject {
     @Published var errorMessage: String?
     @Published var showingPurchaseSuccess: Bool = false
     
+    // Product bilgileri (App Store Connect'ten otomatik alınır)
+    @Published var product: Product?
+    
     // StoreKit 2 Product ID
     // NOT: App Store Connect'te bu product ID'yi oluşturmanız gerekiyor
     private let premiumProductID = "com.zorbeyteam.arium.premium"
@@ -31,9 +34,10 @@ class PremiumManager: ObservableObject {
         // Start listening for transaction updates
         updateListenerTask = listenForTransactions()
         
-        // Check current subscription status
+        // Check current subscription status and load product
         Task {
             await checkPremiumStatus()
+            await loadProduct()
         }
     }
     
@@ -61,6 +65,33 @@ class PremiumManager: ObservableObject {
     #endif
     
     // MARK: - StoreKit 2
+    
+    /// App Store Connect'ten ürün bilgilerini otomatik olarak yükler
+    /// Fiyat, isim, açıklama gibi bilgileri Product objesinden alır
+    func loadProduct() async {
+        do {
+            let products = try await Product.products(for: [premiumProductID])
+            
+            await MainActor.run {
+                self.product = products.first
+                
+                #if DEBUG
+                if let product = self.product {
+                    print("✅ Premium product loaded from App Store Connect:")
+                    print("   📋 Display Name: \(product.displayName)")
+                    print("   💰 Price: \(product.displayPrice)")
+                    print("   📝 Description: \(product.description)")
+                } else {
+                    print("⚠️ Premium product not found in App Store Connect")
+                }
+                #endif
+            }
+        } catch {
+            #if DEBUG
+            print("❌ Failed to load product: \(error)")
+            #endif
+        }
+    }
     
     func checkPremiumStatus() async {
         // Check if user has active subscription
@@ -90,10 +121,29 @@ class PremiumManager: ObservableObject {
         }
         
         do {
-            // Load product
-            let products = try await Product.products(for: [premiumProductID])
+            // Load product (eğer yüklenmemişse)
+            if product == nil {
+                await loadProduct()
+            }
             
-            guard let product = products.first else {
+            guard let product = product else {
+                #if DEBUG
+                print("❌ Premium product not found!")
+                print("📋 Product ID being searched: \(premiumProductID)")
+                print("📋 Product loaded: \(self.product != nil ? "Yes" : "No")")
+                print("")
+                print("🔍 CHECKLIST:")
+                print("   1. App Store Connect → In-App Purchases")
+                print("      → Product ID: \(premiumProductID) (tam olarak bu olmalı!)")
+                print("   2. Product Status: 'Ready to Submit' veya 'Approved' olmalı")
+                print("   3. Availability: 'All Countries' veya Türkiye seçili olmalı")
+                print("   4. Display Name ve Description doldurulmuş olmalı")
+                print("   5. TestFlight: 15-30 dakika bekle (sync için)")
+                print("   6. Sandbox account ile giriş yapıldı mı?")
+                print("")
+                print("💡 Hızlı Test: Xcode → Edit Scheme → StoreKit Configuration → AriumStoreKit.storekit")
+                #endif
+                // Ürün bulunamazsa her zaman hata fırlat (debug olsun ya da olmasın)
                 throw PremiumError.productNotFound
             }
             

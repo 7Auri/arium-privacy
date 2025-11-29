@@ -242,9 +242,21 @@ struct SettingsView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text(premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"))
-                                    .font(.system(size: 14, weight: .regular))
-                                    .foregroundStyle(.secondary)
+                                if premiumManager.isPremium {
+                                    Text(L10n.t("settings.active"))
+                                        .font(.system(size: 14, weight: .regular))
+                                        .foregroundStyle(.secondary)
+                                } else {
+                                    if let product = premiumManager.product {
+                                        Text(product.displayPrice)
+                                            .font(.system(size: 14, weight: .regular))
+                                            .foregroundStyle(.secondary)
+                                    } else {
+                                        Text(L10n.t("settings.freePlan"))
+                                            .font(.system(size: 14, weight: .regular))
+                                            .foregroundStyle(.secondary)
+                                    }
+                                }
                             }
                             
                             Spacer()
