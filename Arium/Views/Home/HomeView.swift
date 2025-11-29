@@ -12,6 +12,7 @@ struct HomeView: View {
     @StateObject private var viewModel = HomeViewModel()
     @ObservedObject private var l10nManager = L10nManager.shared
     @StateObject private var premiumManager = PremiumManager.shared
+    @StateObject private var achievementManager = AchievementManager.shared
     
     @State private var showingNoteSheet = false
     @State private var noteText = ""
@@ -206,6 +207,18 @@ struct HomeView: View {
                 // Premium durumu değiştiğinde kategori filtresini sıfırla
                 if !newValue {
                     viewModel.selectedCategory = nil
+                }
+            }
+            .alert(
+                "🏆 " + (achievementManager.latestUnlockedAchievement?.title ?? L10n.t("achievement.unlocked.title")),
+                isPresented: $achievementManager.showingUnlockAlert
+            ) {
+                Button(L10n.t("button.ok")) {
+                    achievementManager.showingUnlockAlert = false
+                }
+            } message: {
+                if let achievement = achievementManager.latestUnlockedAchievement {
+                    Text(achievement.description + "\n\n" + String(format: L10n.t("achievement.xp"), achievement.xpReward))
                 }
             }
         }

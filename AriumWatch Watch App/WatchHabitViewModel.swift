@@ -22,13 +22,47 @@ class WatchHabitViewModel: NSObject, ObservableObject {
             session.activate()
         }
         
-        // Load habits immediately
+        // Load habits immediately from App Groups
         loadHabits()
         
         // Also try loading after a short delay (for simulator timing issues)
         Task { @MainActor in
             try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
             loadHabits()
+            
+            // Try to request habits from iPhone if session is activated
+            if session.activationState == .activated {
+                requestHabitsFromiPhone()
+            }
+        }
+    }
+    
+    private func requestHabitsFromiPhone() {
+        guard session.activationState == .activated else {
+            print("⚠️ Watch: Session not activated, cannot request habits")
+            return
+        }
+        
+        guard session.isReachable else {
+            print("ℹ️ Watch: iPhone is not reachable, will use App Groups data")
+            return
+        }
+        
+        let message: [String: Any] = [
+            "action": "requestHabits"
+        ]
+        
+        session.sendMessage(message, replyHandler: { response in
+            Task { @MainActor in
+                if let habitsData = response["habits"] as? Data,
+                   let receivedHabits = try? CodingCache.decoder.decode([Habit].self, from: habitsData) {
+                    print("✅ Watch: Received \(receivedHabits.count) habits from iPhone on request")
+                    self.habits = receivedHabits
+                    self.saveHabitsToAppGroups(receivedHabits)
+                }
+            }
+        }) { error in
+            print("⚠️ Watch: Failed to request habits from iPhone: \(error.localizedDescription)")
         }
     }
     
@@ -83,8 +117,8 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     }
     
     private func sendUpdateToiPhone(habit: Habit) {
-        guard session.isReachable else {
-            print("⚠️ iPhone is not reachable")
+        guard session.activationState == .activated else {
+            print("⚠️ Watch session is not activated")
             return
         }
         
@@ -94,8 +128,21 @@ class WatchHabitViewModel: NSObject, ObservableObject {
             "isCompleted": habit.isCompletedToday
         ]
         
-        session.sendMessage(message, replyHandler: nil) { error in
-            print("❌ Failed to send update to iPhone: \(error)")
+        // Always send via application context (works even when not reachable)
+        do {
+            try session.updateApplicationContext(message)
+            print("✅ Watch: Sent toggleHabit update to iPhone via application context")
+        } catch {
+            print("❌ Watch: Failed to send application context: \(error)")
+        }
+        
+        // Also try sendMessage if reachable (works better on real devices)
+        if session.isReachable {
+            session.sendMessage(message, replyHandler: nil) { error in
+                print("⚠️ Watch: Failed to send message to iPhone: \(error.localizedDescription)")
+            }
+        } else {
+            print("ℹ️ Watch: iPhone is not reachable, but application context was sent")
         }
     }
 }
@@ -107,7 +154,19 @@ extension WatchHabitViewModel: WCSessionDelegate {
         if let error = error {
             print("❌ Watch session activation failed: \(error)")
         } else {
-            print("✅ Watch session activated")
+            print("✅ Watch session activated (state: \(activationState.rawValue))")
+            
+            // Try to load habits from App Groups first
+            Task { @MainActor in
+                loadHabits()
+                
+                // Then try to request from iPhone if reachable
+                if activationState == .activated {
+                    // Wait a bit for session to be fully ready
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                    requestHabitsFromiPhone()
+                }
+            }
         }
     }
     

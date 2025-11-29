@@ -275,6 +275,43 @@ class NotificationManager: NSObject, ObservableObject {
     func scheduleMilestoneNotification(for habit: Habit, milestone: Int) async {
         await scheduleMilestoneCelebration(for: habit, milestone: milestone)
     }
+    
+    // MARK: - Achievement Unlock Notification
+    
+    func sendAchievementNotification(for achievement: Achievement) async {
+        guard isAuthorized else {
+            print("⚠️ Notifications not authorized, skipping achievement notification")
+            return
+        }
+        
+        let content = UNMutableNotificationContent()
+        content.title = "🏆 " + L10n.t("achievement.unlocked.title")
+        content.body = String(format: L10n.t("achievement.unlocked.body"), achievement.title, achievement.xpReward)
+        content.sound = .default
+        content.badge = 1
+        content.categoryIdentifier = "ACHIEVEMENT"
+        content.userInfo = [
+            "achievementId": achievement.id,
+            "type": "achievement_unlock",
+            "xpReward": achievement.xpReward
+        ]
+        
+        // Trigger immediately
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        
+        let request = UNNotificationRequest(
+            identifier: "achievement-\(achievement.id)",
+            content: content,
+            trigger: trigger
+        )
+        
+        do {
+            try await notificationCenter.add(request)
+            print("🎉 Sent achievement notification: \(achievement.title)")
+        } catch {
+            print("❌ Failed to send achievement notification: \(error)")
+        }
+    }
 }
 
 // MARK: - UNUserNotificationCenterDelegate

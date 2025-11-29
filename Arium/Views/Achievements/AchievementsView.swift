@@ -26,7 +26,8 @@ struct AchievementsView: View {
                     // Achievements Grid
                     achievementsGrid
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
             }
             .background(Color(.systemBackground))
             .navigationTitle("🏆 " + L10n.t("achievements.title"))
@@ -165,6 +166,7 @@ struct AchievementsView: View {
                     }
                 }
             }
+            .padding(.horizontal, 20)
         }
     }
     
@@ -172,8 +174,8 @@ struct AchievementsView: View {
     
     private var achievementsGrid: some View {
         LazyVGrid(columns: [
-            GridItem(.flexible(), spacing: 16),
-            GridItem(.flexible(), spacing: 16)
+            GridItem(.flexible(minimum: 150), spacing: 16),
+            GridItem(.flexible(minimum: 150), spacing: 16)
         ], spacing: 16) {
             ForEach(filteredAchievements, id: \.id) { achievement in
                 AchievementCard(
@@ -282,7 +284,7 @@ struct AchievementCard: View {
             }
         }
         .padding(16)
-        .frame(maxWidth: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 180)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(isUnlocked ? achievement.category.color.opacity(0.1) : Color(.tertiarySystemBackground))
@@ -317,4 +319,5 @@ struct FilterChip: View {
         .buttonStyle(.plain)
     }
 }
+
 

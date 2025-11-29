@@ -138,47 +138,62 @@ class AchievementManager: ObservableObject {
         let calendar = Calendar.current
         let today = Date()
         guard let weekAgo = calendar.date(byAdding: .day, value: -7, to: today) else { return false }
+        let weekAgoStart = calendar.startOfDay(for: weekAgo)
         
-        // Check if all habits were completed every day in the last 7 days
+        // Filter habits that existed at least 7 days ago
+        let eligibleHabits = habits.filter { habit in
+            habit.createdAt <= weekAgoStart
+        }
+        
+        // Must have at least one habit that existed 7 days ago
+        guard !eligibleHabits.isEmpty else { return false }
+        
+        // Check if all eligible habits were completed every day in the last 7 days
         for dayOffset in 0..<7 {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            let dayStart = calendar.startOfDay(for: day)
             
-            for habit in habits {
-                let dayStart = calendar.startOfDay(for: day)
+            for habit in eligibleHabits {
                 let completedOnDay = habit.completionDates.contains { calendar.isDate($0, inSameDayAs: day) }
                 
-                // Check if habit existed on that day
-                let habitExistedOnDay = habit.createdAt <= dayStart
-                
-                if habitExistedOnDay && !completedOnDay {
+                if !completedOnDay {
                     return false
                 }
             }
         }
         
-        return !habits.isEmpty
+        return true
     }
     
     private func checkPerfectMonth(habits: [Habit]) -> Bool {
         let calendar = Calendar.current
         let today = Date()
         guard let monthAgo = calendar.date(byAdding: .day, value: -30, to: today) else { return false }
+        let monthAgoStart = calendar.startOfDay(for: monthAgo)
         
+        // Filter habits that existed at least 30 days ago
+        let eligibleHabits = habits.filter { habit in
+            habit.createdAt <= monthAgoStart
+        }
+        
+        // Must have at least one habit that existed 30 days ago
+        guard !eligibleHabits.isEmpty else { return false }
+        
+        // Check if all eligible habits were completed every day in the last 30 days
         for dayOffset in 0..<30 {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+            let dayStart = calendar.startOfDay(for: day)
             
-            for habit in habits {
-                let dayStart = calendar.startOfDay(for: day)
+            for habit in eligibleHabits {
                 let completedOnDay = habit.completionDates.contains { calendar.isDate($0, inSameDayAs: day) }
-                let habitExistedOnDay = habit.createdAt <= dayStart
                 
-                if habitExistedOnDay && !completedOnDay {
+                if !completedOnDay {
                     return false
                 }
             }
         }
         
-        return !habits.isEmpty
+        return true
     }
     
     // MARK: - Unlock Achievement
@@ -197,6 +212,11 @@ class AchievementManager: ObservableObject {
         
         // Haptic feedback
         HapticManager.success()
+        
+        // Send notification
+        Task {
+            await NotificationManager.shared.sendAchievementNotification(for: achievement)
+        }
         
         saveUnlockedAchievements()
         
@@ -269,4 +289,5 @@ class AchievementManager: ObservableObject {
         unlockedAchievements.filter { $0.isNew }.count
     }
 }
+
 

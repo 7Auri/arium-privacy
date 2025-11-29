@@ -107,3 +107,4 @@ class AlternateIconManager: ObservableObject {
     }
 }
 
+

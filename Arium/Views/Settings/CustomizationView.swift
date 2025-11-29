@@ -46,6 +46,7 @@ struct CustomizationView: View {
                                 }
                             }
                             .padding(.vertical, 4)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }
@@ -87,6 +88,7 @@ struct CustomizationView: View {
                                 }
                             }
                             .padding(.vertical, 4)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.plain)
                     }

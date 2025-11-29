@@ -337,6 +337,8 @@ enum L10n {
             "achievement.templateCreator.description": "Create your first custom template",
             
             "achievement.unlocked": "Unlocked",
+            "achievement.unlocked.title": "Achievement Unlocked!",
+            "achievement.unlocked.body": "You earned the %@ achievement and gained %d XP!",
             "achievement.xp": "%d XP",
             "achievement.progress": "%d / %d",
             "achievement.locked": "Locked",
@@ -802,6 +804,8 @@ enum L10n {
             "achievement.templateCreator.description": "İlk özel şablonunu oluştur",
             
             "achievement.unlocked": "Kazanıldı",
+            "achievement.unlocked.title": "Rozet Kazanıldı!",
+            "achievement.unlocked.body": "%@ rozetini kazandın ve %d XP kazandın!",
             "achievement.xp": "%d XP",
             "achievement.progress": "%d / %d",
             "achievement.locked": "Kilitli",

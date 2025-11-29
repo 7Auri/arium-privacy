@@ -248,3 +248,4 @@ let nextUpdate = min(midnight, periodicRefresh)
 **Tarih:** 23 Kasım 2025  
 **Status:** ✅ Production Ready
 
+

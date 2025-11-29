@@ -72,11 +72,23 @@ class WidgetThemeManager: ObservableObject {
     }
     
     func loadTheme() {
-        // Load from App Group (widgets can access)
+        // First try App Group (widgets can access)
         if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
            let savedTheme = sharedDefaults.string(forKey: appGroupSaveKey),
            let theme = WidgetTheme(rawValue: savedTheme) {
             selectedTheme = theme
+            return
+        }
+        
+        // Fallback to normal UserDefaults
+        if let savedTheme = UserDefaults.standard.string(forKey: saveKey),
+           let theme = WidgetTheme(rawValue: savedTheme) {
+            selectedTheme = theme
+            // Also save to App Group for widget access
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+                sharedDefaults.set(theme.rawValue, forKey: appGroupSaveKey)
+                sharedDefaults.synchronize()
+            }
         }
     }
     
@@ -92,4 +104,5 @@ class WidgetThemeManager: ObservableObject {
         }
     }
 }
+
 

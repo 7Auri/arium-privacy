@@ -49,21 +49,44 @@ class FontManager: ObservableObject {
     @Published var selectedFont: AppFont = .system
     
     private let saveKey = "SelectedFont"
+    private let appGroupSaveKey = "AppFont"
     
     private init() {
         loadFont()
     }
     
     func loadFont() {
+        // First try App Group (widgets can access)
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+           let savedFont = sharedDefaults.string(forKey: appGroupSaveKey),
+           let font = AppFont(rawValue: savedFont) {
+            selectedFont = font
+            return
+        }
+        
+        // Fallback to normal UserDefaults
         if let savedFont = UserDefaults.standard.string(forKey: saveKey),
            let font = AppFont(rawValue: savedFont) {
             selectedFont = font
+            // Also save to App Group for widget access
+            if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+                sharedDefaults.set(font.rawValue, forKey: appGroupSaveKey)
+                sharedDefaults.synchronize()
+            }
         }
     }
     
     func setFont(_ font: AppFont) {
         selectedFont = font
+        
+        // Save to both local and App Group
         UserDefaults.standard.set(font.rawValue, forKey: saveKey)
+        
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+            sharedDefaults.set(font.rawValue, forKey: appGroupSaveKey)
+            sharedDefaults.synchronize()
+        }
     }
 }
+
 

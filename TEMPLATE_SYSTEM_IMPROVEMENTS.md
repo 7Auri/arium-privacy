@@ -319,3 +319,4 @@ static var premiumTemplates: [HabitTemplate]
 **Hazırlayan:** AI Assistant  
 **Tarih:** 23 Kasım 2025
 
+

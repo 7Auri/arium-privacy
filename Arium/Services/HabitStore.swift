@@ -9,6 +9,7 @@ import Foundation
 import SwiftUI
 import WatchConnectivity
 import ActivityKit
+import WidgetKit
 
 @MainActor
 class HabitStore: NSObject, ObservableObject {
@@ -220,6 +221,10 @@ class HabitStore: NSObject, ObservableObject {
             // Notify Watch
             sendUpdateToWatch()
             
+            // Reload widget timelines
+            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
+            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
+            
             // Check achievements (non-blocking)
             Task { @MainActor in
                 AchievementManager.shared.checkAchievements(habits: habits, isPremium: isPremium)
@@ -273,6 +278,12 @@ class HabitStore: NSObject, ObservableObject {
     
     private func sendUpdateToWatch() {
         guard let session = session else { return }
+        
+        // Check if session is activated
+        guard session.activationState == .activated else {
+            print("⚠️ iPhone: Watch session is not activated (state: \(session.activationState.rawValue))")
+            return
+        }
         
         // In simulator, isWatchAppInstalled may return false even if app is installed
         // So we'll try to send anyway and handle errors gracefully
@@ -458,9 +469,18 @@ class HabitStore: NSObject, ObservableObject {
 extension HabitStore: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            print("❌ Session activation failed: \(error)")
+            print("❌ iPhone session activation failed: \(error)")
         } else {
-            print("✅ Session activated")
+            print("✅ iPhone session activated (state: \(activationState.rawValue))")
+            
+            // Send habits to Watch when session is activated
+            Task { @MainActor in
+                if activationState == .activated {
+                    // Wait a bit for session to be fully ready
+                    try? await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                    sendUpdateToWatch()
+                }
+            }
         }
     }
     
@@ -478,6 +498,48 @@ extension HabitStore: WCSessionDelegate {
             if message["action"] as? String == "toggleHabit",
                let habitIdString = message["habitId"] as? String,
                let habitId = UUID(uuidString: habitIdString) {
+                print("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
+                toggleHabitCompletion(habitId)
+            }
+        }
+    }
+    
+    nonisolated func session(_ session: WCSession, didReceiveMessage message: [String : Any], replyHandler: @escaping ([String : Any]) -> Void) {
+        Task { @MainActor in
+            if message["action"] as? String == "toggleHabit",
+               let habitIdString = message["habitId"] as? String,
+               let habitId = UUID(uuidString: habitIdString) {
+                print("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
+                toggleHabitCompletion(habitId)
+                replyHandler(["status": "success"])
+            } else if message["action"] as? String == "requestHabits" {
+                // Watch is requesting habits
+                print("📱 iPhone: Watch requested habits")
+                do {
+                    let encoded = try JSONEncoder().encode(habits)
+                    replyHandler([
+                        "action": "habitsUpdated",
+                        "habits": encoded
+                    ])
+                    print("✅ iPhone: Sent \(habits.count) habits to Watch on request")
+                } catch {
+                    print("❌ iPhone: Failed to encode habits for Watch: \(error)")
+                    replyHandler(["status": "error"])
+                }
+            } else {
+                replyHandler(["status": "unknown"])
+            }
+        }
+    }
+    
+    nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        Task { @MainActor in
+            print("📱 iPhone: Received application context from Watch")
+            
+            if applicationContext["action"] as? String == "toggleHabit",
+               let habitIdString = applicationContext["habitId"] as? String,
+               let habitId = UUID(uuidString: habitIdString) {
+                print("📱 iPhone: Received toggleHabit from Watch via application context for habit: \(habitIdString)")
                 toggleHabitCompletion(habitId)
             }
         }

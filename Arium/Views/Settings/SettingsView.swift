@@ -993,6 +993,7 @@ struct LanguageOptionRow: View {
                 }
             }
             .padding(.vertical, 4)
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
     }
@@ -1531,6 +1532,7 @@ struct SettingsRow: View {
                 RoundedRectangle(cornerRadius: 26)
                     .fill(Color(.secondarySystemGroupedBackground))
             )
+            .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
     }
