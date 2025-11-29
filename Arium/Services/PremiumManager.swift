@@ -56,13 +56,13 @@ class PremiumManager: ObservableObject {
         UserDefaults.standard.set(status, forKey: "isPremium")
     }
     
-    // MARK: - Debug (Development Only)
+    // MARK: - Test Helper (TestFlight için - Canlıya geçerken kaldırılacak)
     
-    #if DEBUG
+    /// TestFlight'ta premium test etmek için kullanılır
+    /// Canlıya geçerken bu fonksiyon kaldırılmalı
     func setPremiumStatus(_ status: Bool) {
         savePremiumStatus(status)
     }
-    #endif
     
     // MARK: - StoreKit 2
     

@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CloudKit
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
@@ -47,670 +48,860 @@ struct SettingsView: View {
     @State private var duplicateHabit: Habit?
     @State private var duplicateItemId: UUID?
     
-    var body: some View {
-        let systemLang = L10nManager.detectSystemLanguage()
-        let hasSystemLanguage = systemLang != nil
-        let currentLanguage = isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
-        
-        return NavigationStack {
-            List {
-                // Language Section
-                Section {
-                    SettingsRow(
-                        iconName: "globe",
-                        iconColor: AriumTheme.accent,
-                        title: L10n.t("settings.language"),
-                        description: {
-                            if currentLanguage == "system" {
-                                return L10n.t("settings.language.system")
-                            } else if currentLanguage == "tr" {
-                                return "Türkçe"
-                            } else if currentLanguage == "de" {
-                                return "Deutsch"
-                            } else if currentLanguage == "fr" {
-                                return "Français"
-                            } else if currentLanguage == "es" {
-                                return "Español"
-                            } else if currentLanguage == "it" {
-                                return "Italiano"
-                            } else {
-                                return "English"
-                            }
-                        }(),
-                        action: {
-                            showingLanguagePicker = true
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    .sheet(isPresented: $showingLanguagePicker) {
-                        LanguagePickerSheet(
-                            currentLanguage: Binding(
-                                get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
-                                set: { newValue in
-                                    if newValue == "system" && hasSystemLanguage {
-                                        isSystemLanguage = true
-                                        if let systemLang = systemLang {
-                                            L10n.setLanguage(systemLang)
-                                        }
-                                    } else {
-                                        isSystemLanguage = false
-                                        appLanguage = newValue
-                                        L10n.setLanguage(newValue)
-                                    }
-                                    showingLanguagePicker = false
-                                }
-                            ),
-                            hasSystemLanguage: hasSystemLanguage
-                        )
-                    }
-                    .onAppear {
-                        // İlk açılışta sistem dilini kontrol et
-                        if UserDefaults.standard.string(forKey: "appLanguage") == nil {
-                            if hasSystemLanguage {
+    // MARK: - Computed Properties
+    
+    private var systemLang: String? {
+        L10nManager.detectSystemLanguage()
+    }
+    
+    private var hasSystemLanguage: Bool {
+        systemLang != nil
+    }
+    
+    private var currentLanguage: String {
+        isSystemLanguage && hasSystemLanguage ? "system" : appLanguage
+    }
+    
+    private var languageDescription: String {
+        if currentLanguage == "system" {
+            return L10n.t("settings.language.system")
+        } else if currentLanguage == "tr" {
+            return "Türkçe"
+        } else if currentLanguage == "de" {
+            return "Deutsch"
+        } else if currentLanguage == "fr" {
+            return "Français"
+        } else if currentLanguage == "es" {
+            return "Español"
+        } else if currentLanguage == "it" {
+            return "Italiano"
+        } else {
+            return "English"
+        }
+    }
+    
+    // MARK: - Section Views
+    
+    private var languageSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "globe",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("settings.language"),
+                description: languageDescription,
+                action: {
+                    showingLanguagePicker = true
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            .sheet(isPresented: $showingLanguagePicker) {
+                LanguagePickerSheet(
+                    currentLanguage: Binding(
+                        get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
+                        set: { newValue in
+                            if newValue == "system" && hasSystemLanguage {
                                 isSystemLanguage = true
                                 if let systemLang = systemLang {
                                     L10n.setLanguage(systemLang)
                                 }
                             } else {
-                                // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
-                                L10n.setLanguage("en")
-                            }
-                        } else {
-                            // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
-                            if hasSystemLanguage {
-                                let currentLang = L10nManager.shared.currentLanguage
-                                isSystemLanguage = (currentLang == systemLang)
-                            } else {
                                 isSystemLanguage = false
+                                appLanguage = newValue
+                                L10n.setLanguage(newValue)
                             }
+                            showingLanguagePicker = false
                         }
+                    ),
+                    hasSystemLanguage: hasSystemLanguage
+                )
+            }
+            .onAppear {
+                // İlk açılışta sistem dilini kontrol et
+                if UserDefaults.standard.string(forKey: "appLanguage") == nil {
+                    if hasSystemLanguage {
+                        isSystemLanguage = true
+                        if let systemLang = systemLang {
+                            L10n.setLanguage(systemLang)
+                        }
+                    } else {
+                        // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
+                        L10n.setLanguage("en")
                     }
-                } header: {
-                    Text(L10n.t("settings.language"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
+                } else {
+                    // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
+                    if hasSystemLanguage {
+                        let currentLang = L10nManager.shared.currentLanguage
+                        isSystemLanguage = (currentLang == systemLang)
+                    } else {
+                        isSystemLanguage = false
+                    }
                 }
-                
-                // App Theme Section
-                Section {
-                    SettingsRow(
-                        iconName: "paintpalette.fill",
-                        iconColor: appThemeManager.accentColor.color,
-                        title: L10n.t("settings.appTheme"),
-                        description: appThemeManager.accentColor.name,
-                        rightIndicator: AnyView(
+            }
+        } header: {
+            Text(L10n.t("settings.language"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var appThemeSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "paintpalette.fill",
+                iconColor: appThemeManager.accentColor.color,
+                title: L10n.t("settings.appTheme"),
+                description: appThemeManager.accentColor.name,
+                rightIndicator: AnyView(
+                    Circle()
+                        .fill(appThemeManager.accentColor.color)
+                        .frame(width: 24, height: 24)
+                        .overlay(
                             Circle()
-                                .fill(appThemeManager.accentColor.color)
-                                .frame(width: 24, height: 24)
-                                .overlay(
-                                    Circle()
-                                        .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                                )
-                        ),
-                        action: {
-                            showingThemePicker = true
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    .sheet(isPresented: $showingThemePicker) {
-                        AppThemePickerSheet(
-                            selectedColor: $appThemeManager.accentColor
+                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
                         )
+                ),
+                action: {
+                    showingThemePicker = true
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            .sheet(isPresented: $showingThemePicker) {
+                AppThemePickerSheet(
+                    selectedColor: $appThemeManager.accentColor
+                )
+            }
+            
+            NavigationLink(destination: CustomizationView()) {
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.pink.opacity(0.2), Color.pink.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "paintbrush.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.pink)
                     }
                     
-                    NavigationLink(destination: CustomizationView()) {
-                        SettingsRow(
-                            iconName: "paintbrush.fill",
-                            iconColor: .pink,
-                            title: L10n.t("settings.customization"),
-                            description: L10n.t("settings.customization.subtitle"),
-                            showChevron: false,
-                            action: {}
-                        )
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L10n.t("settings.customization"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        
+                        Text(L10n.t("settings.customization.subtitle"))
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.secondary)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("settings.appearance"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
-                
-                // Achievements Section
-                Section {
-                    NavigationLink(destination: AchievementsView()) {
-                        SettingsRow(
-                            iconName: "trophy.fill",
-                            iconColor: .orange,
-                            title: L10n.t("achievements.title"),
-                            description: AchievementManager.shared.newAchievementsCount > 0
-                                ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
-                                : L10n.t("achievements.viewAll"),
-                            showChevron: false,
-                            action: {}
-                        )
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .background(
+                    RoundedRectangle(cornerRadius: 26)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("settings.appearance"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var achievementsSection: some View {
+        Section {
+            NavigationLink(destination: AchievementsView()) {
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "trophy.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.orange)
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("achievements.title"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L10n.t("achievements.title"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        
+                        Text(AchievementManager.shared.newAchievementsCount > 0
+                            ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
+                            : L10n.t("achievements.viewAll"))
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.tertiary)
                 }
-                
-                
-                // Premium Section
-                Section {
-                    Button {
-                        if !premiumManager.isPremium {
-                            Task {
-                                do {
-                                    try await premiumManager.purchasePremium()
-                                } catch {
-                                    showingPremiumError = true
-                                    premiumError = error as? AppError ?? PremiumError.unknown
-                                }
-                            }
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .background(
+                    RoundedRectangle(cornerRadius: 26)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("achievements.title"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var premiumSection: some View {
+        Section {
+            Button {
+                if !premiumManager.isPremium {
+                    Task {
+                        do {
+                            try await premiumManager.purchasePremium()
+                        } catch {
+                            showingPremiumError = true
+                            premiumError = error as? AppError ?? PremiumError.unknown
                         }
-                    } label: {
-                        HStack(spacing: 16) {
-                            ZStack {
-                                Circle()
-                                    .fill(
-                                        LinearGradient(
-                                            colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                                    .frame(width: 44, height: 44)
-                                
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: 20, weight: .semibold))
-                                    .foregroundStyle(.orange)
-                            }
-                            
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(L10n.t("settings.premium"))
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.primary)
-                                
-                                if premiumManager.isPremium {
-                                    Text(L10n.t("settings.active"))
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundStyle(.secondary)
-                                } else {
-                                    if let product = premiumManager.product {
-                                        Text(product.displayPrice)
-                                            .font(.system(size: 14, weight: .regular))
-                                            .foregroundStyle(.secondary)
-                                    } else {
-                                        Text(L10n.t("settings.freePlan"))
-                                            .font(.system(size: 14, weight: .regular))
-                                            .foregroundStyle(.secondary)
-                                    }
-                                }
-                            }
-                            
-                            Spacer()
-                            
-                            if !premiumManager.isPremium {
-                                Text(L10n.t("premium.button"))
-                                    .font(.caption)
-                                    .fontWeight(.semibold)
-                                    .foregroundStyle(AriumTheme.accent)
-                                    .padding(.horizontal, 12)
-                                    .padding(.vertical, 6)
-                                    .background(AriumTheme.accent.opacity(0.15))
-                                    .clipShape(Capsule())
+                    }
+                }
+            } label: {
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.orange.opacity(0.2), Color.orange.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "crown.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.orange)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L10n.t("settings.premium"))
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        
+                        if premiumManager.isPremium {
+                            Text(L10n.t("settings.active"))
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.secondary)
+                        } else {
+                            if let product = premiumManager.product {
+                                Text(product.displayPrice)
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
                             } else {
-                                Image(systemName: "checkmark.circle.fill")
-                                    .font(.title3)
-                                    .foregroundStyle(AriumTheme.success)
+                                Text(L10n.t("settings.freePlan"))
+                                    .font(.system(size: 14, weight: .regular))
+                                    .foregroundStyle(.secondary)
                             }
                         }
-                        .padding(16)
-                        .frame(maxWidth: .infinity, minHeight: 72)
-                        .background(
-                            RoundedRectangle(cornerRadius: 26)
-                                .fill(Color(.secondarySystemGroupedBackground))
-                        )
                     }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("settings.premium"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
+                    
+                    Spacer()
+                    
+                    if !premiumManager.isPremium {
+                        Text(L10n.t("premium.button"))
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(AriumTheme.accent)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(AriumTheme.accent.opacity(0.15))
+                            .clipShape(Capsule())
+                    } else {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(AriumTheme.success)
+                    }
                 }
-                
-                // Notifications Section
-                Section {
-                    SettingsRow(
-                        iconName: "bell.fill",
-                        iconColor: .orange,
-                        title: L10n.t("settings.notifications.enable"),
-                        description: L10n.t("settings.notifications"),
-                        toggleBinding: $notificationManager.isAuthorized,
-                        toggleTint: .orange,
-                        action: {}
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    .onChange(of: notificationManager.isAuthorized) { _, newValue in
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .background(
+                    RoundedRectangle(cornerRadius: 26)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            
+            // TestFlight Premium Test Butonu - Canlıya geçerken kaldırılacak
+            Button {
+                premiumManager.setPremiumStatus(true)
+            } label: {
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.green.opacity(0.2), Color.green.opacity(0.1)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "checkmark.seal.fill")
+                            .font(.system(size: 20, weight: .semibold))
+                            .foregroundStyle(.green)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("Test Premium Aktif Et")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.primary)
+                        
+                        Text("TestFlight için geçici test butonu")
+                            .font(.system(size: 14, weight: .regular))
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    if premiumManager.isPremium {
+                        Image(systemName: "checkmark.circle.fill")
+                            .font(.title3)
+                            .foregroundStyle(.green)
+                    }
+                }
+                .padding(16)
+                .frame(maxWidth: .infinity, minHeight: 72)
+                .background(
+                    RoundedRectangle(cornerRadius: 26)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("settings.premium"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var notificationsSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "bell.fill",
+                iconColor: .orange,
+                title: L10n.t("settings.notifications.enable"),
+                description: L10n.t("settings.notifications"),
+                toggleBinding: $notificationManager.isAuthorized,
+                toggleTint: .orange,
+                action: {}
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            .onChange(of: notificationManager.isAuthorized) { _, newValue in
+                if newValue {
+                    Task { _ = await notificationManager.requestAuthorization() }
+                }
+            }
+
+            if notificationManager.isAuthorized {
+                SettingsRow(
+                    iconName: "sparkles",
+                    iconColor: .yellow,
+                    title: L10n.t("settings.notifications.daily"),
+                    description: L10n.t("settings.notifications.daily"),
+                    toggleBinding: $isDailyMotivationEnabled,
+                    toggleTint: .yellow,
+                    action: {}
+                )
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .onChange(of: isDailyMotivationEnabled) { _, newValue in
+                    Task {
                         if newValue {
-                            Task { _ = await notificationManager.requestAuthorization() }
+                            await notificationManager.scheduleDailyMotivation()
+                        } else {
+                            notificationManager.cancelDailyMotivation()
                         }
                     }
+                }
 
-                    if notificationManager.isAuthorized {
-                        SettingsRow(
-                            iconName: "sparkles",
-                            iconColor: .yellow,
-                            title: L10n.t("settings.notifications.daily"),
-                            description: L10n.t("settings.notifications.daily"),
-                            toggleBinding: $isDailyMotivationEnabled,
-                            toggleTint: .yellow,
-                            action: {}
-                        )
-                        .listRowBackground(Color(.secondarySystemGroupedBackground))
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                        .onChange(of: isDailyMotivationEnabled) { _, newValue in
-                            Task {
-                                if newValue {
-                                    await notificationManager.scheduleDailyMotivation()
-                                } else {
-                                    notificationManager.cancelDailyMotivation()
+                SettingsRow(
+                    iconName: "flame.fill",
+                    iconColor: .red,
+                    title: L10n.t("settings.notifications.streaks"),
+                    description: L10n.t("settings.notifications.streaks"),
+                    toggleBinding: $isStreakWarningEnabled,
+                    toggleTint: .red,
+                    action: {}
+                )
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            }
+        } header: {
+            Text(L10n.t("settings.notifications"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var iCloudSyncSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "icloud.fill",
+                iconColor: .blue,
+                title: L10n.t("settings.icloud.sync"),
+                description: L10n.t("settings.icloud.sync.description"),
+                toggleBinding: $habitStore.iCloudSyncEnabled,
+                toggleTint: .blue,
+                action: {}
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+
+            if habitStore.iCloudSyncEnabled {
+                Button {
+                    Task {
+                        do {
+                            try await habitStore.syncWithiCloud()
+                            showingiCloudSyncSuccess = true
+                        } catch {
+                            print("❌ iCloud sync error: \(error)")
+                            showingiCloudSyncError = true
+                            
+                            if let ckError = error as? CKError {
+                                switch ckError.code {
+                                case .notAuthenticated:
+                                    iCloudSyncError = NetworkError.noConnection
+                                case .networkUnavailable, .networkFailure:
+                                    iCloudSyncError = NetworkError.noConnection
+                                case .quotaExceeded:
+                                    iCloudSyncError = NetworkError.serverError
+                                default:
+                                    iCloudSyncError = NetworkError.unknown
                                 }
+                            } else {
+                                iCloudSyncError = NetworkError.unknown
                             }
                         }
-
-                        SettingsRow(
-                            iconName: "flame.fill",
-                            iconColor: .red,
-                            title: L10n.t("settings.notifications.streaks"),
-                            description: L10n.t("settings.notifications.streaks"),
-                            toggleBinding: $isStreakWarningEnabled,
-                            toggleTint: .red,
-                            action: {}
-                        )
-                        .listRowBackground(Color(.secondarySystemGroupedBackground))
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                     }
-                } header: {
-                    Text(L10n.t("settings.notifications"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                }
-                
-                // iCloud Sync Section
-                Section {
-                    SettingsRow(
-                        iconName: "icloud.fill",
-                        iconColor: .blue,
-                        title: L10n.t("settings.icloud.sync"),
-                        description: L10n.t("settings.icloud.sync.description"),
-                        toggleBinding: $habitStore.iCloudSyncEnabled,
-                        toggleTint: .blue,
-                        action: {}
+                } label: {
+                    HStack(spacing: 16) {
+                        ZStack {
+                            Circle()
+                                .fill(
+                                    LinearGradient(
+                                        colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                                .frame(width: 44, height: 44)
+                            
+                            if cloudSyncManager.isSyncing {
+                                ProgressView()
+                                    .tint(.blue)
+                            } else {
+                                Image(systemName: "arrow.clockwise.circle.fill")
+                                    .font(.system(size: 20, weight: .semibold))
+                                    .foregroundStyle(.blue)
+                            }
+                        }
+                        
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(L10n.t("settings.icloud.syncNow"))
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(.primary)
+                            
+                            Text(L10n.t("settings.icloud.syncNow"))
+                                .font(.system(size: 14, weight: .regular))
+                                .foregroundStyle(.secondary)
+                        }
+                        
+                        Spacer()
+                    }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, minHeight: 72)
+                    .background(
+                        RoundedRectangle(cornerRadius: 26)
+                            .fill(Color(.secondarySystemGroupedBackground))
                     )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    // Note: No automatic sync when toggle is enabled
-                    // Users must manually use "Load from iCloud" or "Sync Now" buttons
+                }
+                .buttonStyle(PlainButtonStyle())
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .disabled(cloudSyncManager.isSyncing)
 
-                    if habitStore.iCloudSyncEnabled {
-                        Button {
-                            Task {
-                                do {
-                                    try await habitStore.syncWithiCloud()
-                                    showingiCloudSyncSuccess = true
-                                } catch {
-                                    print("❌ iCloud sync error: \(error)")
-                                    showingiCloudSyncError = true
+                SettingsRow(
+                    iconName: "arrow.down.circle.fill",
+                    iconColor: .blue,
+                    title: L10n.t("settings.icloud.loadFromCloud"),
+                    description: L10n.t("settings.icloud.loadFromCloud.description"),
+                    showChevron: false,
+                    action: {
+                        Task {
+                            do {
+                                let beforeCount = habitStore.habits.count
+                                try await habitStore.loadFromiCloud()
+                                let afterCount = habitStore.habits.count
+                                let addedCount = afterCount - beforeCount
+
+                                if addedCount > 0 {
+                                    iCloudLoadMessage = "\(addedCount) alışkanlık iCloud'dan yüklendi"
+                                } else if afterCount > 0 {
+                                    iCloudLoadMessage = "Tüm alışkanlıklar zaten mevcut"
+                                } else {
+                                    iCloudLoadMessage = "iCloud'da alışkanlık bulunamadı"
+                                }
+                                showingiCloudSyncSuccess = true
+                            } catch {
+                                print("❌ iCloud load error: \(error)")
+                                showingiCloudSyncError = true
+                                
+                                if let ckError = error as? CKError {
+                                    switch ckError.code {
+                                    case .notAuthenticated:
+                                        iCloudSyncError = NetworkError.noConnection
+                                    case .networkUnavailable, .networkFailure:
+                                        iCloudSyncError = NetworkError.noConnection
+                                    case .quotaExceeded:
+                                        iCloudSyncError = NetworkError.serverError
+                                    default:
+                                        iCloudSyncError = NetworkError.unknown
+                                    }
+                                } else {
                                     iCloudSyncError = NetworkError.unknown
                                 }
                             }
-                        } label: {
-                            HStack(spacing: 16) {
-                                ZStack {
-                                    Circle()
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [Color.blue.opacity(0.2), Color.blue.opacity(0.1)],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
-                                        )
-                                        .frame(width: 44, height: 44)
-                                    
-                                    if cloudSyncManager.isSyncing {
-                                        ProgressView()
-                                            .tint(.blue)
-                                    } else {
-                                        Image(systemName: "arrow.clockwise.circle.fill")
-                                            .font(.system(size: 20, weight: .semibold))
-                                            .foregroundStyle(.blue)
-                                    }
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(L10n.t("settings.icloud.syncNow"))
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundStyle(.primary)
-                                    
-                                    Text(L10n.t("settings.icloud.syncNow"))
-                                        .font(.system(size: 14, weight: .regular))
-                                        .foregroundStyle(.secondary)
-                                }
-                                
-                                Spacer()
-                            }
-                            .padding(16)
-                            .frame(maxWidth: .infinity, minHeight: 72)
-                            .background(
-                                RoundedRectangle(cornerRadius: 26)
-                                    .fill(Color(.secondarySystemGroupedBackground))
-                            )
-                        }
-                        .buttonStyle(PlainButtonStyle())
-                        .listRowBackground(Color(.secondarySystemGroupedBackground))
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                        .disabled(cloudSyncManager.isSyncing)
-
-                        SettingsRow(
-                            iconName: "arrow.down.circle.fill",
-                            iconColor: .blue,
-                            title: L10n.t("settings.icloud.loadFromCloud"),
-                            description: L10n.t("settings.icloud.loadFromCloud.description"),
-                            showChevron: false,
-                            action: {
-                                Task {
-                                    do {
-                                        let beforeCount = habitStore.habits.count
-                                        try await habitStore.loadFromiCloud()
-                                        let afterCount = habitStore.habits.count
-                                        let addedCount = afterCount - beforeCount
-
-                                        if addedCount > 0 {
-                                            iCloudLoadMessage = "\(addedCount) alışkanlık iCloud'dan yüklendi"
-                                        } else if afterCount > 0 {
-                                            iCloudLoadMessage = "Tüm alışkanlıklar zaten mevcut"
-                                        } else {
-                                            iCloudLoadMessage = "iCloud'da alışkanlık bulunamadı"
-                                        }
-                                        showingiCloudSyncSuccess = true
-                                    } catch {
-                                        print("❌ iCloud load error: \(error)")
-                                        showingiCloudSyncError = true
-                                        iCloudSyncError = NetworkError.unknown
-                                    }
-                                }
-                            }
-                        )
-                        .listRowBackground(Color(.secondarySystemGroupedBackground))
-                        .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                        .disabled(cloudSyncManager.isSyncing)
-
-                        if let lastSync = cloudSyncManager.lastSyncDate {
-                            SettingsRow(
-                                iconName: "checkmark.circle.fill",
-                                iconColor: .green,
-                                title: L10n.t("settings.icloud.lastSync"),
-                                description: lastSync.localizedRelativeTimeString(),
-                                showChevron: false,
-                                action: {}
-                            )
-                            .listRowBackground(Color(.secondarySystemGroupedBackground))
-                            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
                         }
                     }
-                } header: {
-                    Text(L10n.t("settings.icloud.title"))
-                    .font(.footnote)
-                    .textCase(.uppercase)
-                    .foregroundStyle(.secondary)
-                }
-                
-                // Export/Import/Backup Section
-                Section {
-                    // Dışarı Aktar (Export Habits)
+                )
+                .listRowBackground(Color(.secondarySystemGroupedBackground))
+                .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                .disabled(cloudSyncManager.isSyncing)
+
+                if let lastSync = cloudSyncManager.lastSyncDate {
                     SettingsRow(
-                        iconName: "square.and.arrow.up",
-                        iconColor: .blue,
-                        title: L10n.t("settings.export.habits"),
-                        description: L10n.t("export.subtitle"),
-                        action: {
-                            guard !habitStore.habits.isEmpty else {
-                                exportError = ExportError.exportFailed
-                                return
-                            }
-                            // Initialize with all habits selected
-                            selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
-                            showingExportHabitPicker = true
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    
-                    // İçeri Aktar (Import Habits)
-                    SettingsRow(
-                        iconName: "square.and.arrow.down",
+                        iconName: "checkmark.circle.fill",
                         iconColor: .green,
-                        title: L10n.t("settings.import"),
-                        description: L10n.t("import.subtitle"),
-                        action: {
-                            showingImportPicker = true
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                    
-                    // Yedekle (Backup)
-                    NavigationLink(destination: DataExportView()) {
-                        SettingsRow(
-                            iconName: "externaldrive.badge.icloud",
-                            iconColor: .purple,
-                            title: L10n.t("settings.backup"),
-                            description: L10n.t("settings.backup.subtitle"),
-                            showChevron: false,
-                            action: {}
-                        )
-                    }
-                    .buttonStyle(PlainButtonStyle())
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("settings.data"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                }
-                .listSectionSeparator(.hidden)
-                .listSectionSpacing(0)
-                
-                // Statistics Section
-                Section {
-                    SettingsRow(
-                        iconName: "chart.bar.fill",
-                        iconColor: AriumTheme.accent,
-                        title: L10n.t("statistics.viewStats"),
-                        description: L10n.t("statistics.title"),
-                        action: {
-                            showingStatistics = true
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("statistics.title"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                }
-                .listSectionSeparator(.hidden)
-                .listSectionSpacing(0)
-                
-                // Debug Section
-                #if DEBUG
-                Section {
-                    // Premium Toggle
-                    SettingsRow(
-                        iconName: premiumManager.isPremium ? "crown.fill" : "crown",
-                        iconColor: .orange,
-                        title: L10n.t("settings.debug.togglePremium"),
-                        description: premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"),
-                        toggleBinding: Binding(
-                            get: { premiumManager.isPremium },
-                            set: { newValue in
-                                premiumManager.setPremiumStatus(newValue)
-                            }
-                        ),
-                        toggleTint: .orange,
+                        title: L10n.t("settings.icloud.lastSync"),
+                        description: lastSync.localizedRelativeTimeString(),
+                        showChevron: false,
                         action: {}
                     )
                     .listRowBackground(Color(.secondarySystemGroupedBackground))
                     .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+                }
+            }
+        } header: {
+            Text(L10n.t("settings.icloud.title"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    private var dataManagementSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "square.and.arrow.up",
+                iconColor: .blue,
+                title: L10n.t("settings.export.habits"),
+                description: L10n.t("export.subtitle"),
+                action: {
+                    guard !habitStore.habits.isEmpty else {
+                        exportError = ExportError.exportFailed
+                        return
+                    }
+                    selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
+                    showingExportHabitPicker = true
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            
+            SettingsRow(
+                iconName: "square.and.arrow.down",
+                iconColor: .green,
+                title: L10n.t("settings.import"),
+                description: L10n.t("import.subtitle"),
+                action: {
+                    showingImportPicker = true
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            
+            NavigationLink(destination: DataExportView()) {
+                SettingsRow(
+                    iconName: "externaldrive.badge.icloud",
+                    iconColor: .purple,
+                    title: L10n.t("settings.backup"),
+                    description: L10n.t("settings.backup.subtitle"),
+                    showChevron: false,
+                    action: {}
+                )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("settings.data"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+        .listSectionSeparator(.hidden)
+        .listSectionSpacing(0)
+    }
+    
+    private var statisticsSection: some View {
+        Section {
+            SettingsRow(
+                iconName: "chart.bar.fill",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("statistics.viewStats"),
+                description: L10n.t("statistics.title"),
+                action: {
+                    showingStatistics = true
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("statistics.title"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+        .listSectionSeparator(.hidden)
+        .listSectionSpacing(0)
+    }
+    
+    #if DEBUG
+    private var debugSection: some View {
+        Section {
+            SettingsRow(
+                iconName: premiumManager.isPremium ? "crown.fill" : "crown",
+                iconColor: .orange,
+                title: L10n.t("settings.debug.togglePremium"),
+                description: premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"),
+                toggleBinding: Binding(
+                    get: { premiumManager.isPremium },
+                    set: { newValue in
+                        premiumManager.setPremiumStatus(newValue)
+                    }
+                ),
+                toggleTint: .orange,
+                action: {}
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
 
-                    SettingsRow(
-                        iconName: "arrow.clockwise",
-                        iconColor: AriumTheme.accent,
-                        title: L10n.t("settings.resetOnboarding"),
-                        description: L10n.t("settings.resetOnboarding"),
-                        action: {
-                            hasSeenOnboarding = false
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            SettingsRow(
+                iconName: "arrow.clockwise",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("settings.resetOnboarding"),
+                description: L10n.t("settings.resetOnboarding"),
+                action: {
+                    hasSeenOnboarding = false
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
 
-                    SettingsRow(
-                        iconName: "trash",
-                        iconColor: .red,
-                        title: L10n.t("settings.clearAllHabits"),
-                        description: L10n.t("settings.clearAllHabits"),
-                        action: {
-                            habitStore.habits.removeAll()
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+            SettingsRow(
+                iconName: "trash",
+                iconColor: .red,
+                title: L10n.t("settings.clearAllHabits"),
+                description: L10n.t("settings.clearAllHabits"),
+                action: {
+                    habitStore.habits.removeAll()
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
 
-                    SettingsRow(
-                        iconName: "trash.slash",
-                        iconColor: AriumTheme.accent,
-                        title: L10n.t("settings.clearCache"),
-                        description: L10n.t("settings.clearCache"),
-                        action: {
-                            CodingCache.clearCaches()
-                            HapticManager.success()
-                        }
-                    )
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                } header: {
-                    Text(L10n.t("settings.debug"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
+            SettingsRow(
+                iconName: "trash.slash",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("settings.clearCache"),
+                description: L10n.t("settings.clearCache"),
+                action: {
+                    CodingCache.clearCaches()
+                    HapticManager.success()
+                }
+            )
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
+        } header: {
+            Text(L10n.t("settings.debug"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    #endif
+    
+    private var aboutSection: some View {
+        Section {
+            VStack(spacing: 16) {
+                Image("AppIconMain")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .cornerRadius(22)
+                    .shadow(color: AriumTheme.accent.opacity(0.2), radius: 10, x: 0, y: 5)
+                
+                Text("Arium")
+                    .font(.system(size: 24, weight: .bold))
+                    .foregroundStyle(AriumTheme.textPrimary)
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 20)
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            
+            HStack {
+                Text(L10n.t("settings.version"))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text(Bundle.main.displayVersion)
+                    .foregroundStyle(.secondary)
+            }
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            
+            HStack {
+                Text(L10n.t("settings.totalHabits"))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text("\(habitStore.habits.count)")
+                    .foregroundStyle(.secondary)
+            }
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            
+            HStack {
+                Text(L10n.t("settings.totalCompletions"))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text("\(habitStore.getTotalCompletions())")
+                    .foregroundStyle(.secondary)
+            }
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            
+            Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
+                HStack {
+                    Text(L10n.t("settings.privacyPolicy"))
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.caption)
                         .foregroundStyle(.secondary)
                 }
+            }
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+            
+            Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
+                HStack {
+                    Text(L10n.t("settings.termsOfService"))
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .listRowBackground(Color(.secondarySystemGroupedBackground))
+        } header: {
+            Text(L10n.t("settings.about"))
+                .font(.footnote)
+                .textCase(.uppercase)
+                .foregroundStyle(.secondary)
+        }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // Language Section
+                languageSection
+                
+                // App Theme Section
+                appThemeSection
+                
+                // Achievements Section
+                achievementsSection
+                
+                
+                // Premium Section
+                premiumSection
+                
+                // Notifications Section
+                notificationsSection
+                
+                // iCloud Sync Section
+                iCloudSyncSection
+                
+                // Export/Import/Backup Section
+                dataManagementSection
+                
+                // Statistics Section
+                statisticsSection
+                
+                // Debug Section
+                #if DEBUG
+                debugSection
                 #endif
                 
                 // About Section
-                Section {
-                    // App Logo (iPhone App Icon)
-                    VStack(spacing: 16) {
-                        Image("AppIconMain")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 100, height: 100)
-                            .cornerRadius(22)
-                            .shadow(color: AriumTheme.accent.opacity(0.2), radius: 10, x: 0, y: 5)
-                        
-                        Text("Arium")
-                            .font(.system(size: 24, weight: .bold))
-                            .foregroundStyle(AriumTheme.textPrimary)
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 20)
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    
-                    HStack {
-                        Text(L10n.t("settings.version"))
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Text(Bundle.main.displayVersion)
-                            .foregroundStyle(.secondary)
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    
-                    HStack {
-                        Text(L10n.t("settings.totalHabits"))
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Text("\(habitStore.habits.count)")
-                            .foregroundStyle(.secondary)
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    
-                    HStack {
-                        Text(L10n.t("settings.totalCompletions"))
-                            .foregroundStyle(.primary)
-                        
-                        Spacer()
-                        
-                        Text("\(habitStore.getTotalCompletions())")
-                            .foregroundStyle(.secondary)
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    
-                    Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
-                        HStack {
-                            Text(L10n.t("settings.privacyPolicy"))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "arrow.up.right.square")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                    
-                    Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
-                        HStack {
-                            Text(L10n.t("settings.termsOfService"))
-                                .foregroundStyle(.primary)
-                            
-                            Spacer()
-                            
-                            Image(systemName: "arrow.up.right.square")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                    .listRowBackground(Color(.secondarySystemGroupedBackground))
-                } header: {
-                    Text(L10n.t("settings.about"))
-                        .font(.footnote)
-                        .textCase(.uppercase)
-                        .foregroundStyle(.secondary)
-                }
+                aboutSection
             }
             .scrollContentBackground(.automatic)
             .background(Color(.systemGroupedBackground))
