@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import CoreText
 
 extension View {
     /// Adds accessibility label for VoiceOver (convenience method)
@@ -40,13 +41,71 @@ extension Font {
     
     // Dancing Script font for app name
     static func dancingScript(size: CGFloat) -> Font {
+        // Check if font file is in bundle
+        if let fontPath = Bundle.main.path(forResource: "DancingScript-VariableFont_wght", ofType: "ttf") {
+            print("✅ Font file found in bundle: \(fontPath)")
+            
+            // Try to load font using CoreText
+            if let fontData = NSData(contentsOfFile: fontPath) as Data?,
+               let dataProvider = CGDataProvider(data: fontData as CFData),
+               let font = CGFont(dataProvider) {
+                var error: Unmanaged<CFError>?
+                if CTFontManagerRegisterGraphicsFont(font, &error) {
+                    print("✅ Font registered successfully via CoreText")
+                    // Get the font name from the CGFont
+                    if let fontName = font.postScriptName as String? {
+                        print("✅ Font PostScript name: \(fontName)")
+                        if let uiFont = UIFont(name: fontName, size: size) {
+                            return .custom(fontName, size: size)
+                        }
+                    }
+                } else {
+                    if let error = error?.takeRetainedValue() {
+                        print("❌ Failed to register font: \(error)")
+                    }
+                }
+            }
+        } else {
+            print("❌ Font file NOT found in bundle!")
+            print("   Expected: DancingScript-VariableFont_wght.ttf")
+            print("   Bundle path: \(Bundle.main.bundlePath)")
+            if let resourcePath = Bundle.main.resourcePath {
+                print("   Resource path: \(resourcePath)")
+                let fileManager = FileManager.default
+                if let contents = try? fileManager.contentsOfDirectory(atPath: resourcePath) {
+                    print("   Bundle contents (first 20):")
+                    contents.prefix(20).forEach { print("      - \($0)") }
+                }
+            }
+        }
+        
+        // Print ALL font families to find Dancing Script
+        print("🔍 Searching for Dancing Script font...")
+        print("📋 All font families containing 'Dancing' or 'Script':")
+        var foundDancing = false
+        UIFont.familyNames.sorted().forEach { family in
+            if family.lowercased().contains("dancing") || family.lowercased().contains("script") {
+                foundDancing = true
+                print("   ✅ Family: \(family)")
+                UIFont.fontNames(forFamilyName: family).forEach { name in
+                    print("      - \(name)")
+                }
+            }
+        }
+        
+        if !foundDancing {
+            print("⚠️ No font family found with 'Dancing' or 'Script' in name")
+        }
+        
         // Try different possible font names for Dancing Script
         // Variable fonts use different naming conventions
         let fontNames = [
             "DancingScript-VariableFont_wght",  // Variable font name
             "DancingScript-Regular",
             "DancingScript",
-            "Dancing Script"
+            "Dancing Script",
+            "DancingScript-Regular-VariableFont_wght",
+            "DancingScriptVariableFont_wght"
         ]
         
         for fontName in fontNames {
@@ -56,13 +115,13 @@ extension Font {
             }
         }
         
-        // Debug: Print all available fonts containing "Dancing"
-        print("⚠️ Dancing Script font not found. Available fonts with 'Dancing':")
-        UIFont.familyNames.forEach { family in
+        // Try to find any font with "Dancing" in the name
+        for family in UIFont.familyNames {
             if family.lowercased().contains("dancing") {
-                print("   Family: \(family)")
-                UIFont.fontNames(forFamilyName: family).forEach { name in
-                    print("     - \(name)")
+                let fontNames = UIFont.fontNames(forFamilyName: family)
+                if let firstFont = fontNames.first {
+                    print("✅ Found Dancing Script font family: \(family), using: \(firstFont)")
+                    return .custom(firstFont, size: size)
                 }
             }
         }
