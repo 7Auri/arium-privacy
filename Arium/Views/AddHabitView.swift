@@ -11,6 +11,7 @@ struct AddHabitView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel = AddHabitViewModel()
+    @ObservedObject private var appThemeManager = AppThemeManager.shared
     
     @State private var showingPremiumAlert = false
     @State private var premiumAlertMessage = ""
@@ -601,7 +602,7 @@ struct CategoryButton: View {
                         .fill(isSelected ? category.color.opacity(0.2) : Color(.tertiarySystemBackground))
                         .frame(width: 56, height: 56)
                     
-                    Image(systemName: category.icon)
+                    Image(systemName: category.systemIcon)
                         .font(.system(size: 24))
                         .foregroundStyle(isSelected ? category.color : .secondary)
                         .opacity(isLocked ? 0.5 : 1.0)

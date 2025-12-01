@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import WidgetKit
 
 struct CustomizationView: View {
     @StateObject private var fontManager = FontManager.shared
@@ -21,6 +22,9 @@ struct CustomizationView: View {
                         Button(action: {
                             fontManager.setFont(font)
                             HapticManager.selection()
+                            // Reload widgets to apply font change
+                            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
+                            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
                         }) {
                             HStack(spacing: 16) {
                                 Text(font.preview)
@@ -60,6 +64,9 @@ struct CustomizationView: View {
                         Button(action: {
                             widgetThemeManager.setTheme(theme)
                             HapticManager.selection()
+                            // Reload widgets to apply theme change
+                            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
+                            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
                         }) {
                             HStack(spacing: 16) {
                                 // Preview

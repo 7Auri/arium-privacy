@@ -125,31 +125,96 @@ class CloudSyncManager: ObservableObject {
                 switch result {
                 case .success:
                     savedCount += 1
-                case .failure(let error as CKError):
-                    if error.code == .serverRecordChanged {
+                case .failure(let error):
+                    if let ckError = error as? CKError, ckError.code == .serverRecordChanged {
                         conflictCount += 1
                         conflictRecordIDs.append(recordID)
                         print("⚠️ Conflict detected for record \(recordID.recordName)")
                     } else {
                         print("⚠️ Failed to save record \(recordID.recordName): \(error.localizedDescription)")
                     }
-                case .failure(let error):
-                    print("⚠️ Failed to save record \(recordID.recordName): \(error.localizedDescription)")
+                @unknown default:
+                    if let error = result as? Error {
+                        print("⚠️ Failed to save record \(recordID.recordName): \(error.localizedDescription)")
+                    }
                 }
             }
             
-            // Conflict olan record'ların server versiyonunu fetch et
+            // Conflict olan record'ların server versiyonunu fetch et ve çöz
             if !conflictRecordIDs.isEmpty {
                 print("ℹ️ Fetching server versions for \(conflictRecordIDs.count) conflicted record(s)...")
                 do {
                     let serverRecords = try await privateDatabase.records(for: conflictRecordIDs)
+                    var resolvedRecords: [CKRecord] = []
+                    
                     for (recordID, result) in serverRecords {
                         switch result {
                         case .success(let serverRecord):
                             print("✅ Fetched server version for record \(recordID.recordName)")
-                            // Server versiyonu bir sonraki sync'te merge edilecek
+                            
+                            // Local habit'i bul
+                            if let localHabit = habits.first(where: { $0.id.uuidString == recordID.recordName }) {
+                                // Server record'dan habit oluştur
+                                if let serverHabit = recordToHabit(serverRecord) {
+                                    // Merge strategy: completion dates'i birleştir, daha yeni metadata'yı kullan
+                                    let resolvedHabit = mergeHabits(local: localHabit, cloud: serverHabit)
+                                    
+                                    // Resolved habit'i server record'a uygula (server record'u modify et)
+                                    serverRecord["title"] = resolvedHabit.title as CKRecordValue
+                                    serverRecord["notes"] = resolvedHabit.notes as CKRecordValue
+                                    serverRecord["streak"] = resolvedHabit.streak as CKRecordValue
+                                    serverRecord["themeId"] = resolvedHabit.themeId as CKRecordValue
+                                    serverRecord["isCompletedToday"] = (resolvedHabit.isCompletedToday ? 1 : 0) as CKRecordValue
+                                    serverRecord["goalDays"] = resolvedHabit.goalDays as CKRecordValue
+                                    serverRecord["isReminderEnabled"] = (resolvedHabit.isReminderEnabled ? 1 : 0) as CKRecordValue
+                                    
+                                    // Encode complex types as Data
+                                    if let completionDatesData = try? JSONEncoder().encode(resolvedHabit.completionDates) {
+                                        serverRecord["completionDates"] = completionDatesData as CKRecordValue
+                                    }
+                                    
+                                    if let completionNotesData = try? JSONEncoder().encode(resolvedHabit.completionNotes) {
+                                        serverRecord["completionNotes"] = completionNotesData as CKRecordValue
+                                    }
+                                    
+                                    if let startDate = resolvedHabit.startDate {
+                                        serverRecord["startDate"] = startDate as CKRecordValue
+                                    }
+                                    
+                                    if let reminderTime = resolvedHabit.reminderTime {
+                                        serverRecord["reminderTime"] = reminderTime as CKRecordValue
+                                    }
+                                    
+                                    resolvedRecords.append(serverRecord)
+                                    
+                                    print("✅ Resolved conflict for habit '\(resolvedHabit.title)'")
+                                }
+                            }
                         case .failure(let error):
                             print("⚠️ Failed to fetch server record \(recordID.recordName): \(error.localizedDescription)")
+                        @unknown default:
+                            print("⚠️ Unknown result type for record \(recordID.recordName)")
+                        }
+                    }
+                    
+                    // Resolved record'ları upload et
+                    if !resolvedRecords.isEmpty {
+                        do {
+                            let resolveResults = try await privateDatabase.modifyRecords(saving: resolvedRecords, deleting: [])
+                            var resolvedCount = 0
+                            for (_, result) in resolveResults.saveResults {
+                                switch result {
+                                case .success:
+                                    resolvedCount += 1
+                                case .failure(let error):
+                                    print("⚠️ Failed to save resolved record: \(error.localizedDescription)")
+                                @unknown default:
+                                    break
+                                }
+                            }
+                            print("✅ Successfully resolved \(resolvedCount) conflict(s)")
+                        } catch {
+                            print("⚠️ Failed to upload resolved records: \(error.localizedDescription)")
                         }
                     }
                 } catch {
@@ -158,7 +223,7 @@ class CloudSyncManager: ObservableObject {
             }
             
             if conflictCount > 0 {
-                print("ℹ️ \(conflictCount) conflict(s) detected - will be resolved on next sync")
+                print("ℹ️ \(conflictCount) conflict(s) detected and resolved")
             }
             
             print("✅ Successfully uploaded \(savedCount) habits to iCloud")
@@ -199,6 +264,8 @@ class CloudSyncManager: ObservableObject {
                     return recordToHabit(record)
                 case .failure(let error):
                     print("❌ Failed to fetch record: \(error)")
+                    return nil
+                @unknown default:
                     return nil
                 }
             }
@@ -249,6 +316,8 @@ class CloudSyncManager: ObservableObject {
                             return recordToHabit(record)
                         case .failure(let error):
                             print("❌ Failed to fetch record: \(error)")
+                            return nil
+                        @unknown default:
                             return nil
                         }
                     }
@@ -305,7 +374,7 @@ class CloudSyncManager: ObservableObject {
             throw NSError(domain: "CloudSyncManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "iCloud account is not available"])
         }
         
-        guard let privateDatabase = privateDatabase else {
+        guard privateDatabase != nil else {
             print("⚠️ iCloud database is not available")
             throw NSError(domain: "CloudSyncManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "iCloud database is not available"])
         }
@@ -461,6 +530,58 @@ class CloudSyncManager: ObservableObject {
             goalDays: goalDays,
             reminderTime: reminderTime,
             isReminderEnabled: isReminderEnabled
+        )
+    }
+    
+    // MARK: - Conflict Resolution
+    
+    /// Merges local and cloud habits, preferring newer data and combining completion dates
+    private func mergeHabits(local: Habit, cloud: Habit) -> Habit {
+        // Merge completion dates - combine both, remove duplicates
+        var mergedDates = Set(local.completionDates.map { Calendar.current.startOfDay(for: $0) })
+        mergedDates.formUnion(Set(cloud.completionDates.map { Calendar.current.startOfDay(for: $0) }))
+        let sortedDates = Array(mergedDates).sorted()
+        
+        // Merge completion notes - prefer cloud if both exist
+        var mergedNotes = local.completionNotes
+        for (key, value) in cloud.completionNotes {
+            mergedNotes[key] = value
+        }
+        
+        // Use newer metadata (title, notes, etc.) - prefer cloud if it's newer
+        let useCloudMetadata = cloud.createdAt > local.createdAt || cloud.completionDates.count > local.completionDates.count
+        
+        // Calculate streak from merged dates
+        let calendar = Calendar.current
+        var streak = 0
+        var currentDate = calendar.startOfDay(for: Date())
+        
+        for date in sortedDates.reversed() {
+            if calendar.isDate(date, inSameDayAs: currentDate) || calendar.isDate(date, inSameDayAs: calendar.date(byAdding: .day, value: -1, to: currentDate)!) {
+                streak += 1
+                currentDate = calendar.date(byAdding: .day, value: -1, to: currentDate)!
+            } else {
+                break
+            }
+        }
+        
+        // Determine if completed today
+        let isCompletedToday = sortedDates.contains { calendar.isDateInToday($0) }
+        
+        return Habit(
+            id: local.id, // Keep same ID
+            title: useCloudMetadata ? cloud.title : local.title,
+            notes: useCloudMetadata ? cloud.notes : local.notes,
+            createdAt: min(local.createdAt, cloud.createdAt), // Use earliest creation date
+            streak: streak,
+            themeId: useCloudMetadata ? cloud.themeId : local.themeId,
+            isCompletedToday: isCompletedToday,
+            completionDates: sortedDates,
+            completionNotes: mergedNotes,
+            startDate: useCloudMetadata ? cloud.startDate : local.startDate,
+            goalDays: max(local.goalDays, cloud.goalDays), // Use higher goal
+            reminderTime: useCloudMetadata ? cloud.reminderTime : local.reminderTime,
+            isReminderEnabled: useCloudMetadata ? cloud.isReminderEnabled : local.isReminderEnabled
         )
     }
 }

@@ -33,7 +33,7 @@ enum AchievementCategory: String, Codable, CaseIterable {
         case .streak: return "🔥"
         case .completion: return "✅"
         case .consistency: return "📅"
-        case .variety: return "🌈"
+        case .variety: return "🎯"
         case .premium: return "👑"
         case .social: return "👥"
         }
@@ -222,7 +222,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             category: .variety,
             tier: .silver,
             targetValue: 4,
-            icon: "🌈",
+            icon: "🎯",
             isPremium: false
         ),
         Achievement(
@@ -274,5 +274,7 @@ struct UnlockedAchievement: Identifiable, Codable {
         self.isNew = isNew
     }
 }
+
+
 
 

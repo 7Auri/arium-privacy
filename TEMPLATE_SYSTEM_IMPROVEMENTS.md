@@ -320,3 +320,5 @@ static var premiumTemplates: [HabitTemplate]
 **Tarih:** 23 Kasım 2025
 
 
+
+

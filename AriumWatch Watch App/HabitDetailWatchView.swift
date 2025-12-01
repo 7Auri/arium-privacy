@@ -13,9 +13,30 @@ struct HabitDetailWatchView: View {
     @ObservedObject var viewModel: WatchHabitViewModel
     @Environment(\.dismiss) var dismiss
     
+    // Get updated habit from viewModel
+    private var currentHabit: Habit {
+        viewModel.habits.first(where: { $0.id == habit.id }) ?? habit
+    }
+    
     private var completionPercentage: Int {
-        let percentage = (Double(habit.streak) / Double(habit.goalDays)) * 100
+        let percentage = (Double(currentHabit.streak) / Double(currentHabit.goalDays)) * 100
         return min(100, max(0, Int(percentage)))
+    }
+    
+    // Last 7 days completion status
+    private var weeklyProgress: [(day: String, completed: Bool)] {
+        let calendar = Calendar.current
+        let today = Date()
+        var progress: [(day: String, completed: Bool)] = []
+        
+        for i in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
+            let dayName = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+            let isCompleted = currentHabit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+            progress.append((day: dayName, completed: isCompleted))
+        }
+        
+        return progress.reversed()
     }
     
     var body: some View {
@@ -27,7 +48,7 @@ struct HabitDetailWatchView: View {
                         .font(.system(size: 40))
                         .foregroundStyle(.orange)
                     
-                    Text("\(habit.streak)")
+                    Text("\(currentHabit.streak)")
                         .font(.system(size: 42, weight: .bold))
                     
                     Text(L10n.t("habit.streak"))
@@ -38,9 +59,9 @@ struct HabitDetailWatchView: View {
                 
                 // Category Badge
                 HStack(spacing: 4) {
-                    Image(systemName: habit.category.icon)
+                    Image(systemName: currentHabit.category.systemIcon)
                         .font(.caption2)
-                    Text(habit.category.localizedName)
+                    Text(currentHabit.category.localizedName)
                         .font(.caption2)
                 }
                 .foregroundStyle(.white)
@@ -48,48 +69,76 @@ struct HabitDetailWatchView: View {
                 .padding(.vertical, 4)
                 .background(
                     Capsule()
-                        .fill(habit.category.color)
+                        .fill(currentHabit.category.color)
                 )
                 
                 // Completion Button
                 Button(action: {
                     // Haptic feedback
-                    if habit.isCompletedToday {
+                    if currentHabit.isCompletedToday {
                         WKInterfaceDevice.current().play(.click)
                     } else {
                         WKInterfaceDevice.current().play(.success)
                     }
                     
-                    viewModel.toggleHabit(habit)
-                    dismiss()
+                    viewModel.toggleHabit(currentHabit)
+                    // Don't dismiss immediately - let user see the update
+                    Task {
+                        try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                        dismiss()
+                    }
                 }) {
                     HStack(spacing: 6) {
-                        Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                        Image(systemName: currentHabit.isCompletedToday ? "checkmark.circle.fill" : "circle")
                             .font(.headline)
                         
-                        Text(habit.isCompletedToday ? L10n.t("habit.completed") : L10n.t("habit.complete"))
+                        Text(currentHabit.isCompletedToday ? L10n.t("habit.completed") : L10n.t("habit.complete"))
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 12)
                     .background(
-                        habit.isCompletedToday 
+                        currentHabit.isCompletedToday 
                         ? Color.green 
-                        : habit.theme.accent
+                        : currentHabit.theme.accent
                     )
                     .foregroundStyle(.white)
                     .cornerRadius(12)
                 }
                 .buttonStyle(.plain)
                 
+                // Weekly Progress
+                VStack(alignment: .leading, spacing: 8) {
+                    Text(L10n.t("watch.weeklyProgress"))
+                        .font(.caption.bold())
+                        .foregroundStyle(.secondary)
+                    
+                    HStack(spacing: 4) {
+                        ForEach(weeklyProgress, id: \.day) { day in
+                            VStack(spacing: 4) {
+                                Circle()
+                                    .fill(day.completed ? Color.green : Color.gray.opacity(0.3))
+                                    .frame(width: 20, height: 20)
+                                
+                                Text(day.day)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                            }
+                        }
+                    }
+                }
+                .padding(12)
+                .background(Color.gray.opacity(0.15))
+                .cornerRadius(12)
+                
                 // Goal Progress
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("\(L10n.t("habit.goalDays")): \(habit.goalDays) \(L10n.t("habit.days"))")
+                    Text("\(L10n.t("habit.goalDays")): \(currentHabit.goalDays) \(L10n.t("habit.days"))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                     
-                    ProgressView(value: Double(habit.streak), total: Double(habit.goalDays))
-                        .tint(habit.theme.accent)
+                    ProgressView(value: Double(currentHabit.streak), total: Double(currentHabit.goalDays))
+                        .tint(currentHabit.theme.accent)
                     
                     Text("\(completionPercentage)% \(L10n.t("habit.completed"))")
                         .font(.caption2)
@@ -98,11 +147,27 @@ struct HabitDetailWatchView: View {
                 .padding(12)
                 .background(Color.gray.opacity(0.15))
                 .cornerRadius(12)
+                
+                // Notes (if available)
+                if !currentHabit.notes.isEmpty {
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L10n.t("habit.notes"))
+                            .font(.caption.bold())
+                            .foregroundStyle(.secondary)
+                        
+                        Text(currentHabit.notes)
+                            .font(.caption)
+                            .foregroundStyle(.primary)
+                            .lineLimit(3)
+                    }
+                    .padding(12)
+                    .background(Color.gray.opacity(0.15))
+                    .cornerRadius(12)
+                }
             }
             .padding()
         }
-        .navigationTitle(habit.title)
+        .navigationTitle(currentHabit.title)
         .navigationBarTitleDisplayMode(.inline)
     }
 }
-

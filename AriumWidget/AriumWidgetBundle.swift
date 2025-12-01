@@ -12,6 +12,7 @@ import SwiftUI
 struct AriumWidgetBundle: WidgetBundle {
     var body: some Widget {
         AriumWidget()
+        CategoryWidget()
         AriumWidgetControl()
         #if os(iOS)
         AriumWidgetLiveActivity()

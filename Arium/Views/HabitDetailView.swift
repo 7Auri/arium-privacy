@@ -11,6 +11,7 @@ struct HabitDetailView: View {
     @Environment(\.dismiss) var dismiss
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel: HabitDetailViewModel
+    @ObservedObject private var appThemeManager = AppThemeManager.shared
     @StateObject private var premiumManager = PremiumManager.shared
     
     @State private var showingNoteAlert = false
@@ -77,84 +78,259 @@ struct HabitDetailView: View {
         .onChange(of: habitStore.habits) { _, _ in
             handleHabitsChange()
         }
+        .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
+            // Refresh habit when app comes to foreground
+            refreshHabit()
+            viewModel.refreshCompletionForNewDay()
+        }
     }
     
     private var headerView: some View {
         VStack(spacing: 16) {
             ZStack {
+                // Progress Ring with animation
                 ProgressRing(
                     progress: viewModel.habit.isCompletedToday ? 1.0 : 0.0,
-                    lineWidth: 8,
+                    lineWidth: 10,
                     color: viewModel.habit.theme.accent
                 )
-                .frame(width: 120, height: 120)
+                .frame(width: 140, height: 140)
+                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.habit.isCompletedToday)
                 
-                VStack(spacing: 4) {
+                VStack(spacing: 6) {
                     Image(systemName: viewModel.habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 30))
-                        .foregroundColor(viewModel.habit.theme.accent)
+                        .font(.system(size: 36, weight: .semibold))
+                        .foregroundColor(viewModel.habit.isCompletedToday ? viewModel.habit.theme.accent : Color(.tertiaryLabel))
+                        .symbolEffect(.bounce, value: viewModel.habit.isCompletedToday)
                     
                     Text("\(viewModel.habit.streak)")
-                        .font(.title)
-                        .fontWeight(.bold)
+                        .font(.system(size: 32, weight: .bold, design: .rounded))
                         .foregroundStyle(.primary)
                     
                     Text(L10n.t("habit.streak"))
                         .font(.caption)
+                        .fontWeight(.medium)
                         .foregroundStyle(.secondary)
                 }
             }
             
-            // Category Badge
-            HStack(spacing: 6) {
-                Text(viewModel.habit.category.icon)
+            // Category Badge with improved styling
+            HStack(spacing: 8) {
+                Image(systemName: viewModel.habit.category.systemIcon)
                     .font(.caption)
                 Text(viewModel.habit.category.localizedName)
-                    .font(.caption)
-                    .fontWeight(.medium)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
             }
             .foregroundStyle(.white)
-            .padding(.horizontal, 12)
-            .padding(.vertical, 6)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(viewModel.habit.category.color)
+                    .fill(
+                        LinearGradient(
+                            colors: [viewModel.habit.category.color, viewModel.habit.category.color.opacity(0.8)],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
             )
             .shadow(
-                color: viewModel.habit.category.color.opacity(0.3),
-                radius: 4,
+                color: viewModel.habit.category.color.opacity(0.4),
+                radius: 8,
                 x: 0,
-                y: 2
+                y: 4
             )
         }
-        .padding(.vertical, 20)
+        .padding(.vertical, 24)
         .frame(maxWidth: .infinity)
-        .cardStyle()
+        .background(
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color(.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 24)
+                .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
+        )
     }
     
     private var notesView: some View {
         Group {
             if !viewModel.habit.notes.isEmpty {
-                VStack(alignment: .leading, spacing: 8) {
-                    Text(L10n.t("habit.notes"))
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.secondary)
+                VStack(alignment: .leading, spacing: 12) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "note.text")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(viewModel.habit.theme.accent)
+                        
+                        Text(L10n.t("habit.notes"))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                    }
                     
                     Text(viewModel.habit.notes)
                         .font(.body)
                         .foregroundStyle(.primary)
+                        .lineSpacing(4)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(16)
-                .background(Color(.secondarySystemBackground))
-                .cornerRadius(16)
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.secondarySystemBackground))
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16)
-                        .stroke(Color(.separator), lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
                 )
             }
         }
+    }
+    
+    // MARK: - Weekly Progress View
+    
+    private var weeklyProgressView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            HStack(spacing: 8) {
+                Image(systemName: "calendar")
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(viewModel.habit.theme.accent)
+                
+                Text(L10n.t("habit.weeklyProgress"))
+                    .font(.headline)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(.primary)
+            }
+            
+            // Last 7 days calendar view
+            HStack(spacing: 8) {
+                ForEach(weeklyProgressDays, id: \.date) { dayInfo in
+                    WeeklyDayView(
+                        dayInfo: dayInfo,
+                        accentColor: viewModel.habit.theme.accent
+                    )
+                }
+            }
+            
+            // Weekly stats
+            HStack(spacing: 16) {
+                HStack(spacing: 6) {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.caption)
+                        .foregroundStyle(.green)
+                    Text("\(weeklyCompletedCount)/7")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundStyle(.primary)
+                    Text(L10n.t("habit.days"))
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+                
+                Spacer()
+                
+                Text("\(Int(weeklyCompletionRate * 100))%")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(viewModel.habit.theme.accent)
+            }
+            .padding(.top, 8)
+        }
+        .padding(20)
+        .background(
+            RoundedRectangle(cornerRadius: 20)
+                .fill(Color(.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
+        )
+    }
+    
+    // Weekly progress data
+    private var weeklyProgressDays: [(date: Date, isCompleted: Bool, hasNote: Bool)] {
+        let calendar = Calendar.current
+        var days: [(date: Date, isCompleted: Bool, hasNote: Bool)] = []
+        
+        for i in 0..<7 {
+            guard let date = calendar.date(byAdding: .day, value: -i, to: Date()) else { continue }
+            let isCompleted = viewModel.habit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+            let dateKey = date.dateKey
+            let hasNote = viewModel.habit.completionNotes[dateKey] != nil && !viewModel.habit.completionNotes[dateKey]!.isEmpty
+            
+            days.append((date: date, isCompleted: isCompleted, hasNote: hasNote))
+        }
+        
+        return days.reversed() // Oldest to newest
+    }
+    
+    private var weeklyCompletedCount: Int {
+        weeklyProgressDays.filter { $0.isCompleted }.count
+    }
+    
+    private var weeklyCompletionRate: Double {
+        guard !weeklyProgressDays.isEmpty else { return 0 }
+        return Double(weeklyCompletedCount) / Double(weeklyProgressDays.count)
+    }
+    
+    // MARK: - Notes History View
+    
+    private var notesHistoryView: some View {
+        let notesWithDates = getNotesWithDates()
+        
+        return Group {
+            if !notesWithDates.isEmpty {
+                VStack(alignment: .leading, spacing: 16) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "note.text.badge.plus")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(viewModel.habit.theme.accent)
+                        
+                        Text(L10n.t("habit.notesHistory"))
+                            .font(.headline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                    }
+                    
+                    VStack(spacing: 12) {
+                        ForEach(notesWithDates.prefix(5), id: \.date) { item in
+                            NoteHistoryItem(
+                                date: item.date,
+                                note: item.note,
+                                accentColor: viewModel.habit.theme.accent
+                            )
+                        }
+                    }
+                }
+                .padding(20)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color(.secondarySystemBackground))
+                        .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 20)
+                        .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
+                )
+            }
+        }
+    }
+    
+    private func getNotesWithDates() -> [(date: Date, note: String)] {
+        let calendar = Calendar.current
+        var notesWithDates: [(date: Date, note: String)] = []
+        
+        for (dateKey, note) in viewModel.habit.completionNotes {
+            if let date = dateKey.toDate(), !note.isEmpty {
+                notesWithDates.append((date: date, note: note))
+            }
+        }
+        
+        return notesWithDates.sorted(by: { $0.date > $1.date })
     }
     
     private var statsView: some View {
@@ -548,6 +724,10 @@ struct HabitDetailView: View {
         ScrollView {
             VStack(spacing: 24) {
                 headerView
+                
+                // Weekly Progress View (New)
+                weeklyProgressView
+                
                 notesView
                 statsView
                 
@@ -562,6 +742,10 @@ struct HabitDetailView: View {
                 reminderView
                 completionButton
                 statisticsButton
+                
+                // Enhanced Notes History View
+                notesHistoryView
+                
                 historyView
                 deleteButton
                 Spacer(minLength: 40)
@@ -586,13 +770,18 @@ struct HabitDetailView: View {
                         index: index,
                         onToggle: { index in
                             var updatedHabit = viewModel.habit
-                            updatedHabit.toggleRepetition(at: index)
-                            do {
-                                try habitStore.updateHabit(updatedHabit)
-                                viewModel.habit = updatedHabit
+                            let allCompleted = updatedHabit.toggleRepetition(at: index)
+                            habitStore.updateHabit(updatedHabit)
+                            viewModel.habit = updatedHabit
+                            HapticManager.success()
+                            
+                            // If all repetitions are now completed, show note pop-up
+                            if allCompleted && premiumManager.isPremium {
+                                noteText = ""
+                                showingNoteAlert = true
+                            } else if allCompleted {
+                                // Free users: just show success feedback
                                 HapticManager.success()
-                            } catch {
-                                HapticManager.error()
                             }
                         }
                     )
@@ -687,13 +876,22 @@ struct HabitDetailView: View {
     }
     
     private func handleNoteComplete(habitId: UUID) {
-        habitStore.toggleHabitCompletion(habitId, note: noteText)
-        refreshHabit()
+        // Habit is already completed (all repetitions done)
+        // Just save the note if provided
+        if let index = habitStore.habits.firstIndex(where: { $0.id == habitId }) {
+            var updatedHabit = habitStore.habits[index]
+            if !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                updatedHabit.setNote(noteText, for: Date())
+            }
+            habitStore.updateHabit(updatedHabit)
+            refreshHabit()
+        }
         showingNoteAlert = false
     }
     
     private func handleNoteSkip(habitId: UUID) {
-        habitStore.toggleHabitCompletion(habitId)
+        // Habit is already completed (all repetitions done)
+        // No note to save, just dismiss
         refreshHabit()
         showingNoteAlert = false
     }
@@ -917,95 +1115,146 @@ struct HabitShareView: View {
     }
     
     private var contentView: some View {
-        VStack(spacing: 28) {
-            appNameView
-            habitTitleView
-            daysTrackingView
-            streakView
-            statsView
+        VStack(spacing: 0) {
+            // Top section with app name and habit title
+            VStack(spacing: 16) {
+                // App name - subtle
+                Text("Arium")
+                    .font(.system(size: 24, weight: .semibold, design: .rounded))
+                    .foregroundColor(accentColor.opacity(0.7))
+                
+                // Habit title - prominent
+                Text(habit.title)
+                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .foregroundColor(.black)
+                    .multilineTextAlignment(.center)
+                    .lineLimit(3)
+                    .minimumScaleFactor(0.7)
+                    .padding(.horizontal, 40)
+                    .padding(.top, 8)
+            }
+            .padding(.top, 80)
+            .padding(.bottom, 40)
+            
+            Spacer()
+            
+            // Center section with streak
+            VStack(spacing: 12) {
+                // Streak badge - modern card style
+                HStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.orange, Color.orange.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                            .shadow(color: Color.orange.opacity(0.3), radius: 12, x: 0, y: 6)
+                        
+                        Image(systemName: "flame.fill")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text("\(habit.streak)")
+                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .foregroundColor(.black)
+                        
+                        Text(L10n.t("habit.streak"))
+                            .font(.system(size: 18, weight: .medium, design: .rounded))
+                            .foregroundColor(.gray)
+                    }
+                }
+                .padding(.horizontal, 32)
+                .padding(.vertical, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 24)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.08), radius: 20, x: 0, y: 8)
+                )
+            }
+            .padding(.horizontal, 40)
+            
+            Spacer()
+            
+            // Bottom section with stats
+            HStack(spacing: 20) {
+                // Total completions card
+                VStack(spacing: 10) {
+                    Text("\(habit.completionDates.count)")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(accentColor)
+                    
+                    Text(L10n.t("statistics.totalCompletions"))
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+                )
+                
+                // Completion rate card
+                VStack(spacing: 10) {
+                    Text("\(completionRate)%")
+                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .foregroundColor(accentColor)
+                    
+                    Text(L10n.t("statistics.completionRate"))
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundColor(.gray)
+                        .multilineTextAlignment(.center)
+                        .lineLimit(2)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 24)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.white)
+                        .shadow(color: Color.black.opacity(0.06), radius: 12, x: 0, y: 4)
+                )
+            }
+            .padding(.horizontal, 40)
+            .padding(.bottom, 80)
         }
-        .padding(60)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
     
     private var daysTrackingView: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "calendar")
-                .font(.system(size: 20, weight: .medium))
-                .foregroundColor(accentColor)
-            
-            Text(String(format: L10n.t("share.daysTracking"), habit.goalDays))
-                .font(.system(size: 22, weight: .semibold, design: .rounded))
-                .foregroundColor(.gray)
-        }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 10)
-        .background(
-            Capsule()
-                .fill(accentColor.opacity(0.1))
-        )
+        EmptyView()
     }
     
     private var appNameView: some View {
-        Text("Arium")
-            .font(.system(size: 40, weight: .bold, design: .rounded))
-            .foregroundColor(accentColor)
+        EmptyView()
     }
     
     private var habitTitleView: some View {
-        Text(habit.title)
-            .font(.system(size: 56, weight: .bold, design: .rounded))
-            .foregroundColor(.black)
-            .multilineTextAlignment(.center)
-            .lineLimit(2)
-            .minimumScaleFactor(0.8)
-            .padding(.horizontal, 60)
+        EmptyView()
     }
     
     private var streakView: some View {
-        HStack(spacing: 20) {
-            Image(systemName: "flame.fill")
-                .font(.system(size: 50, weight: .bold))
-                .foregroundColor(.orange)
-            
-            Text("\(habit.streak)")
-                .font(.system(size: 80, weight: .bold, design: .rounded))
-                .foregroundColor(.black)
-            
-            Text(L10n.t("habit.streak"))
-                .font(.system(size: 28, weight: .semibold, design: .rounded))
-                .foregroundColor(.gray)
-        }
+        EmptyView()
     }
     
     private var statsView: some View {
-        HStack(spacing: 32) {
-            completionCountView
-            completionRateView
-        }
-        .padding(.top, 16)
+        EmptyView()
     }
     
     private var completionCountView: some View {
-        VStack(spacing: 8) {
-            Text("\(habit.completionDates.count)")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .foregroundColor(accentColor)
-            Text(L10n.t("statistics.totalCompletions"))
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundColor(.gray)
-        }
+        EmptyView()
     }
     
     private var completionRateView: some View {
-        VStack(spacing: 8) {
-            Text("\(completionRate)%")
-                .font(.system(size: 40, weight: .bold, design: .rounded))
-                .foregroundColor(accentColor)
-            Text(L10n.t("statistics.completionRate"))
-                .font(.system(size: 16, weight: .medium, design: .rounded))
-                .foregroundColor(.gray)
-        }
+        EmptyView()
     }
 }
 
@@ -1033,6 +1282,108 @@ struct MiniStatCard: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color(.separator), lineWidth: 0.5)
         )
+    }
+}
+
+// MARK: - Weekly Day View
+
+struct WeeklyDayView: View {
+    let dayInfo: (date: Date, isCompleted: Bool, hasNote: Bool)
+    let accentColor: Color
+    
+    private var dayName: String {
+        let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: L10n.currentLanguage == "tr" ? "tr_TR" : "en_US")
+        formatter.dateFormat = "EEE"
+        return formatter.string(from: dayInfo.date).prefix(1).uppercased()
+    }
+    
+    private var dayNumber: String {
+        let calendar = Calendar.current
+        return "\(calendar.component(.day, from: dayInfo.date))"
+    }
+    
+    private var isToday: Bool {
+        Calendar.current.isDateInToday(dayInfo.date)
+    }
+    
+    var body: some View {
+        VStack(spacing: 6) {
+            Text(dayName)
+                .font(.caption2)
+                .fontWeight(.semibold)
+                .foregroundStyle(isToday ? accentColor : .secondary)
+            
+            ZStack {
+                Circle()
+                    .fill(
+                        dayInfo.isCompleted
+                        ? accentColor
+                        : Color(.tertiarySystemBackground)
+                    )
+                    .frame(width: 36, height: 36)
+                
+                if dayInfo.isCompleted {
+                    Image(systemName: "checkmark")
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                } else {
+                    Text(dayNumber)
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                
+                // Note indicator
+                if dayInfo.hasNote {
+                    Circle()
+                        .fill(accentColor)
+                        .frame(width: 8, height: 8)
+                        .offset(x: 14, y: -14)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Note History Item
+
+struct NoteHistoryItem: View {
+    let date: Date
+    let note: String
+    let accentColor: Color
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            // Date indicator
+            VStack(spacing: 4) {
+                Text(date.localizedDateString(format: "MMM"))
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .foregroundStyle(accentColor)
+                
+                Text("\(Calendar.current.component(.day, from: date))")
+                    .font(.subheadline)
+                    .fontWeight(.bold)
+                    .foregroundStyle(.primary)
+            }
+            .frame(width: 50)
+            .padding(.vertical, 8)
+            .background(accentColor.opacity(0.1))
+            .cornerRadius(8)
+            
+            // Note content
+            VStack(alignment: .leading, spacing: 4) {
+                Text(note)
+                    .font(.body)
+                    .foregroundStyle(.primary)
+                    .lineSpacing(4)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(12)
+            .background(Color(.tertiarySystemBackground))
+            .cornerRadius(12)
+        }
     }
 }
 

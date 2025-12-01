@@ -12,11 +12,20 @@ import Foundation
 struct ToggleHabitIntent: AppIntent {
     static var title: LocalizedStringResource = "Toggle Habit"
     static var description = IntentDescription("Complete or uncomplete a habit")
+    static var openAppWhenRun: Bool = false  // Don't open app for interactive widgets
     
     @Parameter(title: "Habit ID")
     var habitId: String
     
-    func perform() async throws -> some IntentResult {
+    init(habitId: String) {
+        self.habitId = habitId
+    }
+    
+    init() {
+        self.habitId = ""
+    }
+    
+    func perform() async throws -> some IntentResult & ProvidesDialog {
         // Load habits from App Groups
         guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
@@ -25,8 +34,12 @@ struct ToggleHabitIntent: AppIntent {
             throw IntentError.habitNotFound
         }
         
+        let habit = habits[index]
+        let wasCompleted = habit.isCompletedToday
+        
         // Toggle completion
         habits[index].toggleCompletion()
+        habits[index].calculateStreak()
         
         // Save back to App Groups
         if let encoded = try? CodingCache.compactEncoder.encode(habits) {
@@ -36,7 +49,12 @@ struct ToggleHabitIntent: AppIntent {
         // Reload widget timeline
         WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
         
-        return .result()
+        // Return dialog
+        if wasCompleted {
+            return .result(dialog: "\(habit.title) marked as incomplete")
+        } else {
+            return .result(dialog: "\(habit.title) completed! 🔥")
+        }
     }
 }
 

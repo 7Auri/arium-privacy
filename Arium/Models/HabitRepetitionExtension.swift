@@ -49,27 +49,49 @@ extension Habit {
     }
     
     /// Toggle a specific repetition
-    mutating func toggleRepetition(at index: Int) {
-        guard index >= 0 && index < dailyRepetitions else { return }
+    /// Returns true if all repetitions are now completed (and weren't before)
+    mutating func toggleRepetition(at index: Int) -> Bool {
+        guard index >= 0 && index < dailyRepetitions else { return false }
+        
+        let wasFullyCompleted = isFullyCompletedToday
+        let calendar = Calendar.current
         
         if todayCompletions.contains(index) {
             // Remove completion
             todayCompletions.removeAll { $0 == index }
+            
+            // If was fully completed, remove today's date from completionDates
+            if wasFullyCompleted {
+                completionDates.removeAll { date in
+                    calendar.isDateInToday(date)
+                }
+            }
         } else {
             // Add completion
             todayCompletions.append(index)
             todayCompletions.sort()
+            
+            // If all repetitions are now completed and weren't before, add today's date
+            if isFullyCompletedToday && !wasFullyCompleted {
+                // Check if today's date is already in completionDates
+                if !completionDates.contains(where: { calendar.isDateInToday($0) }) {
+                    completionDates.append(Date())
+                }
+            }
         }
         
         // Update daily completion count
-        let today = Date().toDateString()
-        dailyCompletionCounts[today] = todayCompletions.count
+        let todayString = Date().toDateString()
+        dailyCompletionCounts[todayString] = todayCompletions.count
         
         // Update old isCompletedToday for backward compatibility
         isCompletedToday = isFullyCompletedToday
         
         // Update streak
         calculateStreak()
+        
+        // Return true if all repetitions are now completed (and weren't before)
+        return isFullyCompletedToday && !wasFullyCompleted
     }
     
     /// Check if specific repetition is completed
@@ -86,5 +108,7 @@ extension Date {
         return formatter.string(from: self)
     }
 }
+
+
 
 

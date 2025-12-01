@@ -169,3 +169,5 @@ AlternateIconManager.shared.disableAutoDarkMode()
 **Tarih:** 23 Kasım 2025
 
 
+
+

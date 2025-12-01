@@ -18,20 +18,39 @@ class CalendarIntegrationManager: ObservableObject {
     private init() {}
     
     func requestAuthorization() async -> Bool {
-        do {
-            let granted = try await eventStore.requestAccess(to: .event)
-            isAuthorized = granted
-            
-            if granted {
-                print("✅ Calendar access granted")
-            } else {
-                print("❌ Calendar access denied")
+        if #available(iOS 17.0, *) {
+            do {
+                let granted = try await eventStore.requestFullAccessToEvents()
+                isAuthorized = granted
+                
+                if granted {
+                    print("✅ Calendar access granted")
+                } else {
+                    print("❌ Calendar access denied")
+                }
+                
+                return granted
+            } catch {
+                print("❌ Calendar authorization error: \(error)")
+                return false
             }
-            
-            return granted
-        } catch {
-            print("❌ Calendar authorization error: \(error)")
-            return false
+        } else {
+            // Fallback for iOS < 17.0
+            do {
+                let granted = try await eventStore.requestAccess(to: .event)
+                isAuthorized = granted
+                
+                if granted {
+                    print("✅ Calendar access granted")
+                } else {
+                    print("❌ Calendar access denied")
+                }
+                
+                return granted
+            } catch {
+                print("❌ Calendar authorization error: \(error)")
+                return false
+            }
         }
     }
     

@@ -80,7 +80,701 @@ struct SettingsView: View {
         }
     }
     
-    // MARK: - Section Views
+    // MARK: - Modern UI Components
+    
+    private var headerCard: some View {
+        VStack(spacing: 18) {
+            // App Icon - Centered and Larger
+            ZStack {
+                // Subtle background gradient with glow
+                RoundedRectangle(cornerRadius: 30)
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                appThemeManager.accentColor.color.opacity(0.2),
+                                appThemeManager.accentColor.color.opacity(0.1),
+                                appThemeManager.accentColor.color.opacity(0.05)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 130, height: 130)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 30)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [
+                                        appThemeManager.accentColor.color.opacity(0.3),
+                                        appThemeManager.accentColor.color.opacity(0.15)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                lineWidth: 1.5
+                            )
+                    )
+                
+                // App Icon
+                Image("AppIconMain")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 116, height: 116)
+                    .cornerRadius(26)
+            }
+            
+            // App Name - Calligraphy/Handwritten Style (Dancing Script)
+            Text("Arium")
+                .font(.dancingScript(size: 48))
+                .tracking(3)
+                .foregroundStyle(
+                    LinearGradient(
+                        colors: [
+                            appThemeManager.accentColor.color,
+                            appThemeManager.accentColor.color.opacity(0.85),
+                            appThemeManager.accentColor.color.opacity(0.7)
+                        ],
+                        startPoint: .topLeading,
+                        endPoint: .bottomTrailing
+                    )
+                )
+                .shadow(color: appThemeManager.accentColor.color.opacity(0.2), radius: 2, x: 0, y: 1)
+            
+            // Version Badge and Stats - Better Layout
+            VStack(spacing: 12) {
+                // Version Badge
+                Text(Bundle.main.displayVersion)
+                    .font(.system(size: 12, weight: .bold, design: .rounded))
+                    .foregroundStyle(appThemeManager.accentColor.color)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 6)
+                    .background(
+                        Capsule()
+                            .fill(appThemeManager.accentColor.color.opacity(0.18))
+                            .overlay(
+                                Capsule()
+                                    .stroke(appThemeManager.accentColor.color.opacity(0.3), lineWidth: 1)
+                            )
+                    )
+                
+                // Quick Stats - Centered
+                HStack(spacing: 10) {
+                    StatBadge(
+                        icon: "list.bullet",
+                        value: "\(habitStore.habits.count)",
+                        color: appThemeManager.accentColor.color
+                    )
+                    
+                    StatBadge(
+                        icon: "checkmark.circle.fill",
+                        value: "\(habitStore.getTotalCompletions())",
+                        color: .green
+                    )
+                    
+                    StatBadge(
+                        icon: "flame.fill",
+                        value: "\(habitStore.habits.map { $0.streak }.max() ?? 0)",
+                        color: .orange
+                    )
+                }
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 28)
+        .padding(.horizontal, 24)
+        .background(
+            RoundedRectangle(cornerRadius: 26)
+                .fill(AriumTheme.cardBackground)
+                .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+        )
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .padding(.bottom, 16)
+    }
+    
+    private struct StatBadge: View {
+        let icon: String
+        let value: String
+        let color: Color
+        
+        var body: some View {
+            HStack(spacing: 5) {
+                Image(systemName: icon)
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundStyle(color)
+                Text(value)
+                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .foregroundStyle(AriumTheme.textPrimary)
+            }
+            .padding(.horizontal, 8)
+            .padding(.vertical, 5)
+            .background(
+                Capsule()
+                    .fill(color.opacity(0.12))
+            )
+        }
+    }
+    
+    private var quickStatsCards: some View {
+        HStack(alignment: .top, spacing: 12) {
+            QuickStatCard(
+                icon: "list.bullet",
+                iconColor: AriumTheme.accent,
+                value: "\(habitStore.habits.count)",
+                label: L10n.t("home.stats.total")
+            )
+            
+            QuickStatCard(
+                icon: "checkmark.circle.fill",
+                iconColor: .green,
+                value: "\(habitStore.getTotalCompletions())",
+                label: L10n.t("statistics.totalCompletions")
+            )
+            
+            QuickStatCard(
+                icon: "flame.fill",
+                iconColor: .orange,
+                value: "\(habitStore.habits.map { $0.streak }.max() ?? 0)",
+                label: L10n.t("home.stats.streak")
+            )
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private func modernSection<Content: View>(
+        title: String,
+        icon: String,
+        iconColor: Color,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: icon)
+                    .font(.system(size: 16, weight: .semibold))
+                    .foregroundStyle(iconColor)
+                
+                Text(title)
+                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+            .padding(.horizontal, 4)
+            
+            content()
+        }
+    }
+    
+    // MARK: - Card Views
+    
+    private var languageCard: some View {
+        ModernSettingsCard(
+            iconName: "globe",
+            iconColor: AriumTheme.accent,
+            title: L10n.t("settings.language"),
+            description: languageDescription,
+            action: {
+                showingLanguagePicker = true
+            }
+        )
+    }
+    
+    private var appThemeCard: some View {
+        ModernSettingsCard(
+            iconName: "paintpalette.fill",
+            iconColor: appThemeManager.accentColor.color,
+            title: L10n.t("settings.appTheme"),
+            description: appThemeManager.accentColor.name,
+            rightIndicator: AnyView(
+                Circle()
+                    .fill(appThemeManager.accentColor.color)
+                    .frame(width: 28, height: 28)
+                    .overlay(
+                        Circle()
+                            .stroke(Color.white, lineWidth: 2)
+                    )
+                    .shadow(color: appThemeManager.accentColor.color.opacity(0.3), radius: 4, x: 0, y: 2)
+            ),
+            action: {
+                showingThemePicker = true
+            }
+        )
+    }
+    
+    @State private var showingCustomization = false
+    @State private var showingAchievements = false
+    
+    private var customizationCard: some View {
+        ModernSettingsCard(
+            iconName: "paintbrush.fill",
+            iconColor: .pink,
+            title: L10n.t("settings.customization"),
+            description: L10n.t("settings.customization.subtitle"),
+            action: {
+                showingCustomization = true
+            }
+        )
+        .sheet(isPresented: $showingCustomization) {
+            CustomizationView()
+        }
+    }
+    
+    private var achievementsCard: some View {
+        ModernSettingsCard(
+            iconName: "trophy.fill",
+            iconColor: .orange,
+            title: L10n.t("achievements.title"),
+            description: AchievementManager.shared.newAchievementsCount > 0
+                ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
+                : L10n.t("achievements.viewAll"),
+            badge: AchievementManager.shared.newAchievementsCount > 0 ? AchievementManager.shared.newAchievementsCount : nil,
+            action: {
+                showingAchievements = true
+            }
+        )
+        .sheet(isPresented: $showingAchievements) {
+            NavigationStack {
+                AchievementsView()
+                    .environmentObject(habitStore)
+                    .environmentObject(premiumManager)
+                    .environmentObject(AchievementManager.shared)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(L10n.t("button.done")) {
+                                showingAchievements = false
+                            }
+                        }
+                    }
+            }
+        }
+    }
+    
+    private var premiumCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: "crown.fill",
+                iconColor: .orange,
+                title: L10n.t("settings.premium"),
+                description: premiumManager.isPremium 
+                    ? L10n.t("settings.active")
+                    : (premiumManager.product?.displayPrice ?? L10n.t("settings.freePlan")),
+                rightIndicator: AnyView(
+                    Group {
+                        if premiumManager.isPremium {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(AriumTheme.success)
+                        } else {
+                            Text(L10n.t("premium.button"))
+                                .font(.caption)
+                                .fontWeight(.semibold)
+                                .foregroundStyle(.white)
+                                .padding(.horizontal, 12)
+                                .padding(.vertical, 6)
+                                .background(
+                                    LinearGradient(
+                                        colors: [.orange, .orange.opacity(0.8)],
+                                        startPoint: .leading,
+                                        endPoint: .trailing
+                                    )
+                                )
+                                .clipShape(Capsule())
+                                .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
+                        }
+                    }
+                ),
+                action: {
+                    if !premiumManager.isPremium {
+                        Task {
+                            do {
+                                try await premiumManager.purchasePremium()
+                            } catch {
+                                showingPremiumError = true
+                                premiumError = error as? AppError ?? PremiumError.unknown
+                            }
+                        }
+                    }
+                }
+            )
+            
+            // TestFlight Premium Test Button
+            #if DEBUG
+            ModernSettingsCard(
+                iconName: "checkmark.seal.fill",
+                iconColor: .green,
+                title: "Test Premium Aktif Et",
+                description: "TestFlight için geçici test butonu",
+                rightIndicator: AnyView(
+                    Group {
+                        if premiumManager.isPremium {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.title3)
+                                .foregroundStyle(.green)
+                        }
+                    }
+                ),
+                action: {
+                    premiumManager.setPremiumStatus(true)
+                }
+            )
+            #endif
+        }
+    }
+    
+    private var notificationsCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: "bell.fill",
+                iconColor: .orange,
+                title: L10n.t("settings.notifications.enable"),
+                description: L10n.t("settings.notifications"),
+                toggleBinding: $notificationManager.isAuthorized,
+                toggleTint: .orange,
+                action: {}
+            )
+            .onChange(of: notificationManager.isAuthorized) { _, newValue in
+                if newValue {
+                    Task { _ = await notificationManager.requestAuthorization() }
+                }
+            }
+            
+            if notificationManager.isAuthorized {
+                ModernSettingsCard(
+                    iconName: "sparkles",
+                    iconColor: .yellow,
+                    title: L10n.t("settings.notifications.daily"),
+                    description: L10n.t("settings.notifications.daily"),
+                    toggleBinding: $isDailyMotivationEnabled,
+                    toggleTint: .yellow,
+                    action: {}
+                )
+                .onChange(of: isDailyMotivationEnabled) { _, newValue in
+                    Task {
+                        if newValue {
+                            await notificationManager.scheduleDailyMotivation()
+                        } else {
+                            notificationManager.cancelDailyMotivation()
+                        }
+                    }
+                }
+                
+                ModernSettingsCard(
+                    iconName: "flame.fill",
+                    iconColor: .red,
+                    title: L10n.t("settings.notifications.streaks"),
+                    description: L10n.t("settings.notifications.streaks"),
+                    toggleBinding: $isStreakWarningEnabled,
+                    toggleTint: .red,
+                    action: {}
+                )
+            }
+        }
+    }
+    
+    private var iCloudCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: "icloud.fill",
+                iconColor: .blue,
+                title: L10n.t("settings.icloud.sync"),
+                description: L10n.t("settings.icloud.sync.description"),
+                toggleBinding: $habitStore.iCloudSyncEnabled,
+                toggleTint: .blue,
+                action: {}
+            )
+            
+            if habitStore.iCloudSyncEnabled {
+                Button {
+                    Task {
+                        do {
+                            try await habitStore.syncWithiCloud()
+                            showingiCloudSyncSuccess = true
+                        } catch {
+                            print("❌ iCloud sync error: \(error)")
+                            showingiCloudSyncError = true
+                            
+                            if let ckError = error as? CKError {
+                                switch ckError.code {
+                                case .notAuthenticated:
+                                    iCloudSyncError = NetworkError.noConnection
+                                case .networkUnavailable, .networkFailure:
+                                    iCloudSyncError = NetworkError.noConnection
+                                case .quotaExceeded:
+                                    iCloudSyncError = NetworkError.serverError
+                                default:
+                                    iCloudSyncError = NetworkError.unknown
+                                }
+                            } else {
+                                iCloudSyncError = NetworkError.unknown
+                            }
+                        }
+                    }
+                } label: {
+                    ModernSettingsCard(
+                        iconName: cloudSyncManager.isSyncing ? "arrow.clockwise" : "arrow.clockwise.circle.fill",
+                        iconColor: .blue,
+                        title: L10n.t("settings.icloud.syncNow"),
+                        description: cloudSyncManager.isSyncing ? L10n.t("settings.icloud.syncNow") : L10n.t("settings.icloud.syncNow"),
+                        rightIndicator: cloudSyncManager.isSyncing ? AnyView(
+                            ProgressView()
+                                .tint(.blue)
+                        ) : nil,
+                        action: {}
+                    )
+                }
+                .buttonStyle(PlainButtonStyle())
+                .disabled(cloudSyncManager.isSyncing)
+                
+                ModernSettingsCard(
+                    iconName: "arrow.down.circle.fill",
+                    iconColor: .blue,
+                    title: L10n.t("settings.icloud.loadFromCloud"),
+                    description: L10n.t("settings.icloud.loadFromCloud.description"),
+                    showChevron: false,
+                    action: {
+                        Task {
+                            do {
+                                let beforeCount = habitStore.habits.count
+                                try await habitStore.loadFromiCloud()
+                                let afterCount = habitStore.habits.count
+                                let addedCount = afterCount - beforeCount
+                                
+                                if addedCount > 0 {
+                                    iCloudLoadMessage = "\(addedCount) alışkanlık iCloud'dan yüklendi"
+                                } else if afterCount > 0 {
+                                    iCloudLoadMessage = "Tüm alışkanlıklar zaten mevcut"
+                                } else {
+                                    iCloudLoadMessage = "iCloud'da alışkanlık bulunamadı"
+                                }
+                                showingiCloudSyncSuccess = true
+                            } catch {
+                                print("❌ iCloud load error: \(error)")
+                                showingiCloudSyncError = true
+                                
+                                if let ckError = error as? CKError {
+                                    switch ckError.code {
+                                    case .notAuthenticated:
+                                        iCloudSyncError = NetworkError.noConnection
+                                    case .networkUnavailable, .networkFailure:
+                                        iCloudSyncError = NetworkError.noConnection
+                                    case .quotaExceeded:
+                                        iCloudSyncError = NetworkError.serverError
+                                    default:
+                                        iCloudSyncError = NetworkError.unknown
+                                    }
+                                } else {
+                                    iCloudSyncError = NetworkError.unknown
+                                }
+                            }
+                        }
+                    }
+                )
+                .disabled(cloudSyncManager.isSyncing)
+                
+                if let lastSync = cloudSyncManager.lastSyncDate {
+                    ModernSettingsCard(
+                        iconName: "checkmark.circle.fill",
+                        iconColor: .green,
+                        title: L10n.t("settings.icloud.lastSync"),
+                        description: lastSync.localizedRelativeTimeString(),
+                        showChevron: false,
+                        action: {}
+                    )
+                }
+            }
+        }
+    }
+    
+    private var dataManagementCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: "square.and.arrow.up",
+                iconColor: .blue,
+                title: L10n.t("settings.export.habits"),
+                description: L10n.t("settings.export.description"),
+                action: {
+                    guard !habitStore.habits.isEmpty else {
+                        exportError = ExportError.exportFailed
+                        return
+                    }
+                    selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
+                    showingExportHabitPicker = true
+                }
+            )
+            
+            ModernSettingsCard(
+                iconName: "square.and.arrow.down",
+                iconColor: .green,
+                title: L10n.t("settings.import"),
+                description: L10n.t("import.subtitle"),
+                action: {
+                    showingImportPicker = true
+                }
+            )
+        }
+    }
+    
+    private var statisticsCard: some View {
+        ModernSettingsCard(
+            iconName: "chart.bar.fill",
+            iconColor: AriumTheme.accent,
+            title: L10n.t("statistics.viewStats"),
+            description: L10n.t("statistics.title"),
+            action: {
+                showingStatistics = true
+            }
+        )
+    }
+    
+    #if DEBUG
+    private var debugCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: premiumManager.isPremium ? "crown.fill" : "crown",
+                iconColor: .orange,
+                title: L10n.t("settings.debug.togglePremium"),
+                description: premiumManager.isPremium ? L10n.t("settings.active") : L10n.t("settings.freePlan"),
+                toggleBinding: Binding(
+                    get: { premiumManager.isPremium },
+                    set: { newValue in
+                        premiumManager.setPremiumStatus(newValue)
+                    }
+                ),
+                toggleTint: .orange,
+                action: {}
+            )
+            
+            ModernSettingsCard(
+                iconName: "arrow.clockwise",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("settings.resetOnboarding"),
+                description: L10n.t("settings.resetOnboarding"),
+                action: {
+                    hasSeenOnboarding = false
+                }
+            )
+            
+            ModernSettingsCard(
+                iconName: "trash",
+                iconColor: .red,
+                title: L10n.t("settings.clearAllHabits"),
+                description: L10n.t("settings.clearAllHabits"),
+                action: {
+                    habitStore.habits.removeAll()
+                }
+            )
+            
+            ModernSettingsCard(
+                iconName: "trash.slash",
+                iconColor: AriumTheme.accent,
+                title: L10n.t("settings.clearCache"),
+                description: L10n.t("settings.clearCache"),
+                action: {
+                    CodingCache.clearCaches()
+                    HapticManager.success()
+                }
+            )
+        }
+    }
+    #endif
+    
+    private var aboutCard: some View {
+        VStack(spacing: 16) {
+            HStack {
+                Text(L10n.t("settings.version"))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text(Bundle.main.displayVersion)
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(AriumTheme.accent)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            
+            HStack {
+                Text(L10n.t("settings.totalHabits"))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text("\(habitStore.habits.count)")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(AriumTheme.accent)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            
+            HStack {
+                Text(L10n.t("settings.totalCompletions"))
+                    .font(.system(size: 15, weight: .medium))
+                    .foregroundStyle(.primary)
+                
+                Spacer()
+                
+                Text("\(habitStore.getTotalCompletions())")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundStyle(AriumTheme.accent)
+            }
+            .padding(.horizontal, 20)
+            .padding(.vertical, 14)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(.secondarySystemBackground))
+            )
+            
+            Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
+                HStack {
+                    Text(L10n.t("settings.privacyPolicy"))
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.secondarySystemBackground))
+                )
+            }
+            
+            Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
+                HStack {
+                    Text(L10n.t("settings.termsOfService"))
+                        .font(.system(size: 15, weight: .medium))
+                        .foregroundStyle(.primary)
+                    
+                    Spacer()
+                    
+                    Image(systemName: "arrow.up.right.square")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundStyle(.secondary)
+                }
+                .padding(.horizontal, 20)
+                .padding(.vertical, 14)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.secondarySystemBackground))
+                )
+            }
+        }
+    }
+    
+    // MARK: - Legacy Section Views (kept for compatibility)
     
     private var languageSection: some View {
         Section {
@@ -203,10 +897,6 @@ struct SettingsView: View {
                     }
                     
                     Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.tertiary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, minHeight: 72)
@@ -260,10 +950,6 @@ struct SettingsView: View {
                     }
                     
                     Spacer()
-                    
-                    Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.tertiary)
                 }
                 .padding(16)
                 .frame(maxWidth: .infinity, minHeight: 72)
@@ -639,59 +1325,6 @@ struct SettingsView: View {
         }
     }
     
-    private var dataManagementSection: some View {
-        Section {
-            SettingsRow(
-                iconName: "square.and.arrow.up",
-                iconColor: .blue,
-                title: L10n.t("settings.export.habits"),
-                description: L10n.t("export.subtitle"),
-                action: {
-                    guard !habitStore.habits.isEmpty else {
-                        exportError = ExportError.exportFailed
-                        return
-                    }
-                    selectedHabitsForExport = Set(habitStore.habits.map { $0.id })
-                    showingExportHabitPicker = true
-                }
-            )
-            .listRowBackground(Color(.secondarySystemGroupedBackground))
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-            
-            SettingsRow(
-                iconName: "square.and.arrow.down",
-                iconColor: .green,
-                title: L10n.t("settings.import"),
-                description: L10n.t("import.subtitle"),
-                action: {
-                    showingImportPicker = true
-                }
-            )
-            .listRowBackground(Color(.secondarySystemGroupedBackground))
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-            
-            NavigationLink(destination: DataExportView()) {
-                SettingsRow(
-                    iconName: "externaldrive.badge.icloud",
-                    iconColor: .purple,
-                    title: L10n.t("settings.backup"),
-                    description: L10n.t("settings.backup.subtitle"),
-                    showChevron: false,
-                    action: {}
-                )
-            }
-            .buttonStyle(PlainButtonStyle())
-            .listRowBackground(Color(.secondarySystemGroupedBackground))
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-        } header: {
-            Text(L10n.t("settings.data"))
-                .font(.footnote)
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
-        }
-        .listSectionSeparator(.hidden)
-        .listSectionSpacing(0)
-    }
     
     private var statisticsSection: some View {
         Section {
@@ -867,47 +1500,132 @@ struct SettingsView: View {
         }
     }
     
-    var body: some View {
-        NavigationStack {
-            List {
-                // Language Section
-                languageSection
-                
-                // App Theme Section
-                appThemeSection
-                
-                // Achievements Section
-                achievementsSection
-                
-                
-                // Premium Section
-                premiumSection
-                
-                // Notifications Section
-                notificationsSection
-                
-                // iCloud Sync Section
-                iCloudSyncSection
-                
-                // Export/Import/Backup Section
-                dataManagementSection
-                
-                // Statistics Section
-                statisticsSection
-                
-                // Debug Section
-                #if DEBUG
-                debugSection
-                #endif
-                
-                // About Section
-                aboutSection
+    private var mainContent: some View {
+        VStack(spacing: 20) {
+            // Header Card (now includes inline stats)
+            headerCard
+            
+            // Main Sections
+            sectionsContent
+        }
+        .padding(.top, 4)
+        .padding(.bottom, 8)
+        .frame(maxWidth: .infinity)
+    }
+    
+    private var sectionsContent: some View {
+        VStack(spacing: 20) {
+            // Language & Appearance
+            modernSection(
+                title: L10n.t("settings.appearance"),
+                icon: "paintpalette.fill",
+                iconColor: appThemeManager.accentColor.color
+            ) {
+                languageCard
+                appThemeCard
+                customizationCard
             }
-            .scrollContentBackground(.automatic)
-            .background(Color(.systemGroupedBackground))
+            
+            // Achievements
+            modernSection(
+                title: L10n.t("achievements.title"),
+                icon: "trophy.fill",
+                iconColor: .orange
+            ) {
+                achievementsCard
+            }
+            
+            // Premium
+            modernSection(
+                title: L10n.t("settings.premium"),
+                icon: "crown.fill",
+                iconColor: .orange
+            ) {
+                premiumCard
+            }
+            
+            // Notifications
+            modernSection(
+                title: L10n.t("settings.notifications"),
+                icon: "bell.fill",
+                iconColor: .orange
+            ) {
+                notificationsCard
+            }
+            
+            // iCloud Sync
+            modernSection(
+                title: L10n.t("settings.icloud.title"),
+                icon: "icloud.fill",
+                iconColor: .blue
+            ) {
+                iCloudCard
+            }
+            
+            // Data Management
+            modernSection(
+                title: L10n.t("settings.data"),
+                icon: "externaldrive.fill",
+                iconColor: .purple
+            ) {
+                dataManagementCard
+            }
+            
+            // Statistics
+            modernSection(
+                title: L10n.t("statistics.title"),
+                icon: "chart.bar.fill",
+                iconColor: AriumTheme.accent
+            ) {
+                statisticsCard
+            }
+            
+            // Debug Section
+            #if DEBUG
+            modernSection(
+                title: L10n.t("settings.debug"),
+                icon: "wrench.and.screwdriver.fill",
+                iconColor: .gray
+            ) {
+                debugCard
+            }
+            #endif
+            
+            // About
+            aboutCard
+        }
+        .padding(.horizontal, 20)
+    }
+    
+    private var scrollContent: some View {
+        VStack(spacing: 0) {
+            mainContent
+            Spacer(minLength: 20)
+        }
+    }
+    
+    private var navigationContent: some View {
+        ScrollView(.vertical) {
+            scrollContent
+        }
+        .background(backgroundGradient)
+    }
+    
+    private var backgroundGradient: some View {
+        LinearGradient(
+            colors: [
+                Color(.systemGroupedBackground),
+                Color(.systemGroupedBackground).opacity(0.95)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+    }
+    
+    private var navigationModifiers: some View {
+        navigationContent
             .navigationTitle(L10n.t("settings.title"))
             .navigationBarTitleDisplayMode(.inline)
-            .contentMargins(.top, 8, for: .scrollContent)
             .toolbarBackground(.visible, for: .navigationBar)
             .toolbarBackground(Color(.systemGroupedBackground), for: .navigationBar)
             .toolbar {
@@ -918,6 +1636,59 @@ struct SettingsView: View {
                     .foregroundStyle(AriumTheme.accent)
                     .fontWeight(.semibold)
                 }
+            }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            navigationModifiers
+            .sheet(isPresented: $showingLanguagePicker) {
+                LanguagePickerSheet(
+                    currentLanguage: Binding(
+                        get: { isSystemLanguage && hasSystemLanguage ? "system" : appLanguage },
+                        set: { newValue in
+                            if newValue == "system" && hasSystemLanguage {
+                                isSystemLanguage = true
+                                if let systemLang = systemLang {
+                                    L10n.setLanguage(systemLang)
+                                }
+                            } else {
+                                isSystemLanguage = false
+                                appLanguage = newValue
+                                L10n.setLanguage(newValue)
+                            }
+                            showingLanguagePicker = false
+                        }
+                    ),
+                    hasSystemLanguage: hasSystemLanguage
+                )
+            }
+            .onAppear {
+                // İlk açılışta sistem dilini kontrol et
+                if UserDefaults.standard.string(forKey: "appLanguage") == nil {
+                    if hasSystemLanguage {
+                        isSystemLanguage = true
+                        if let systemLang = systemLang {
+                            L10n.setLanguage(systemLang)
+                        }
+                    } else {
+                        // Sistem dili desteklenmiyorsa varsayılan olarak İngilizce
+                        L10n.setLanguage("en")
+                    }
+                } else {
+                    // Mevcut dil sistem diliyle eşleşiyor mu kontrol et
+                    if hasSystemLanguage {
+                        let currentLang = L10nManager.shared.currentLanguage
+                        isSystemLanguage = (currentLang == systemLang)
+                    } else {
+                        isSystemLanguage = false
+                    }
+                }
+            }
+            .sheet(isPresented: $showingThemePicker) {
+                AppThemePickerSheet(
+                    selectedColor: $appThemeManager.accentColor
+                )
             }
             .sheet(isPresented: $showingStatistics) {
                 StatisticsView(habits: habitStore.habits, isPremium: premiumManager.isPremium)
@@ -961,13 +1732,26 @@ struct SettingsView: View {
                 ExportHabitPickerSheet(
                     habits: habitStore.habits,
                     selectedHabits: $selectedHabitsForExport
-                ) { selectedHabits in
+                ) { selectedHabits, format in
                     do {
                         guard !selectedHabits.isEmpty else {
                             exportError = ExportError.exportFailed
                             return
                         }
-                        let url = try exportImport.exportToFile(selectedHabits)
+                        
+                        let url: URL
+                        switch format {
+                        case .json:
+                            // JSON format for backup/restore
+                            url = try exportImport.exportToFile(selectedHabits)
+                        case .csv:
+                            // CSV format for analysis
+                            url = try DataExportManager.shared.exportToCSV(habits: selectedHabits)
+                        case .pdf:
+                            // PDF format for reports
+                            url = try DataExportManager.shared.exportToPDF(habits: selectedHabits)
+                        }
+                        
                         exportedHabitCount = selectedHabits.count
                         exportURL = url
                         showingExportSheet = true
@@ -1026,7 +1810,7 @@ struct SettingsView: View {
             }
             .fileImporter(
                 isPresented: $showingImportPicker,
-                allowedContentTypes: [.json],
+                allowedContentTypes: [.json, .commaSeparatedText],
                 allowsMultipleSelection: false
             ) { result in
                 switch result {
@@ -1049,17 +1833,28 @@ struct SettingsView: View {
                         let data = try Data(contentsOf: url)
                         print("✅ File read successfully, size: \(data.count) bytes")
                         
-                        // Validate JSON
-                        guard let jsonString = String(data: data, encoding: .utf8) else {
-                            print("❌ Failed to convert data to string")
-                            exportError = ExportError.invalidFormat
-                            return
-                        }
-                        print("✅ JSON string length: \(jsonString.count) characters")
+                        // Determine file type by extension
+                        let fileExtension = url.pathExtension.lowercased()
+                        let importedHabits: [Habit]
                         
-                        // Import habits
-                        let importedHabits = try exportImport.importHabits(from: data)
-                        print("✅ Successfully imported \(importedHabits.count) habits")
+                        if fileExtension == "csv" {
+                            // Import from CSV
+                            print("📄 Detected CSV file, importing...")
+                            importedHabits = try DataExportManager.shared.importFromCSV(data: data)
+                            print("✅ Successfully imported \(importedHabits.count) habits from CSV")
+                        } else {
+                            // Import from JSON (default)
+                            print("📄 Detected JSON file, importing...")
+                            guard let jsonString = String(data: data, encoding: .utf8) else {
+                                print("❌ Failed to convert data to string")
+                                exportError = ExportError.invalidFormat
+                                return
+                            }
+                            print("✅ JSON string length: \(jsonString.count) characters")
+                            
+                            importedHabits = try exportImport.importHabits(from: data)
+                            print("✅ Successfully imported \(importedHabits.count) habits from JSON")
+                        }
                         
                         // Prepare import items for selection
                         let items = exportImport.prepareImportItems(
@@ -1075,6 +1870,9 @@ struct SettingsView: View {
                         print("❌ JSON decode failed: \(error)")
                         print("   - \(error.localizedDescription)")
                         exportError = ExportError.invalidFormat
+                    } catch let error as DataExportError {
+                        print("❌ Import failed: \(error.localizedDescription)")
+                        exportError = ExportError.importFailed
                     } catch {
                         print("❌ Import failed: \(error.localizedDescription)")
                         exportError = ExportError.importFailed
@@ -1208,27 +2006,82 @@ struct AppThemePickerSheet: View {
     @Binding var selectedColor: AppAccentColor
     @Environment(\.dismiss) var dismiss
     
+    private var regularThemes: [AppAccentColor] {
+        AppAccentColor.allCases.filter { !$0.isSpecialOccasion }
+    }
+    
+    private var specialOccasionThemes: [AppAccentColor] {
+        AppAccentColor.allCases.filter { $0.isSpecialOccasion }
+    }
+    
     var body: some View {
         NavigationStack {
             ScrollView {
-                LazyVGrid(columns: [
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible()),
-                    GridItem(.flexible())
-                ], spacing: 20) {
-                    ForEach(AppAccentColor.allCases) { color in
-                        ColorOptionButton(
-                            color: color,
-                            isSelected: selectedColor == color
-                        ) {
-                            selectedColor = color
-                            dismiss()
+                VStack(spacing: 32) {
+                    // Special Occasion Themes
+                    if !specialOccasionThemes.isEmpty {
+                        VStack(alignment: .leading, spacing: 16) {
+                            HStack(spacing: 8) {
+                                Image(systemName: "sparkles")
+                                    .font(.system(size: 16, weight: .semibold))
+                                    .foregroundStyle(.orange)
+                                Text(L10n.t("appTheme.specialOccasions"))
+                                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                            }
+                            .padding(.horizontal, 4)
+                            
+                            LazyVGrid(columns: [
+                                GridItem(.flexible()),
+                                GridItem(.flexible()),
+                                GridItem(.flexible()),
+                                GridItem(.flexible())
+                            ], spacing: 16) {
+                                ForEach(specialOccasionThemes) { color in
+                                    SpecialOccasionColorButton(
+                                        color: color,
+                                        isSelected: selectedColor == color,
+                                        isActive: color.isCurrentlyActive
+                                    ) {
+                                        selectedColor = color
+                                        dismiss()
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    
+                    // Regular Themes
+                    VStack(alignment: .leading, spacing: 16) {
+                        HStack(spacing: 8) {
+                            Image(systemName: "paintpalette.fill")
+                                .font(.system(size: 16, weight: .semibold))
+                                .foregroundStyle(AriumTheme.accent)
+                            Text(L10n.t("appTheme.regularThemes"))
+                                .font(.system(size: 18, weight: .bold, design: .rounded))
+                        }
+                        .padding(.horizontal, 4)
+                        
+                        LazyVGrid(columns: [
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible()),
+                            GridItem(.flexible())
+                        ], spacing: 20) {
+                            ForEach(regularThemes) { color in
+                                ColorOptionButton(
+                                    color: color,
+                                    isSelected: selectedColor == color
+                                ) {
+                                    selectedColor = color
+                                    dismiss()
+                                }
+                            }
                         }
                     }
                 }
                 .padding()
             }
+            .background(Color(.systemGroupedBackground))
             .navigationTitle(L10n.t("settings.appTheme"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -1243,13 +2096,42 @@ struct AppThemePickerSheet: View {
     
 }
 
+// MARK: - Export Format Extension
+
+extension ExportFormat {
+    var displayName: String {
+        switch self {
+        case .json: return "JSON"
+        case .csv: return "CSV"
+        case .pdf: return "PDF"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .json: return L10n.t("export.json.description")
+        case .csv: return L10n.t("export.csv.description")
+        case .pdf: return L10n.t("export.pdf.description")
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .json: return .blue
+        case .csv: return .green
+        case .pdf: return .red
+        }
+    }
+}
+
 // MARK: - Export Habit Picker Sheet
 
 struct ExportHabitPickerSheet: View {
     let habits: [Habit]
     @Binding var selectedHabits: Set<UUID>
-    let onExport: ([Habit]) -> Void
+    let onExport: ([Habit], ExportFormat) -> Void
     @Environment(\.dismiss) var dismiss
+    @State private var selectedFormat: ExportFormat = .json
     
     var selectedHabitsArray: [Habit] {
         habits.filter { selectedHabits.contains($0.id) }
@@ -1258,6 +2140,47 @@ struct ExportHabitPickerSheet: View {
     var body: some View {
         NavigationStack {
             List {
+                // Format Selection
+                Section {
+                    ForEach(ExportFormat.allCases, id: \.self) { format in
+                        Button {
+                            selectedFormat = format
+                        } label: {
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(format.color.opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: format.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundColor(format.color)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(format.displayName)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(format.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                if selectedFormat == format {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(format.color)
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                } header: {
+                    Text(L10n.t("export.format"))
+                }
+                
                 Section {
                     Button {
                         // Toggle all
@@ -1309,7 +2232,7 @@ struct ExportHabitPickerSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button(L10n.t("export.button")) {
-                        onExport(selectedHabitsArray)
+                        onExport(selectedHabitsArray, selectedFormat)
                         dismiss()
                     }
                     .disabled(selectedHabits.isEmpty)
@@ -1351,6 +2274,90 @@ struct HabitSelectionRow: View {
         .buttonStyle(PlainButtonStyle())
     }
 }
+
+// MARK: - Special Occasion Color Button
+
+struct SpecialOccasionColorButton: View {
+    let color: AppAccentColor
+    let isSelected: Bool
+    let isActive: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            VStack(spacing: 8) {
+                ZStack {
+                    // Color circle
+                    Circle()
+                        .fill(
+                            LinearGradient(
+                                colors: [color.color, color.lightColor],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Circle()
+                                .stroke(isSelected ? Color.white : Color.clear, lineWidth: 3)
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(isSelected ? color.color : Color.clear, lineWidth: 1)
+                                .padding(2)
+                        )
+                        .shadow(
+                            color: isSelected ? color.color.opacity(0.4) : Color.black.opacity(0.1),
+                            radius: isSelected ? 12 : 4,
+                            x: 0,
+                            y: isSelected ? 6 : 2
+                        )
+                        .scaleEffect(isSelected ? 1.1 : 1.0)
+                    
+                    // Icon overlay
+                    if !color.icon.isEmpty {
+                        Text(color.icon)
+                            .font(.system(size: 24))
+                            .opacity(0.9)
+                    }
+                    
+                    // Active badge
+                    if isActive {
+                        Circle()
+                            .fill(.green)
+                            .frame(width: 16, height: 16)
+                            .overlay(
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.white)
+                            )
+                            .offset(x: 22, y: -22)
+                            .shadow(color: .green.opacity(0.5), radius: 4, x: 0, y: 2)
+                    }
+                }
+                
+                VStack(spacing: 2) {
+                    Text(color.name)
+                        .font(.system(size: 11, weight: .semibold, design: .rounded))
+                        .foregroundStyle(isSelected ? .primary : .secondary)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.8)
+                    
+                    if isActive {
+                        Text(L10n.t("appTheme.active"))
+                            .font(.system(size: 9, weight: .medium))
+                            .foregroundStyle(.green)
+                    }
+                }
+            }
+            .padding(.vertical, 4)
+            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
+        }
+        .buttonStyle(.plain)
+    }
+}
+
+// MARK: - Color Option Button
 
 struct ColorOptionButton: View {
     let color: AppAccentColor
@@ -1738,6 +2745,178 @@ struct SettingsRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Modern Settings Card
+
+struct ModernSettingsCard: View {
+    let iconName: String
+    let iconColor: Color
+    let title: String
+    let description: String
+    let rightIndicator: AnyView?
+    let showChevron: Bool
+    let toggleBinding: Binding<Bool>?
+    let toggleTint: Color?
+    let badge: Int?
+    let action: () -> Void
+    
+    init(
+        iconName: String,
+        iconColor: Color,
+        title: String,
+        description: String,
+        rightIndicator: AnyView? = nil,
+        showChevron: Bool = true,
+        toggleBinding: Binding<Bool>? = nil,
+        toggleTint: Color? = nil,
+        badge: Int? = nil,
+        action: @escaping () -> Void
+    ) {
+        self.iconName = iconName
+        self.iconColor = iconColor
+        self.title = title
+        self.description = description
+        self.rightIndicator = rightIndicator
+        self.showChevron = showChevron
+        self.toggleBinding = toggleBinding
+        self.toggleTint = toggleTint
+        self.badge = badge
+        self.action = action
+    }
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 16) {
+                // Icon with gradient background
+                ZStack {
+                    RoundedRectangle(cornerRadius: 14)
+                        .fill(
+                            LinearGradient(
+                                colors: [iconColor.opacity(0.25), iconColor.opacity(0.15)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .frame(width: 50, height: 50)
+                        .shadow(color: iconColor.opacity(0.2), radius: 6, x: 0, y: 3)
+                    
+                    Image(systemName: iconName)
+                        .font(.system(size: 22, weight: .semibold))
+                        .foregroundStyle(iconColor)
+                    
+                    // Badge
+                    if let badge = badge, badge > 0 {
+                        Text("\(badge)")
+                            .font(.system(size: 10, weight: .bold))
+                            .foregroundStyle(.white)
+                            .padding(4)
+                            .background(
+                                Circle()
+                                    .fill(.red)
+                            )
+                            .offset(x: 18, y: -18)
+                    }
+                }
+                
+                // Title and Description
+                VStack(alignment: .leading, spacing: 6) {
+                    Text(title)
+                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .foregroundStyle(.primary)
+                    
+                    Text(description)
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(.secondary)
+                        .lineLimit(2)
+                }
+                
+                Spacer()
+                
+                // Right Indicator (optional) + Toggle or Chevron
+                if let indicator = rightIndicator {
+                    indicator
+                }
+                
+                if let toggleBinding = toggleBinding {
+                    Toggle("", isOn: toggleBinding)
+                        .labelsHidden()
+                        .tint(toggleTint ?? iconColor)
+                } else if showChevron {
+                    Image(systemName: "chevron.right")
+                        .font(.system(size: 13, weight: .semibold))
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            .padding(18)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(
+                RoundedRectangle(cornerRadius: 20)
+                    .fill(Color(.secondarySystemBackground))
+                    .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 20)
+                    .stroke(iconColor.opacity(0.15), lineWidth: 1)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(PlainButtonStyle())
+    }
+}
+
+// MARK: - Quick Stat Card
+
+struct QuickStatCard: View {
+    let icon: String
+    let iconColor: Color
+    let value: String
+    let label: String
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [iconColor.opacity(0.25), iconColor.opacity(0.15)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 50, height: 50)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(iconColor)
+            }
+            
+            Text(value)
+                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .foregroundStyle(.primary)
+            
+            Text(label)
+                .font(.system(size: 12, weight: .medium))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .lineLimit(2)
+                .minimumScaleFactor(0.8)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 130)
+        .padding(.vertical, 16)
+        .padding(.horizontal, 12)
+        .background(
+            RoundedRectangle(cornerRadius: 18)
+                .fill(Color(.secondarySystemBackground))
+                .shadow(color: Color.black.opacity(0.05), radius: 6, x: 0, y: 2)
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 18)
+                .stroke(iconColor.opacity(0.2), lineWidth: 1)
+        )
     }
 }
 

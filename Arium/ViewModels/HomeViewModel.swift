@@ -18,9 +18,54 @@ class HomeViewModel: ObservableObject {
     @Published var searchText: String = ""
     @Published var showingError = false
     @Published var currentError: AppError?
+    @Published var selectedFilter: QuickFilter = .all
+    
+    enum QuickFilter: String, CaseIterable {
+        case all = "all"
+        case today = "today"
+        case week = "week"
+        
+        var localizedName: String {
+            switch self {
+            case .all:
+                return L10n.t("filter.all")
+            case .today:
+                return L10n.t("filter.today")
+            case .week:
+                return L10n.t("filter.week")
+            }
+        }
+        
+        var icon: String {
+            switch self {
+            case .all:
+                return "square.grid.2x2"
+            case .today:
+                return "calendar"
+            case .week:
+                return "calendar.badge.clock"
+            }
+        }
+    }
     
     func filteredHabits(from habits: [Habit]) -> [Habit] {
         var filtered = habits
+        
+        // Quick filter (today/week)
+        switch selectedFilter {
+        case .all:
+            break
+        case .today:
+            filtered = filtered.filter { $0.isCompletedToday }
+        case .week:
+            let calendar = Calendar.current
+            let weekAgo = calendar.date(byAdding: .day, value: -7, to: Date()) ?? Date()
+            filtered = filtered.filter { habit in
+                habit.completionDates.contains { date in
+                    date >= weekAgo
+                }
+            }
+        }
         
         // Category filter
         if let selectedCategory = selectedCategory {
@@ -36,6 +81,16 @@ class HomeViewModel: ObservableObject {
         }
         
         return filtered
+    }
+    
+    func completedToday(from habits: [Habit]) -> Int {
+        filteredHabits(from: habits).filter { $0.isCompletedToday }.count
+    }
+    
+    func todayCompletionRate(from habits: [Habit]) -> Double {
+        let filtered = filteredHabits(from: habits)
+        guard !filtered.isEmpty else { return 0 }
+        return Double(completedToday(from: habits)) / Double(filtered.count)
     }
     
     func toggleHabitCompletion(_ habit: Habit, store: HabitStore) {

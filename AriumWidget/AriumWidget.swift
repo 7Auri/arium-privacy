@@ -112,6 +112,8 @@ struct AriumWidgetEntryView : View {
                 MediumWidgetView(habits: entry.habits)
             case .systemLarge:
                 LargeWidgetView(habits: entry.habits)
+            case .systemExtraLarge:
+                ExtraLargeWidgetView(habits: entry.habits)
             default:
                 SmallWidgetView(habits: entry.habits)
             }
@@ -149,19 +151,44 @@ struct SmallWidgetView: View {
                 Spacer()
                 
                 if let firstHabit = habits.first {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: 6) {
                         Text(firstHabit.title)
                             .font(.headline)
                             .lineLimit(1)
                         
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.caption2)
-                                .foregroundColor(.orange)
+                        // Streak with progress
+                        VStack(alignment: .leading, spacing: 4) {
+                            HStack(spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                                
+                                Text("\(firstHabit.streak)")
+                                    .font(.caption)
+                                    .fontWeight(.semibold)
+                                    .foregroundColor(.primary)
+                                
+                                Text(L10n.t("habit.days"))
+                                    .font(.caption2)
+                                    .foregroundColor(.secondary)
+                            }
                             
-                            Text("\(firstHabit.streak) \(L10n.t("habit.days"))")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            // Progress bar
+                            GeometryReader { geometry in
+                                ZStack(alignment: .leading) {
+                                    Rectangle()
+                                        .fill(Color.gray.opacity(0.2))
+                                        .frame(height: 3)
+                                    
+                                    Rectangle()
+                                        .fill(firstHabit.theme.accent)
+                                        .frame(
+                                            width: geometry.size.width * min(1.0, Double(firstHabit.streak) / Double(firstHabit.goalDays)),
+                                            height: 3
+                                        )
+                                }
+                            }
+                            .frame(height: 3)
                         }
                     }
                     .widgetURL(URL(string: "arium://habit/\(firstHabit.id.uuidString)"))
@@ -211,30 +238,33 @@ struct MediumWidgetView: View {
                 }
                 
                 ForEach(habits.prefix(3)) { habit in
-                    HStack(spacing: 8) {
-                        Circle()
-                            .fill(habit.theme.accent)
-                            .frame(width: 8, height: 8)
-                        
-                        Text(habit.title)
-                            .font(.subheadline)
-                            .lineLimit(1)
-                        
-                        Spacer()
-                        
-                        HStack(spacing: 4) {
-                            Image(systemName: "flame.fill")
-                                .font(.caption2)
-                                .foregroundColor(.orange)
+                    Button(intent: ToggleHabitIntent(habitId: habit.id.uuidString)) {
+                        HStack(spacing: 8) {
+                            Circle()
+                                .fill(habit.theme.accent)
+                                .frame(width: 8, height: 8)
                             
-                            Text("\(habit.streak)")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
+                            Text(habit.title)
+                                .font(.subheadline)
+                                .lineLimit(1)
+                            
+                            Spacer()
+                            
+                            HStack(spacing: 4) {
+                                Image(systemName: "flame.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
+                                
+                                Text("\(habit.streak)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            
+                            Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                                .foregroundColor(habit.isCompletedToday ? .green : .gray)
                         }
-                        
-                        Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                            .foregroundColor(habit.isCompletedToday ? .green : .gray)
                     }
+                    .buttonStyle(.plain)
                 }
             }
             .padding()
@@ -298,35 +328,58 @@ struct LargeWidgetView: View {
                 // Habits List
                 VStack(spacing: 10) {
                     ForEach(habits.prefix(5)) { habit in
-                        HStack(spacing: 12) {
-                            Circle()
-                                .fill(habit.theme.accent)
-                                .frame(width: 10, height: 10)
-                            
-                            VStack(alignment: .leading, spacing: 2) {
-                                Text(habit.title)
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .lineLimit(1)
+                        Button(intent: ToggleHabitIntent(habitId: habit.id.uuidString)) {
+                            HStack(spacing: 12) {
+                                Circle()
+                                    .fill(habit.theme.accent)
+                                    .frame(width: 10, height: 10)
                                 
-                                HStack(spacing: 4) {
-                                    Image(systemName: "flame.fill")
-                                        .font(.caption2)
-                                        .foregroundColor(.orange)
+                                VStack(alignment: .leading, spacing: 2) {
+                                    Text(habit.title)
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .lineLimit(1)
                                     
-                                    Text("\(habit.streak) \(L10n.t("habit.streak"))")
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
+                                    HStack(spacing: 6) {
+                                        HStack(spacing: 4) {
+                                            Image(systemName: "flame.fill")
+                                                .font(.caption2)
+                                                .foregroundColor(.orange)
+                                            
+                                            Text("\(habit.streak)")
+                                                .font(.caption)
+                                                .fontWeight(.semibold)
+                                                .foregroundColor(.primary)
+                                        }
+                                        
+                                        // Progress indicator
+                                        GeometryReader { geometry in
+                                            ZStack(alignment: .leading) {
+                                                Rectangle()
+                                                    .fill(Color.gray.opacity(0.2))
+                                                    .frame(height: 2)
+                                                
+                                                Rectangle()
+                                                    .fill(habit.theme.accent)
+                                                    .frame(
+                                                        width: geometry.size.width * min(1.0, Double(habit.streak) / Double(habit.goalDays)),
+                                                        height: 2
+                                                    )
+                                            }
+                                        }
+                                        .frame(width: 40, height: 2)
+                                    }
                                 }
+                                
+                                Spacer()
+                                
+                                Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                                    .font(.title3)
+                                    .foregroundColor(habit.isCompletedToday ? .green : .gray)
                             }
-                            
-                            Spacer()
-                            
-                            Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                                .font(.title3)
-                                .foregroundColor(habit.isCompletedToday ? .green : .gray)
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
+                        .buttonStyle(.plain)
                     }
                 }
                 
@@ -465,11 +518,155 @@ struct AriumWidget: Widget {
         }
         .configurationDisplayName("Arium Habits")
         .description("Track your daily habits at a glance")
-        .supportedFamilies([.systemSmall, .systemMedium, .systemLarge])
+        .supportedFamilies([
+            .systemSmall,
+            .systemMedium,
+            .systemLarge,
+            .systemExtraLarge  // iOS 17+
+        ])
     }
 }
 
 // MARK: - Preview
+
+// MARK: - Extra Large Widget
+
+struct ExtraLargeWidgetView: View {
+    let habits: [Habit]
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                colors: [Color.purple.opacity(0.2), Color.blue.opacity(0.15)],
+                startPoint: .topLeading,
+                endPoint: .bottomTrailing
+            )
+            
+            VStack(alignment: .leading, spacing: 20) {
+                // Header
+                HStack {
+                    Image(systemName: "sparkles")
+                        .font(.title)
+                        .foregroundColor(.purple)
+                    
+                    Text(L10n.t("widget.todaysHabits"))
+                        .font(.title2)
+                        .fontWeight(.bold)
+                    
+                    Spacer()
+                    
+                    Text("\(habits.filter { $0.isCompletedToday }.count)/\(habits.count)")
+                        .font(.title3)
+                        .fontWeight(.bold)
+                        .padding(.horizontal, 12)
+                        .padding(.vertical, 6)
+                        .background(Color.green.opacity(0.2))
+                        .cornerRadius(12)
+                }
+                
+                // Stats Grid
+                HStack(spacing: 12) {
+                    StatCard(
+                        title: L10n.t("statistics.completed"),
+                        value: "\(habits.filter { $0.isCompletedToday }.count)",
+                        icon: "checkmark.circle.fill",
+                        color: .green
+                    )
+                    
+                    StatCard(
+                        title: L10n.t("widget.pending"),
+                        value: "\(habits.filter { !$0.isCompletedToday }.count)",
+                        icon: "circle",
+                        color: .orange
+                    )
+                    
+                    StatCard(
+                        title: L10n.t("home.stats.total"),
+                        value: "\(habits.count)",
+                        icon: "list.bullet",
+                        color: .purple
+                    )
+                    
+                    StatCard(
+                        title: L10n.t("home.stats.streak"),
+                        value: "\(habits.map { $0.streak }.max() ?? 0)",
+                        icon: "flame.fill",
+                        color: .orange
+                    )
+                }
+                
+                Divider()
+                
+                // Habits List with Progress
+                VStack(spacing: 12) {
+                    ForEach(habits.prefix(8)) { habit in
+                        Button(intent: ToggleHabitIntent(habitId: habit.id.uuidString)) {
+                            VStack(alignment: .leading, spacing: 8) {
+                                HStack(spacing: 12) {
+                                    Circle()
+                                        .fill(habit.theme.accent)
+                                        .frame(width: 12, height: 12)
+                                    
+                                    VStack(alignment: .leading, spacing: 4) {
+                                        Text(habit.title)
+                                            .font(.subheadline)
+                                            .fontWeight(.semibold)
+                                            .lineLimit(1)
+                                        
+                                        HStack(spacing: 8) {
+                                            HStack(spacing: 4) {
+                                                Image(systemName: "flame.fill")
+                                                    .font(.caption2)
+                                                    .foregroundColor(.orange)
+                                                
+                                                Text("\(habit.streak)/\(habit.goalDays)")
+                                                    .font(.caption)
+                                                    .fontWeight(.semibold)
+                                                    .foregroundColor(.primary)
+                                            }
+                                            
+                                            Text("\(Int((Double(habit.streak) / Double(habit.goalDays)) * 100))%")
+                                                .font(.caption2)
+                                                .foregroundColor(.secondary)
+                                        }
+                                    }
+                                    
+                                    Spacer()
+                                    
+                                    Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                                        .font(.title3)
+                                        .foregroundColor(habit.isCompletedToday ? .green : .gray)
+                                }
+                                
+                                // Progress bar
+                                GeometryReader { geometry in
+                                    ZStack(alignment: .leading) {
+                                        Rectangle()
+                                            .fill(Color.gray.opacity(0.2))
+                                            .frame(height: 4)
+                                        
+                                        Rectangle()
+                                            .fill(habit.theme.accent)
+                                            .frame(
+                                                width: geometry.size.width * min(1.0, Double(habit.streak) / Double(habit.goalDays)),
+                                                height: 4
+                                            )
+                                    }
+                                }
+                                .frame(height: 4)
+                            }
+                            .padding(.vertical, 6)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding()
+        }
+    }
+}
 
 #Preview(as: .systemSmall) {
     AriumWidget()

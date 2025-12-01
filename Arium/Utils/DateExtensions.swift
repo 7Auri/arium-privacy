@@ -28,10 +28,14 @@ extension Date {
         return formatter.string(from: self)
     }
     
-    func localizedDateString() -> String {
+    func localizedDateString(format: String? = nil) -> String {
         let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
+        if let format = format {
+            formatter.dateFormat = format
+        } else {
+            formatter.dateStyle = .medium
+            formatter.timeStyle = .none
+        }
         formatter.locale = Locale(identifier: currentLanguageCode())
         return formatter.string(from: self)
     }
@@ -46,7 +50,20 @@ extension Date {
     
     private func currentLanguageCode() -> String {
         let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
-        return lang == "tr" ? "tr_TR" : "en_US"
+        switch lang {
+        case "tr":
+            return "tr_TR"
+        case "de":
+            return "de_DE"
+        case "fr":
+            return "fr_FR"
+        case "es":
+            return "es_ES"
+        case "it":
+            return "it_IT"
+        default:
+            return "en_US"
+        }
     }
     
     func localizedRelativeTimeString() -> String {
@@ -133,6 +150,16 @@ extension Date {
                 return formatter.string(from: self)
             }
         }
+    }
+}
+
+// MARK: - String Extension for Date Conversion
+
+extension String {
+    func toDate() -> Date? {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter.date(from: self)
     }
 }
 

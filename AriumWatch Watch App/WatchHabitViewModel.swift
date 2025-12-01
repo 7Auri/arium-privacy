@@ -12,9 +12,11 @@ import WatchConnectivity
 class WatchHabitViewModel: NSObject, ObservableObject {
     @Published var habits: [Habit] = []
     
+    static let shared = WatchHabitViewModel()
+    
     private let session = WCSession.default
     
-    override init() {
+    private override init() {
         super.init()
         
         if WCSession.isSupported() {
@@ -37,7 +39,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
         }
     }
     
-    private func requestHabitsFromiPhone() {
+    func requestHabitsFromiPhone() {
         guard session.activationState == .activated else {
             print("⚠️ Watch: Session not activated, cannot request habits")
             return

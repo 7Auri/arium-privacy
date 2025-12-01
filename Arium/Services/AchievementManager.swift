@@ -151,7 +151,6 @@ class AchievementManager: ObservableObject {
         // Check if all eligible habits were completed every day in the last 7 days
         for dayOffset in 0..<7 {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            let dayStart = calendar.startOfDay(for: day)
             
             for habit in eligibleHabits {
                 let completedOnDay = habit.completionDates.contains { calendar.isDate($0, inSameDayAs: day) }
@@ -182,7 +181,6 @@ class AchievementManager: ObservableObject {
         // Check if all eligible habits were completed every day in the last 30 days
         for dayOffset in 0..<30 {
             guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
-            let dayStart = calendar.startOfDay(for: day)
             
             for habit in eligibleHabits {
                 let completedOnDay = habit.completionDates.contains { calendar.isDate($0, inSameDayAs: day) }

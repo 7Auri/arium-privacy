@@ -191,13 +191,23 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         accentColor: "#FF9A76"
     )
     
+    static let christmas = HabitTheme(
+        id: "christmas",
+        name: "Christmas",
+        primaryColor: "#FFB3BA",
+        secondaryColor: "#FFE6E8",
+        accentColor: "#DC143C"
+    )
+    
     static let allThemes: [HabitTheme] = [
         // Original
         .purple, .blue, .green, .pink, .orange,
         // New
         .red, .teal, .indigo, .mint, .coral,
         .lavender, .gold, .rose, .navy, .lime,
-        .violet, .turquoise, .crimson, .sage, .peach
+        .violet, .turquoise, .crimson, .sage, .peach,
+        // Special Occasions
+        .christmas
     ]
 }
 

@@ -45,7 +45,7 @@ struct DataExportView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.primary)
                                 
-                                Text("Spreadsheet format")
+                                Text(L10n.t("export.csv.description"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -77,7 +77,7 @@ struct DataExportView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.primary)
                                 
-                                Text("Backup & restore format")
+                                Text(L10n.t("export.json.description"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -109,7 +109,7 @@ struct DataExportView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundColor(.primary)
                                 
-                                Text("Printable report")
+                                Text(L10n.t("export.pdf.description"))
                                     .font(.caption)
                                     .foregroundColor(.secondary)
                             }
@@ -128,7 +128,7 @@ struct DataExportView: View {
                     HStack {
                         Image(systemName: "info.circle")
                             .foregroundColor(.blue)
-                        Text("Exported files can be shared via email, saved to Files, or imported back into Arium.")
+                        Text(L10n.t("export.info"))
                             .font(.caption)
                             .foregroundColor(.secondary)
                     }

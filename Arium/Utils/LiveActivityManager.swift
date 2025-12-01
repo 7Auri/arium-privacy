@@ -44,7 +44,7 @@ class LiveActivityManager: ObservableObject {
         do {
             let activity = try Activity.request(
                 attributes: attributes,
-                contentState: contentState,
+                content: ActivityContent(state: contentState, staleDate: nil),
                 pushType: nil
             )
             
@@ -75,7 +75,7 @@ class LiveActivityManager: ObservableObject {
         )
         
         Task {
-            await activity.update(using: updatedState)
+            await activity.update(ActivityContent(state: updatedState, staleDate: nil))
             print("✅ Live Activity updated")
         }
     }
@@ -85,7 +85,9 @@ class LiveActivityManager: ObservableObject {
         guard let activity = currentActivity else { return }
         
         Task {
-            await activity.end(dismissalPolicy: .immediate)
+            // Use new API: end with content parameter
+            let currentState = activity.content.state
+            await activity.end(ActivityContent(state: currentState, staleDate: nil), dismissalPolicy: .immediate)
             currentActivity = nil
             print("✅ Live Activity ended")
         }
@@ -97,8 +99,10 @@ class LiveActivityManager: ObservableObject {
         guard let activity = currentActivity else { return }
         
         Task {
+            // Use new API: end with content parameter
+            let currentState = activity.content.state
             await activity.end(
-                using: activity.contentState,
+                ActivityContent(state: currentState, staleDate: nil),
                 dismissalPolicy: .after(.now + seconds)
             )
             currentActivity = nil
@@ -106,5 +110,7 @@ class LiveActivityManager: ObservableObject {
         }
     }
 }
+
+
 
 

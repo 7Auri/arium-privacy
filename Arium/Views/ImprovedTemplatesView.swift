@@ -299,7 +299,7 @@ struct TemplateCardCompact: View {
                 HStack {
                     Image(systemName: "target")
                         .font(.caption2)
-                    Text("\(template.suggestedGoalDays) days")
+                    Text("\(template.suggestedGoalDays) \(L10n.t("habit.days"))")
                         .font(.caption2)
                     Spacer()
                     Text(template.category.displayName)
@@ -313,6 +313,7 @@ struct TemplateCardCompact: View {
                 .foregroundColor(.secondary)
             }
             .padding(12)
+            .frame(maxWidth: .infinity, minHeight: 140, maxHeight: 140)
             .background(Color(.systemBackground))
             .cornerRadius(12)
             .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)

@@ -31,12 +31,16 @@ enum DataExportError: Error, LocalizedError {
     case noData
     case exportFailed
     case pdfGenerationFailed
+    case invalidCSVFormat
+    case csvImportFailed
     
     var errorDescription: String? {
         switch self {
         case .noData: return L10n.t("export.error.noData")
         case .exportFailed: return L10n.t("export.error.failed")
         case .pdfGenerationFailed: return L10n.t("export.error.pdfFailed")
+        case .invalidCSVFormat: return L10n.t("import.error.invalidCSV")
+        case .csvImportFailed: return L10n.t("import.error.csvFailed")
         }
     }
 }
@@ -221,6 +225,133 @@ class DataExportManager {
         return url
     }
     
+    // MARK: - CSV Import
+    
+    func importFromCSV(data: Data) throws -> [Habit] {
+        guard let csvString = String(data: data, encoding: .utf8) else {
+            throw DataExportError.csvImportFailed
+        }
+        
+        let lines = csvString.components(separatedBy: .newlines)
+        guard !lines.isEmpty else {
+            throw DataExportError.invalidCSVFormat
+        }
+        
+        // Find where completion history starts
+        var habitLines: [String] = []
+        var completionHistoryLines: [String] = []
+        var inCompletionHistory = false
+        
+        for line in lines {
+            let trimmed = line.trimmingCharacters(in: .whitespaces)
+            if trimmed.isEmpty {
+                continue
+            }
+            
+            if trimmed == "Completion History" {
+                inCompletionHistory = true
+                continue
+            }
+            
+            if inCompletionHistory {
+                if trimmed.hasPrefix("Habit ID") {
+                    continue // Skip header
+                }
+                completionHistoryLines.append(trimmed)
+            } else {
+                if trimmed.hasPrefix("ID,") {
+                    continue // Skip header
+                }
+                habitLines.append(trimmed)
+            }
+        }
+        
+        // Parse habits
+        var habits: [Habit] = []
+        var completionHistory: [String: [(date: Date, hasNote: Bool)]] = [:]
+        
+        // Parse completion history first
+        for line in completionHistoryLines {
+            let fields = parseCSVLine(line)
+            guard fields.count >= 4,
+                  let habitId = UUID(uuidString: fields[0]),
+                  let date = dateFormatter.date(from: fields[2]) else {
+                continue
+            }
+            let hasNote = fields[3].lowercased() == "yes"
+            
+            if completionHistory[habitId.uuidString] == nil {
+                completionHistory[habitId.uuidString] = []
+            }
+            completionHistory[habitId.uuidString]?.append((date: date, hasNote: hasNote))
+        }
+        
+        // Parse habits
+        for line in habitLines {
+            let fields = parseCSVLine(line)
+            guard fields.count >= 9 else {
+                continue
+            }
+            
+            guard let id = UUID(uuidString: fields[0]),
+                  let createdAt = dateFormatter.date(from: fields[3]),
+                  let streak = Int(fields[4]),
+                  let goalDays = Int(fields[6]),
+                  let dailyRepetitions = Int(fields[7]) else {
+                continue
+            }
+            
+            // Find category by localized name
+            let categoryName = fields[2]
+            let category = HabitCategory.allCases.first { category in
+                category.localizedName == categoryName
+            } ?? .personal // Default to personal if not found
+            
+            let title = unescapeCsvField(fields[1])
+            let notes = unescapeCsvField(fields[8])
+            
+            // Get completion dates for this habit
+            let completions = completionHistory[id.uuidString] ?? []
+            let completionDates = completions.map { $0.date }
+            
+            // Convert completion notes to string format (Date string: note)
+            var completionNotes: [String: String] = [:]
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            for comp in completions where comp.hasNote {
+                let dateString = dateFormatter.string(from: comp.date)
+                completionNotes[dateString] = "" // Note content not in CSV, just mark as having note
+            }
+            
+            // Create habit
+            let habit = Habit(
+                id: id,
+                title: title,
+                notes: notes,
+                createdAt: createdAt,
+                streak: streak,
+                themeId: "purple", // Default theme
+                isCompletedToday: false,
+                completionDates: completionDates,
+                completionNotes: completionNotes,
+                startDate: createdAt,
+                goalDays: goalDays,
+                reminderTime: nil,
+                isReminderEnabled: false,
+                category: category,
+                dailyRepetitions: dailyRepetitions
+            )
+            
+            habits.append(habit)
+        }
+        
+        guard !habits.isEmpty else {
+            throw DataExportError.invalidCSVFormat
+        }
+        
+        return habits
+    }
+    
     // MARK: - Share
     
     func shareExport(url: URL, from viewController: UIViewController) {
@@ -251,6 +382,39 @@ class DataExportManager {
             return "\"\(field.replacingOccurrences(of: "\"", with: "\"\""))\""
         }
         return field
+    }
+    
+    private func unescapeCsvField(_ field: String) -> String {
+        var result = field
+        if result.hasPrefix("\"") && result.hasSuffix("\"") {
+            result = String(result.dropFirst().dropLast())
+        }
+        return result.replacingOccurrences(of: "\"\"", with: "\"")
+    }
+    
+    private func parseCSVLine(_ line: String) -> [String] {
+        var fields: [String] = []
+        var currentField = ""
+        var inQuotes = false
+        
+        for char in line {
+            if char == "\"" {
+                if inQuotes && currentField.hasSuffix("\"") {
+                    // Escaped quote
+                    currentField = String(currentField.dropLast()) + "\""
+                } else {
+                    inQuotes.toggle()
+                }
+            } else if char == "," && !inQuotes {
+                fields.append(currentField)
+                currentField = ""
+            } else {
+                currentField.append(char)
+            }
+        }
+        fields.append(currentField)
+        
+        return fields.map { unescapeCsvField($0) }
     }
     
     private func saveToTemporaryFile(_ content: String, filename: String) throws -> URL {

@@ -290,7 +290,8 @@ class HabitStore: NSObject, ObservableObject {
         
         // Try to send habits data directly via WatchConnectivity
         do {
-            let encoded = try JSONEncoder().encode(habits)
+            // Use the same encoder as App Groups (CodingCache.compactEncoder)
+            let encoded = try CodingCache.compactEncoder.encode(habits)
             
             // Send via application context (works even when not reachable)
             // This is the most reliable method for simulators
@@ -516,7 +517,8 @@ extension HabitStore: WCSessionDelegate {
                 // Watch is requesting habits
                 print("📱 iPhone: Watch requested habits")
                 do {
-                    let encoded = try JSONEncoder().encode(habits)
+                    // Use the same encoder as App Groups (CodingCache.compactEncoder)
+                    let encoded = try CodingCache.compactEncoder.encode(habits)
                     replyHandler([
                         "action": "habitsUpdated",
                         "habits": encoded
