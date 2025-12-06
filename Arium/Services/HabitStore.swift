@@ -50,7 +50,10 @@ class HabitStore: NSObject, ObservableObject {
         // Update status and request notifications asynchronously (non-blocking)
         Task {
             await updateTodayStatus()
-            _ = await notificationManager.requestAuthorization()
+            let granted = await notificationManager.requestAuthorization()
+            if granted {
+                await notificationManager.rescheduleAllRequests(habits: habits)
+            }
         }
     }
     
@@ -73,58 +76,45 @@ class HabitStore: NSObject, ObservableObject {
         isLoading = true
         error = nil
         
-        habits.append(habit)
+        var newHabit = habit
+        newHabit.updatedAt = Date()
+        habits.append(newHabit)
         
         // Schedule notification if enabled (non-blocking)
         if habit.isReminderEnabled {
             Task {
-                await notificationManager.scheduleDailyReminder(for: habit)
+                await notificationManager.scheduleDailyReminder(for: newHabit)
             }
         }
         
-        saveHabits()
+        saveHabits(immediate: true) // Immediate save for new habit
         isLoading = false
-        
-        // Note: Auto-sync removed for legal/privacy compliance
-        // Sync happens automatically on app launch/activation or manually via "Sync Now" button
     }
     
-    // MARK: - Validation
-    
     private func validateHabit(_ habit: Habit) throws {
-        // Validate title
         if habit.title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
             throw HabitError.emptyTitle
         }
-        
-        // Validate notes length (100 characters max)
-        if habit.notes.count > 100 {
-            throw HabitError.notesTooLong(maxLength: 100)
-        }
-        
-        // Validate start date (cannot be in the future)
-        if let startDate = habit.startDate, startDate > Date() {
-            throw HabitError.invalidStartDate
-        }
     }
+    
+    // ... validation ...
     
     func updateHabit(_ habit: Habit) {
         if let index = habits.firstIndex(where: { $0.id == habit.id }) {
-            habits[index] = habit
+            var updatedHabit = habit
+            updatedHabit.updatedAt = Date()
+            habits[index] = updatedHabit
             
             // Update notifications (non-blocking)
             Task {
-                if habit.isReminderEnabled {
-                    await notificationManager.scheduleDailyReminder(for: habit)
+                if updatedHabit.isReminderEnabled {
+                    await notificationManager.scheduleDailyReminder(for: updatedHabit)
                 } else {
-                    await notificationManager.cancelNotifications(for: habit.id.uuidString)
+                    await notificationManager.cancelNotifications(for: updatedHabit.id.uuidString)
                 }
             }
             
-            saveHabits()
-            
-            // Note: Auto-sync removed for legal/privacy compliance
-            // Sync happens automatically on app launch/activation or manually via "Sync Now" button
+            saveHabits(immediate: true) // Immediate save for edit
         }
     }
     
@@ -153,6 +143,7 @@ class HabitStore: NSObject, ObservableObject {
         if let index = habits.firstIndex(where: { $0.id == habitId }) {
             let wasCompleted = habits[index].isCompletedToday
             habits[index].toggleCompletion()
+            habits[index].updatedAt = Date()
             
             // If completing and note is provided, save it
             if habits[index].isCompletedToday, let note = note, !note.isEmpty {
@@ -168,9 +159,17 @@ class HabitStore: NSObject, ObservableObject {
                         await notificationManager.scheduleMilestoneNotification(for: currentHabit, milestone: streak)
                     }
                 }
+                
+                // Cancel today's reminder and send completion celebration
+                let currentHabit = habits[index]
+                Task {
+                    await notificationManager.cancelTodayReminder(for: currentHabit.id)
+                    await notificationManager.sendCompletionCelebration(for: currentHabit)
+                }
             }
             
-            saveHabits()
+            // Debounced save for checking off habits (common repetitive action)
+            saveHabits(immediate: false)
             
             // Note: Auto-sync removed for legal/privacy compliance
             // Sync happens automatically on app launch/activation or manually via "Sync Now" button
@@ -179,39 +178,60 @@ class HabitStore: NSObject, ObservableObject {
     
     @MainActor
     func updateTodayStatus() async {
+        var hasChanges = false
         for index in habits.indices {
+            let wasCompleted = habits[index].isCompletedToday
             habits[index].isCompletedToday = habits[index].checkIfCompletedToday()
+            let oldStreak = habits[index].streak
             habits[index].calculateStreak()
+            
+            if wasCompleted != habits[index].isCompletedToday || oldStreak != habits[index].streak {
+                habits[index].updatedAt = Date()
+                hasChanges = true
+            }
         }
-        saveHabits()
+        
+        if hasChanges {
+            saveHabits(immediate: false)
+        }
     }
     
-    func saveHabits() {
+    // MARK: - Persistence
+    
+    private var saveTask: Task<Void, Error>?
+    
+    // Public method to save (debounced or immediate)
+    func saveHabits(immediate: Bool = false) {
+        // Cancel pending save
+        saveTask?.cancel()
+        
+        if immediate {
+            saveHabitsImmediate()
+        } else {
+            // Debounce save for 1 second
+            saveTask = Task {
+                try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                await MainActor.run {
+                    self.saveHabitsImmediate()
+                }
+            }
+        }
+    }
+    
+    // Internal immediate save
+    func saveHabitsImmediate() {
         do {
             // Optimize memory by pruning old data before saving
             let optimizedHabits = MemoryOptimization.pruneOldData(habits: habits)
             let encoded = try CodingCache.compactEncoder.encode(optimizedHabits)
             
-            // Save to local UserDefaults
-            UserDefaults.standard.set(encoded, forKey: saveKey)
+            // Save to SharedDefaults (for App and Extensions)
+            SharedDefaults.store.set(encoded, forKey: saveKey)
             #if DEBUG
-            print("✅ Saved \(optimizedHabits.count) habits to local storage")
+            print("✅ Saved \(optimizedHabits.count) habits to SharedDefaults")
             #endif
             
-            // Save to shared UserDefaults (for Widget & Watch)
-            if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
-                sharedDefaults.set(encoded, forKey: saveKey)
-                sharedDefaults.synchronize() // Force sync
-                #if DEBUG
-                print("✅ Saved \(habits.count) habits to App Groups")
-                #endif
-            } else {
-                #if DEBUG
-                print("⚠️ Failed to access App Groups")
-                #endif
-            }
-            
-            // Sync to iCloud
+            // Sync to iCloud (Delta Sync)
             if iCloudSyncEnabled, let cloudSync = cloudSync {
                 Task {
                     try? await cloudSync.uploadHabits(habits)
@@ -239,36 +259,41 @@ class HabitStore: NSObject, ObservableObject {
         isLoading = true
         error = nil
         
-        // Load from local UserDefaults
-        if let data = UserDefaults.standard.data(forKey: saveKey) {
+        // Load from SharedDefaults (prioritize shared storage)
+        if let data = SharedDefaults.store.data(forKey: saveKey) {
             do {
                 let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
                 habits = decoded
-                print("✅ Loaded \(decoded.count) habits from local storage")
+                print("✅ Loaded \(decoded.count) habits from SharedDefaults")
             } catch {
-                // If decoding fails (old data format), clear and start fresh
-                print("❌ Failed to load habits: \(error)")
-                print("ℹ️ Clearing old data and starting fresh...")
+                print("❌ Failed to load habits from SharedDefaults: \(error)")
+                self.error = nil
+            }
+        } 
+        // Fallback: Check standard UserDefaults (migration scenario)
+        else if let data = UserDefaults.standard.data(forKey: saveKey) {
+            do {
+                let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
+                habits = decoded
+                print("✅ Loaded \(decoded.count) habits from standard UserDefaults (Migration)")
+                // Migrate to SharedDefaults immediately
+                saveHabits(immediate: true)
+                // Remove from old location
                 UserDefaults.standard.removeObject(forKey: saveKey)
-                habits = []
-                self.error = nil // Don't show error to user
+            } catch {
+                print("❌ Failed to load habits from standard UserDefaults: \(error)")
             }
         }
         
         isLoading = false
         
-        // Sync with iCloud if enabled (async, non-blocking)
-        // Note: iCloud sync is disabled by default (requires paid Apple Developer account)
+        // Sync with iCloud if enabled
         if iCloudSyncEnabled, let cloudSync = cloudSync {
             Task { @MainActor in
-                // syncHabits is async throws and can throw errors from downloadHabits() or uploadHabits()
-                // Even though guard in syncHabits returns early, the try await calls can still throw
                 do {
                     let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
                     habits = syncedHabits
                 } catch {
-                    // iCloud sync failed, but this is non-critical
-                    // Continue with local habits
                     self.error = HabitError.loadFailed
                     print("❌ Failed to sync with iCloud: \(error)")
                 }

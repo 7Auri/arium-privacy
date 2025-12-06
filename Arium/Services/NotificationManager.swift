@@ -17,6 +17,13 @@ class NotificationManager: NSObject, ObservableObject {
     
     private let notificationCenter = UNUserNotificationCenter.current()
     
+    // Date formatter for daily notificiation IDs
+    private let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+    
     override private init() {
         super.init()
         notificationCenter.delegate = self
@@ -59,6 +66,10 @@ class NotificationManager: NSObject, ObservableObject {
             return
         }
         
+        // Cancel existing notifications for this habit first to avoid duplicates
+        // Note: This cleans up both old "repeating" and new "individual" types
+        cancelHabitReminder(for: habit.id)
+        
         let content = UNMutableNotificationContent()
         content.title = L10n.t("notification.reminder.title")
         content.body = String(format: L10n.t("notification.reminder.body"), habit.title)
@@ -66,28 +77,45 @@ class NotificationManager: NSObject, ObservableObject {
         content.badge = 1
         content.userInfo = ["habitId": habit.id.uuidString]
         
-        // Create daily trigger
-        let components = Calendar.current.dateComponents([.hour, .minute], from: time)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let calendar = Calendar.current
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
         
-        let request = UNNotificationRequest(
-            identifier: "habit-reminder-\(habit.id.uuidString)",
-            content: content,
-            trigger: trigger
-        )
-        
-        do {
-            try await notificationCenter.add(request)
-            print("✅ Scheduled reminder for \(habit.title) at \(time)")
-        } catch {
-            print("❌ Failed to schedule notification: \(error)")
+        // Schedule for next 14 days
+        for dayOffset in 0..<14 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: Date()),
+                  let fireDate = calendar.date(bySettingHour: timeComponents.hour ?? 9, minute: timeComponents.minute ?? 0, second: 0, of: date) else { continue }
+            
+            // Skip if time has already passed today
+            if fireDate < Date() { continue }
+            
+            let dateString = dateFormatter.string(from: fireDate)
+            
+            // Create trigger for specific time
+            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            
+            let request = UNNotificationRequest(
+                identifier: "habit-reminder-\(habit.id.uuidString)-\(dateString)",
+                content: content,
+                trigger: trigger
+            )
+            
+            do {
+                try await notificationCenter.add(request)
+            } catch {
+                print("❌ Failed to schedule notification for \(dateString): \(error)")
+            }
         }
+        
+        print("✅ Scheduled reminders for \(habit.title) for next 14 days")
     }
     
     // MARK: - Smart Reminder (Best Time Analysis)
     
     func scheduleSmartReminder(for habit: Habit) async {
         guard isAuthorized else { return }
+        
+        cancelHabitReminder(for: habit.id)
         
         // Analyze completion times to find best hour
         let bestHour = analyzeBestCompletionTime(for: habit)
@@ -103,21 +131,35 @@ class NotificationManager: NSObject, ObservableObject {
         content.badge = 1
         content.userInfo = ["habitId": habit.id.uuidString, "type": "smart_reminder"]
         
-        let components = Calendar.current.dateComponents([.hour, .minute], from: reminderTime)
-        let trigger = UNCalendarNotificationTrigger(dateMatching: components, repeats: true)
+        let calendar = Calendar.current
+        let timeComponents = calendar.dateComponents([.hour, .minute], from: reminderTime)
         
-        let request = UNNotificationRequest(
-            identifier: "smart-reminder-\(habit.id.uuidString)",
-            content: content,
-            trigger: trigger
-        )
-        
-        do {
-            try await notificationCenter.add(request)
-            print("✅ Scheduled smart reminder for \(habit.title) at \(reminderTime)")
-        } catch {
-            print("❌ Failed to schedule smart reminder: \(error)")
+        // Schedule for next 14 days
+        for dayOffset in 0..<14 {
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: Date()),
+                  let fireDate = calendar.date(bySettingHour: timeComponents.hour ?? 9, minute: timeComponents.minute ?? 0, second: 0, of: date) else { continue }
+            
+            if fireDate < Date() { continue }
+            
+            let dateString = dateFormatter.string(from: fireDate)
+            
+            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+            
+            let request = UNNotificationRequest(
+                identifier: "smart-reminder-\(habit.id.uuidString)-\(dateString)",
+                content: content,
+                trigger: trigger
+            )
+            
+            do {
+                try await notificationCenter.add(request)
+            } catch {
+                print("❌ Failed to schedule smart reminder for \(dateString): \(error)")
+            }
         }
+        
+        print("✅ Scheduled smart reminders for \(habit.title) for next 14 days")
     }
     
     private func analyzeBestCompletionTime(for habit: Habit) -> Int {
@@ -151,8 +193,107 @@ class NotificationManager: NSObject, ObservableObject {
     // MARK: - Cancel Habit Reminder
     
     func cancelHabitReminder(for habitId: UUID) {
-        notificationCenter.removePendingNotificationRequests(withIdentifiers: ["habit-reminder-\(habitId.uuidString)"])
-        print("🗑️ Cancelled reminder for habit \(habitId)")
+        // We need to remove all notifications starting with this prefix
+        Task {
+            let pending = await notificationCenter.pendingNotificationRequests()
+            let idsToRemove = pending.filter {
+                $0.identifier.hasPrefix("habit-reminder-\(habitId.uuidString)") ||
+                $0.identifier.hasPrefix("smart-reminder-\(habitId.uuidString)")
+            }.map { $0.identifier }
+            
+            if !idsToRemove.isEmpty {
+                notificationCenter.removePendingNotificationRequests(withIdentifiers: idsToRemove)
+                print("🗑️ Cancelled \(idsToRemove.count) reminders for habit \(habitId)")
+            }
+        }
+    }
+    
+    // MARK: - Cancel Today's Reminder
+    
+    func cancelTodayReminder(for habitId: UUID) async {
+        let dateString = dateFormatter.string(from: Date())
+        
+        // Specific IDs for today
+        let idsToRemove = [
+            "habit-reminder-\(habitId.uuidString)-\(dateString)",
+            "smart-reminder-\(habitId.uuidString)-\(dateString)"
+        ]
+        
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: idsToRemove)
+        
+        // Also check if any old repeating notifications are pending (just in case)
+        let pendingRequests = await notificationCenter.pendingNotificationRequests()
+        let oldRepeatingIds = pendingRequests.filter {
+            $0.identifier == "habit-reminder-\(habitId.uuidString)" ||
+            $0.identifier == "smart-reminder-\(habitId.uuidString)"
+        }.map { $0.identifier }
+        
+        if !oldRepeatingIds.isEmpty {
+           notificationCenter.removePendingNotificationRequests(withIdentifiers: oldRepeatingIds)
+        }
+
+        // Also remove delivered notifications for today
+        let deliveredNotifications = await notificationCenter.deliveredNotifications()
+        let deliveredIdentifiers = deliveredNotifications.filter { notification in
+            notification.request.identifier.contains("habit-reminder-\(habitId.uuidString)") ||
+            notification.request.identifier.contains("smart-reminder-\(habitId.uuidString)")
+        }.map { $0.request.identifier }
+        
+        if !deliveredIdentifiers.isEmpty {
+            notificationCenter.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
+        }
+        
+        print("🗑️ Cancelled today's reminder for habit \(habitId)")
+    }
+    
+    // MARK: - Reschedule All (Maintenance)
+    
+    func rescheduleAllRequests(habits: [Habit]) async {
+        guard isAuthorized else { return }
+        print("🔄 Rescheduling all habit reminders...")
+        
+        for habit in habits {
+            if habit.isReminderEnabled, let time = habit.reminderTime {
+                // This schedules for next 14 days, skipping today if passed
+                await scheduleHabitReminder(for: habit, at: time)
+            } else if habit.isReminderEnabled {
+                // Smart reminder
+                await scheduleSmartReminder(for: habit)
+            }
+        }
+    }
+    
+    // MARK: - Completion Celebration
+    
+    func sendCompletionCelebration(for habit: Habit) async {
+        guard isAuthorized else { return }
+        
+        let content = UNMutableNotificationContent()
+        content.title = L10n.t("notification.completion.title")
+        content.body = String(format: L10n.t("notification.completion.body"), habit.title)
+        content.sound = .default
+        content.badge = 1
+        content.categoryIdentifier = "COMPLETION_CELEBRATION"
+        content.userInfo = [
+            "habitId": habit.id.uuidString,
+            "type": "completion_celebration"
+        ]
+        
+        // Trigger immediately
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: 1, repeats: false)
+        
+        let request = UNNotificationRequest(
+            identifier: "completion-\(habit.id.uuidString)-\(Date().timeIntervalSince1970)",
+            content: content,
+            trigger: trigger
+        )
+        
+        do {
+            try await notificationCenter.add(request)
+            print("🎉 Sent completion celebration for \(habit.title)")
+        } catch {
+            print("❌ Failed to send completion celebration: \(error)")
+        }
     }
     
     // MARK: - Streak Warning (Improved)
@@ -480,6 +621,28 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
         willPresent notification: UNNotification,
         withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
     ) {
+        let userInfo = notification.request.content.userInfo
+        
+        // Check if this is a habit reminder
+        if let habitIdString = userInfo["habitId"] as? String,
+           let habitId = UUID(uuidString: habitIdString),
+           let notificationType = userInfo["type"] as? String,
+           notificationType != "completion_celebration" {
+            
+            // Check if habit is already completed today
+            Task { @MainActor in
+                let habitStore = HabitStore()
+                if let habit = habitStore.habits.first(where: { $0.id == habitId }),
+                   habit.isCompletedToday {
+                    // Habit is already completed, cancel this notification and send celebration instead
+                    center.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
+                    await sendCompletionCelebration(for: habit)
+                    completionHandler([]) // Don't show the reminder
+                    return
+                }
+            }
+        }
+        
         completionHandler([.banner, .sound, .badge])
     }
     

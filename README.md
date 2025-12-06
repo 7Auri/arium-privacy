@@ -341,7 +341,7 @@ Yeni temalar `HabitTheme.swift` dosyasından kolayca eklenebilir.
 - ✅ Premium status management
 
 ### Premium Setup
-Detaylı kurulum için `PREMIUM_PRODUCT_SETUP.md` dosyasına bakın.
+Detaylı kurulum için Apple Developer hesabınızda Subscription ayarlarını yapın.
 
 ## 🚀 TestFlight & Release
 
@@ -351,7 +351,7 @@ Detaylı kurulum için `PREMIUM_PRODUCT_SETUP.md` dosyasına bakın.
 3. Upload
 4. App Store Connect → TestFlight → Build processing bekleyin
 
-Detaylı rehber için `TESTFLIGHT_RELEASE_GUIDE.md` dosyasına bakın.
+4. App Store Connect → TestFlight → Build processing bekleyin
 
 ## 📈 Proje İstatistikleri
 
@@ -371,14 +371,6 @@ Status:           ✅ Production Ready
 ## 📚 Dokümantasyon
 
 - **README.md** - Bu dosya (genel bakış)
-- **FEATURE_SUMMARY.md** - Tüm özellikler özeti
-- **TRANSLATIONS_AND_TESTS_COMPLETE.md** - Final durum raporu
-- **TESTFLIGHT_RELEASE_GUIDE.md** - TestFlight ve release rehberi
-- **PREMIUM_PRODUCT_SETUP.md** - Premium ürün kurulum rehberi
-- **DYNAMIC_ISLAND_SETUP.md** - Live Activities kurulum
-- **ALTERNATE_ICONS_SETUP.md** - Alternate app icons kurulum
-- **TEMPLATE_SYSTEM_IMPROVEMENTS.md** - Template sistemi
-- **PERFORMANCE_OPTIMIZATIONS.md** - Performance guide
 
 ## 🎯 Quick Start
 

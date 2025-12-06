@@ -397,7 +397,7 @@ struct ModernHeaderView: View {
         HStack(alignment: .center, spacing: 16) {
             VStack(alignment: .leading, spacing: 4) {
                 Text(greeting)
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundStyle(
                         LinearGradient(
                             colors: [AriumTheme.textPrimary, AriumTheme.accent],
@@ -406,9 +406,21 @@ struct ModernHeaderView: View {
                         )
                     )
                 
-                Text(L10n.t("home.title"))
-                    .font(.system(size: 15, weight: .medium))
-                    .foregroundStyle(AriumTheme.textSecondary)
+                Text("Arium")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .tracking(1)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                appThemeManager.accentColor.color,
+                                appThemeManager.accentColor.color.opacity(0.8),
+                                Color.blue.opacity(0.6)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .shadow(color: appThemeManager.accentColor.color.opacity(0.4), radius: 6, x: 0, y: 3)
             }
             
             Spacer()

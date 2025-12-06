@@ -90,9 +90,36 @@ enum AchievementTier: String, Codable, CaseIterable {
     }
 }
 
+/// Unique identifiers for all achievements
+enum AchievementID: String, Codable, CaseIterable {
+    // Streak
+    case streak7 = "streak_7"
+    case streak30 = "streak_30"
+    case streak100 = "streak_100"
+    case streak365 = "streak_365"
+    
+    // Completion
+    case complete10 = "complete_10"
+    case complete100 = "complete_100"
+    case complete500 = "complete_500"
+    case complete1000 = "complete_1000"
+    
+    // Consistency
+    case perfectWeek = "perfect_week"
+    case perfectMonth = "perfect_month"
+    
+    // Variety
+    case multiCategory = "multi_category"
+    case habitMaster = "habit_master"
+    
+    // Premium
+    case premiumMember = "premium_member"
+    case templateCreator = "template_creator"
+}
+
 /// Achievement definition
 struct Achievement: Identifiable, Codable, Equatable {
-    let id: String
+    let id: AchievementID
     let title: String
     let description: String
     let category: AchievementCategory
@@ -110,7 +137,7 @@ struct Achievement: Identifiable, Codable, Equatable {
     static let allAchievements: [Achievement] = [
         // STREAK ACHIEVEMENTS
         Achievement(
-            id: "streak_7",
+            id: .streak7,
             title: L10n.t("achievement.streak7.title"),
             description: L10n.t("achievement.streak7.description"),
             category: .streak,
@@ -120,7 +147,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "streak_30",
+            id: .streak30,
             title: L10n.t("achievement.streak30.title"),
             description: L10n.t("achievement.streak30.description"),
             category: .streak,
@@ -130,7 +157,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "streak_100",
+            id: .streak100,
             title: L10n.t("achievement.streak100.title"),
             description: L10n.t("achievement.streak100.description"),
             category: .streak,
@@ -140,7 +167,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "streak_365",
+            id: .streak365,
             title: L10n.t("achievement.streak365.title"),
             description: L10n.t("achievement.streak365.description"),
             category: .streak,
@@ -152,7 +179,7 @@ struct Achievement: Identifiable, Codable, Equatable {
         
         // COMPLETION ACHIEVEMENTS
         Achievement(
-            id: "complete_10",
+            id: .complete10,
             title: L10n.t("achievement.complete10.title"),
             description: L10n.t("achievement.complete10.description"),
             category: .completion,
@@ -162,7 +189,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "complete_100",
+            id: .complete100,
             title: L10n.t("achievement.complete100.title"),
             description: L10n.t("achievement.complete100.description"),
             category: .completion,
@@ -172,7 +199,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "complete_500",
+            id: .complete500,
             title: L10n.t("achievement.complete500.title"),
             description: L10n.t("achievement.complete500.description"),
             category: .completion,
@@ -182,7 +209,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "complete_1000",
+            id: .complete1000,
             title: L10n.t("achievement.complete1000.title"),
             description: L10n.t("achievement.complete1000.description"),
             category: .completion,
@@ -194,7 +221,7 @@ struct Achievement: Identifiable, Codable, Equatable {
         
         // CONSISTENCY ACHIEVEMENTS
         Achievement(
-            id: "perfect_week",
+            id: .perfectWeek,
             title: L10n.t("achievement.perfectWeek.title"),
             description: L10n.t("achievement.perfectWeek.description"),
             category: .consistency,
@@ -204,7 +231,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "perfect_month",
+            id: .perfectMonth,
             title: L10n.t("achievement.perfectMonth.title"),
             description: L10n.t("achievement.perfectMonth.description"),
             category: .consistency,
@@ -216,7 +243,7 @@ struct Achievement: Identifiable, Codable, Equatable {
         
         // VARIETY ACHIEVEMENTS
         Achievement(
-            id: "multi_category",
+            id: .multiCategory,
             title: L10n.t("achievement.multiCategory.title"),
             description: L10n.t("achievement.multiCategory.description"),
             category: .variety,
@@ -226,7 +253,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: false
         ),
         Achievement(
-            id: "habit_master",
+            id: .habitMaster,
             title: L10n.t("achievement.habitMaster.title"),
             description: L10n.t("achievement.habitMaster.description"),
             category: .variety,
@@ -238,7 +265,7 @@ struct Achievement: Identifiable, Codable, Equatable {
         
         // PREMIUM ACHIEVEMENTS
         Achievement(
-            id: "premium_member",
+            id: .premiumMember,
             title: L10n.t("achievement.premiumMember.title"),
             description: L10n.t("achievement.premiumMember.description"),
             category: .premium,
@@ -248,7 +275,7 @@ struct Achievement: Identifiable, Codable, Equatable {
             isPremium: true
         ),
         Achievement(
-            id: "template_creator",
+            id: .templateCreator,
             title: L10n.t("achievement.templateCreator.title"),
             description: L10n.t("achievement.templateCreator.description"),
             category: .premium,
@@ -263,11 +290,11 @@ struct Achievement: Identifiable, Codable, Equatable {
 /// User's unlocked achievement
 struct UnlockedAchievement: Identifiable, Codable {
     let id: UUID
-    let achievementId: String
+    let achievementId: AchievementID
     let unlockedAt: Date
     var isNew: Bool // For showing "NEW" badge
     
-    init(achievementId: String, unlockedAt: Date = Date(), isNew: Bool = true) {
+    init(achievementId: AchievementID, unlockedAt: Date = Date(), isNew: Bool = true) {
         self.id = UUID()
         self.achievementId = achievementId
         self.unlockedAt = unlockedAt

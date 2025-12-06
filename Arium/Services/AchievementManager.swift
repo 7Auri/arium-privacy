@@ -108,26 +108,30 @@ class AchievementManager: ObservableObject {
     }
     
     private func checkConsistencyAchievement(_ achievement: Achievement, habits: [Habit]) -> Bool {
-        if achievement.id == "perfect_week" {
+        switch achievement.id {
+        case .perfectWeek:
             return checkPerfectWeek(habits: habits)
-        } else if achievement.id == "perfect_month" {
+        case .perfectMonth:
             return checkPerfectMonth(habits: habits)
+        default:
+            return false
         }
-        return false
     }
     
     private func checkVarietyAchievement(_ achievement: Achievement, habits: [Habit]) -> Bool {
-        if achievement.id == "multi_category" {
+        switch achievement.id {
+        case .multiCategory:
             let uniqueCategories = Set(habits.map { $0.category })
             return uniqueCategories.count >= achievement.targetValue
-        } else if achievement.id == "habit_master" {
+        case .habitMaster:
             return habits.count >= achievement.targetValue
+        default:
+            return false
         }
-        return false
     }
     
     private func checkPremiumAchievement(_ achievement: Achievement, isPremium: Bool) -> Bool {
-        if achievement.id == "premium_member" {
+        if achievement.id == .premiumMember {
             return isPremium
         }
         // template_creator will be checked when user creates a template
@@ -223,7 +227,7 @@ class AchievementManager: ObservableObject {
     
     // MARK: - Helpers
     
-    func isAchievementUnlocked(_ achievementId: String) -> Bool {
+    func isAchievementUnlocked(_ achievementId: AchievementID) -> Bool {
         unlockedAchievements.contains { $0.achievementId == achievementId }
     }
     
@@ -236,7 +240,7 @@ class AchievementManager: ObservableObject {
         case .completion:
             current = habits.reduce(0) { $0 + $1.completionDates.count }
         case .variety:
-            if achievement.id == "multi_category" {
+            if achievement.id == .multiCategory {
                 current = Set(habits.map { $0.category }).count
             } else {
                 current = habits.count
@@ -269,7 +273,7 @@ class AchievementManager: ObservableObject {
     
     // MARK: - Mark as Seen
     
-    func markAchievementAsSeen(_ achievementId: String) {
+    func markAchievementAsSeen(_ achievementId: AchievementID) {
         if let index = unlockedAchievements.firstIndex(where: { $0.achievementId == achievementId }) {
             unlockedAchievements[index].isNew = false
             saveUnlockedAchievements()

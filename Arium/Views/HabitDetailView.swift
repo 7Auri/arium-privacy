@@ -86,73 +86,7 @@ struct HabitDetailView: View {
     }
     
     private var headerView: some View {
-        VStack(spacing: 16) {
-            ZStack {
-                // Progress Ring with animation
-                ProgressRing(
-                    progress: viewModel.habit.isCompletedToday ? 1.0 : 0.0,
-                    lineWidth: 10,
-                    color: viewModel.habit.theme.accent
-                )
-                .frame(width: 140, height: 140)
-                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: viewModel.habit.isCompletedToday)
-                
-                VStack(spacing: 6) {
-                    Image(systemName: viewModel.habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 36, weight: .semibold))
-                        .foregroundColor(viewModel.habit.isCompletedToday ? viewModel.habit.theme.accent : Color(.tertiaryLabel))
-                        .symbolEffect(.bounce, value: viewModel.habit.isCompletedToday)
-                    
-                    Text("\(viewModel.habit.streak)")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(.primary)
-                    
-                    Text(L10n.t("habit.streak"))
-                        .font(.caption)
-                        .fontWeight(.medium)
-                        .foregroundStyle(.secondary)
-                }
-            }
-            
-            // Category Badge with improved styling
-            HStack(spacing: 8) {
-                Image(systemName: viewModel.habit.category.systemIcon)
-                    .font(.caption)
-                Text(viewModel.habit.category.localizedName)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
-            }
-            .foregroundStyle(.white)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
-            .background(
-                Capsule()
-                    .fill(
-                        LinearGradient(
-                            colors: [viewModel.habit.category.color, viewModel.habit.category.color.opacity(0.8)],
-                            startPoint: .leading,
-                            endPoint: .trailing
-                        )
-                    )
-            )
-            .shadow(
-                color: viewModel.habit.category.color.opacity(0.4),
-                radius: 8,
-                x: 0,
-                y: 4
-            )
-        }
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 24)
-                .fill(Color(.secondarySystemBackground))
-                .shadow(color: Color.black.opacity(0.05), radius: 12, x: 0, y: 4)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
-        )
+        HabitDetailHeaderView(habit: viewModel.habit)
     }
     
     private var notesView: some View {
@@ -193,88 +127,7 @@ struct HabitDetailView: View {
     // MARK: - Weekly Progress View
     
     private var weeklyProgressView: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            HStack(spacing: 8) {
-                Image(systemName: "calendar")
-                    .font(.system(size: 16, weight: .semibold))
-                    .foregroundStyle(viewModel.habit.theme.accent)
-                
-                Text(L10n.t("habit.weeklyProgress"))
-                    .font(.headline)
-                    .fontWeight(.semibold)
-                    .foregroundStyle(.primary)
-            }
-            
-            // Last 7 days calendar view
-            HStack(spacing: 8) {
-                ForEach(weeklyProgressDays, id: \.date) { dayInfo in
-                    WeeklyDayView(
-                        dayInfo: dayInfo,
-                        accentColor: viewModel.habit.theme.accent
-                    )
-                }
-            }
-            
-            // Weekly stats
-            HStack(spacing: 16) {
-                HStack(spacing: 6) {
-                    Image(systemName: "checkmark.circle.fill")
-                        .font(.caption)
-                        .foregroundStyle(.green)
-                    Text("\(weeklyCompletedCount)/7")
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                        .foregroundStyle(.primary)
-                    Text(L10n.t("habit.days"))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                }
-                
-                Spacer()
-                
-                Text("\(Int(weeklyCompletionRate * 100))%")
-                    .font(.subheadline)
-                    .fontWeight(.bold)
-                    .foregroundStyle(viewModel.habit.theme.accent)
-            }
-            .padding(.top, 8)
-        }
-        .padding(20)
-        .background(
-            RoundedRectangle(cornerRadius: 20)
-                .fill(Color(.secondarySystemBackground))
-                .shadow(color: Color.black.opacity(0.05), radius: 8, x: 0, y: 2)
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 20)
-                .stroke(viewModel.habit.theme.accent.opacity(0.2), lineWidth: 1)
-        )
-    }
-    
-    // Weekly progress data
-    private var weeklyProgressDays: [(date: Date, isCompleted: Bool, hasNote: Bool)] {
-        let calendar = Calendar.current
-        var days: [(date: Date, isCompleted: Bool, hasNote: Bool)] = []
-        
-        for i in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: Date()) else { continue }
-            let isCompleted = viewModel.habit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
-            let dateKey = date.dateKey
-            let hasNote = viewModel.habit.completionNotes[dateKey] != nil && !viewModel.habit.completionNotes[dateKey]!.isEmpty
-            
-            days.append((date: date, isCompleted: isCompleted, hasNote: hasNote))
-        }
-        
-        return days.reversed() // Oldest to newest
-    }
-    
-    private var weeklyCompletedCount: Int {
-        weeklyProgressDays.filter { $0.isCompleted }.count
-    }
-    
-    private var weeklyCompletionRate: Double {
-        guard !weeklyProgressDays.isEmpty else { return 0 }
-        return Double(weeklyCompletedCount) / Double(weeklyProgressDays.count)
+        HabitDetailWeeklyProgressView(habit: viewModel.habit)
     }
     
     // MARK: - Notes History View
@@ -334,31 +187,7 @@ struct HabitDetailView: View {
     }
     
     private var statsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            Text(L10n.t("habit.stats"))
-                .font(.headline)
-                .foregroundStyle(.primary)
-            
-            HStack(spacing: 12) {
-                MiniStatCard(
-                    title: "\(viewModel.habit.goalDays) \(L10n.t("habit.days"))",
-                    value: "\(Int(viewModel.getCompletionPercentage(days: viewModel.habit.goalDays) * 100))%",
-                    color: viewModel.habit.theme.accent
-                )
-                
-                MiniStatCard(
-                    title: L10n.t("habit.stats.30days"),
-                    value: "\(Int(viewModel.getCompletionPercentage(days: 30) * 100))%",
-                    color: viewModel.habit.theme.accent
-                )
-                
-                MiniStatCard(
-                    title: L10n.t("habit.stats.total"),
-                    value: "\(viewModel.habit.completionDates.count)",
-                    color: viewModel.habit.theme.accent
-                )
-            }
-        }
+        HabitDetailStatsView(habit: viewModel.habit)
     }
     
     private var startDateView: some View {

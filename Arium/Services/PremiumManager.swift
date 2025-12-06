@@ -48,7 +48,16 @@ class PremiumManager: ObservableObject {
     // MARK: - Premium Status
     
     private func loadPremiumStatus() {
-        isPremium = UserDefaults.standard.bool(forKey: "isPremium")
+        // Test premium durumunu kontrol et
+        let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
+        let savedPremium = UserDefaults.standard.bool(forKey: "isPremium")
+        
+        if isTestPremium && savedPremium {
+            // Test premium aktifse, StoreKit kontrolünü atla
+            isPremium = true
+        } else {
+            isPremium = savedPremium
+        }
     }
     
     private func savePremiumStatus(_ status: Bool) {
@@ -61,6 +70,8 @@ class PremiumManager: ObservableObject {
     /// TestFlight'ta premium test etmek için kullanılır
     /// Canlıya geçerken bu fonksiyon kaldırılmalı
     func setPremiumStatus(_ status: Bool) {
+        // Test premium durumunu işaretle (StoreKit kontrolünü atla)
+        UserDefaults.standard.set(true, forKey: "isTestPremium")
         savePremiumStatus(status)
     }
     
@@ -94,6 +105,15 @@ class PremiumManager: ObservableObject {
     }
     
     func checkPremiumStatus() async {
+        // Test premium aktifse StoreKit kontrolünü atla
+        let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
+        if isTestPremium && UserDefaults.standard.bool(forKey: "isPremium") {
+            await MainActor.run {
+                isPremium = true
+            }
+            return
+        }
+        
         // Check if user has active subscription
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
@@ -106,9 +126,11 @@ class PremiumManager: ObservableObject {
             }
         }
         
-        // No active subscription found
-        await MainActor.run {
-            savePremiumStatus(false)
+        // No active subscription found (test premium değilse)
+        if !isTestPremium {
+            await MainActor.run {
+                savePremiumStatus(false)
+            }
         }
     }
     

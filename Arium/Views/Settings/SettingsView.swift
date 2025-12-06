@@ -7,6 +7,7 @@
 
 import SwiftUI
 import CloudKit
+import MessageUI
 
 struct SettingsView: View {
     @Environment(\.dismiss) var dismiss
@@ -35,7 +36,7 @@ struct SettingsView: View {
     @State private var iCloudLoadMessage = ""
     @State private var showingLanguagePicker = false
     @StateObject private var appThemeManager = AppThemeManager.shared
-    @State private var showingThemePicker = false
+
     @State private var showingExportHabitPicker = false
     @State private var selectedHabitsForExport: Set<UUID> = []
     @State private var showingExportSuccess = false
@@ -47,6 +48,10 @@ struct SettingsView: View {
     @State private var showingDuplicateAlert = false
     @State private var duplicateHabit: Habit?
     @State private var duplicateItemId: UUID?
+    @StateObject private var feedbackManager = FeedbackManager.shared
+    @StateObject private var analyticsManager = AnalyticsManager.shared
+    @State private var showingMailComposer = false
+    @State private var currentFeedbackType: FeedbackManager.FeedbackType?
     
     // MARK: - Computed Properties
     
@@ -83,113 +88,104 @@ struct SettingsView: View {
     // MARK: - Modern UI Components
     
     private var headerCard: some View {
-        VStack(spacing: 18) {
-            // App Icon - Centered and Larger
+        VStack(spacing: 20) {
+            // App Icon with specialized glow
             ZStack {
-                // Subtle background gradient with glow
-                RoundedRectangle(cornerRadius: 30)
-                    .fill(
+                Circle()
+                    .fill(appThemeManager.accentColor.color.opacity(0.1))
+                    .frame(width: 140, height: 140)
+                    .blur(radius: 20)
+                
+                Image("AppIconMain")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 100, height: 100)
+                    .clipShape(RoundedRectangle(cornerRadius: 22, style: .continuous))
+                    .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 22, style: .continuous)
+                            .stroke(Color.white.opacity(0.1), lineWidth: 1)
+                    )
+            }
+            .padding(.top, 10)
+            
+            VStack(spacing: 8) {
+                // App Name - Premium Gradient Style
+                Text("Arium")
+                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .tracking(1) // Balanced spacing
+                    .foregroundStyle(
                         LinearGradient(
                             colors: [
-                                appThemeManager.accentColor.color.opacity(0.2),
-                                appThemeManager.accentColor.color.opacity(0.1),
-                                appThemeManager.accentColor.color.opacity(0.05)
+                                appThemeManager.accentColor.color,
+                                appThemeManager.accentColor.color.opacity(0.8),
+                                Color.blue.opacity(0.6) // Subtle cool tone mix
                             ],
                             startPoint: .topLeading,
                             endPoint: .bottomTrailing
                         )
                     )
-                    .frame(width: 130, height: 130)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 30)
-                            .stroke(
-                                LinearGradient(
-                                    colors: [
-                                        appThemeManager.accentColor.color.opacity(0.3),
-                                        appThemeManager.accentColor.color.opacity(0.15)
-                                    ],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                ),
-                                lineWidth: 1.5
-                            )
-                    )
+                    .shadow(color: appThemeManager.accentColor.color.opacity(0.4), radius: 8, x: 0, y: 4)
                 
-                // App Icon
-                Image("AppIconMain")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 116, height: 116)
-                    .cornerRadius(26)
-            }
-            
-            // App Name - Calligraphy/Handwritten Style (Dancing Script)
-            Text("Arium")
-                .font(.dancingScript(size: 48))
-                .tracking(3)
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [
-                            appThemeManager.accentColor.color,
-                            appThemeManager.accentColor.color.opacity(0.85),
-                            appThemeManager.accentColor.color.opacity(0.7)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                )
-                .shadow(color: appThemeManager.accentColor.color.opacity(0.2), radius: 2, x: 0, y: 1)
-            
-            // Version Badge and Stats - Better Layout
-            VStack(spacing: 12) {
-                // Version Badge
-                Text(Bundle.main.displayVersion)
-                    .font(.system(size: 12, weight: .bold, design: .rounded))
-                    .foregroundStyle(appThemeManager.accentColor.color)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 6)
-                    .background(
-                        Capsule()
-                            .fill(appThemeManager.accentColor.color.opacity(0.18))
-                            .overlay(
-                                Capsule()
-                                    .stroke(appThemeManager.accentColor.color.opacity(0.3), lineWidth: 1)
-                            )
-                    )
-                
-                // Quick Stats - Centered
-                HStack(spacing: 10) {
-                    StatBadge(
-                        icon: "list.bullet",
-                        value: "\(habitStore.habits.count)",
-                        color: appThemeManager.accentColor.color
-                    )
+                // Version Info
+                HStack(spacing: 6) {
+                    Text("v\(Bundle.main.displayVersion)")
+                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .foregroundStyle(.secondary)
                     
-                    StatBadge(
-                        icon: "checkmark.circle.fill",
-                        value: "\(habitStore.getTotalCompletions())",
-                        color: .green
-                    )
-                    
-                    StatBadge(
-                        icon: "flame.fill",
-                        value: "\(habitStore.habits.map { $0.streak }.max() ?? 0)",
-                        color: .orange
-                    )
+                    if premiumManager.isPremium {
+                        Text("•")
+                            .foregroundStyle(.secondary)
+                        Text("Premium")
+                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .foregroundStyle(appThemeManager.accentColor.color)
+                    }
                 }
             }
+            
+            // Stats Row
+            HStack(spacing: 20) {
+                StatItem(icon: "list.bullet", value: "\(habitStore.habits.count)", color: appThemeManager.accentColor.color)
+                StatItem(icon: "checkmark.circle.fill", value: "\(habitStore.getTotalCompletions())", color: .green)
+                StatItem(icon: "flame.fill", value: "\(habitStore.habits.map { $0.streak }.max() ?? 0)", color: .orange)
+            }
+            .padding(.top, 8)
         }
         .frame(maxWidth: .infinity)
-        .padding(.vertical, 28)
-        .padding(.horizontal, 24)
+        .padding(.vertical, 32)
         .background(
-            RoundedRectangle(cornerRadius: 26)
-                .fill(AriumTheme.cardBackground)
-                .shadow(color: Color.black.opacity(0.04), radius: 10, x: 0, y: 3)
+            RoundedRectangle(cornerRadius: 24)
+                .fill(Color(uiColor: .secondarySystemGroupedBackground))
         )
         .padding(.horizontal, 20)
-        .padding(.top, 8)
-        .padding(.bottom, 16)
+        .padding(.vertical, 10)
+    }
+    
+    // Helper Stat Item View
+    private struct StatItem: View {
+        let icon: String
+        let value: String
+        let color: Color
+        
+        var body: some View {
+            VStack(spacing: 4) {
+                Image(systemName: icon)
+                    .font(.system(size: 18, weight: .semibold))
+                    .foregroundStyle(color)
+                    .frame(width: 24, height: 24)
+                
+                Text(value)
+                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+            }
+            .frame(minWidth: 60)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 16)
+            .background(
+                RoundedRectangle(cornerRadius: 16)
+                    .fill(Color(uiColor: .tertiarySystemGroupedBackground))
+            )
+        }
     }
     
     private struct StatBadge: View {
@@ -277,27 +273,7 @@ struct SettingsView: View {
         )
     }
     
-    private var appThemeCard: some View {
-        ModernSettingsCard(
-            iconName: "paintpalette.fill",
-            iconColor: appThemeManager.accentColor.color,
-            title: L10n.t("settings.appTheme"),
-            description: appThemeManager.accentColor.name,
-            rightIndicator: AnyView(
-                Circle()
-                    .fill(appThemeManager.accentColor.color)
-                    .frame(width: 28, height: 28)
-                    .overlay(
-                        Circle()
-                            .stroke(Color.white, lineWidth: 2)
-                    )
-                    .shadow(color: appThemeManager.accentColor.color.opacity(0.3), radius: 4, x: 0, y: 2)
-            ),
-            action: {
-                showingThemePicker = true
-            }
-        )
-    }
+
     
     @State private var showingCustomization = false
     @State private var showingAchievements = false
@@ -305,7 +281,7 @@ struct SettingsView: View {
     private var customizationCard: some View {
         ModernSettingsCard(
             iconName: "paintbrush.fill",
-            iconColor: .pink,
+            iconColor: appThemeManager.accentColor.color,
             title: L10n.t("settings.customization"),
             description: L10n.t("settings.customization.subtitle"),
             action: {
@@ -395,8 +371,7 @@ struct SettingsView: View {
                 }
             )
             
-            // TestFlight Premium Test Button
-            #if DEBUG
+            // TestFlight Premium Test Button - Always visible for testing
             ModernSettingsCard(
                 iconName: "checkmark.seal.fill",
                 iconColor: .green,
@@ -413,9 +388,9 @@ struct SettingsView: View {
                 ),
                 action: {
                     premiumManager.setPremiumStatus(true)
+                    HapticManager.success()
                 }
             )
-            #endif
         }
     }
     
@@ -840,82 +815,7 @@ struct SettingsView: View {
         }
     }
     
-    private var appThemeSection: some View {
-        Section {
-            SettingsRow(
-                iconName: "paintpalette.fill",
-                iconColor: appThemeManager.accentColor.color,
-                title: L10n.t("settings.appTheme"),
-                description: appThemeManager.accentColor.name,
-                rightIndicator: AnyView(
-                    Circle()
-                        .fill(appThemeManager.accentColor.color)
-                        .frame(width: 24, height: 24)
-                        .overlay(
-                            Circle()
-                                .stroke(Color(.separator).opacity(0.3), lineWidth: 1)
-                        )
-                ),
-                action: {
-                    showingThemePicker = true
-                }
-            )
-            .listRowBackground(Color(.secondarySystemGroupedBackground))
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-            .sheet(isPresented: $showingThemePicker) {
-                AppThemePickerSheet(
-                    selectedColor: $appThemeManager.accentColor
-                )
-            }
-            
-            NavigationLink(destination: CustomizationView()) {
-                HStack(spacing: 16) {
-                    ZStack {
-                        Circle()
-                            .fill(
-                                LinearGradient(
-                                    colors: [Color.pink.opacity(0.2), Color.pink.opacity(0.1)],
-                                    startPoint: .topLeading,
-                                    endPoint: .bottomTrailing
-                                )
-                            )
-                            .frame(width: 44, height: 44)
-                        
-                        Image(systemName: "paintbrush.fill")
-                            .font(.system(size: 20, weight: .semibold))
-                            .foregroundStyle(.pink)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(L10n.t("settings.customization"))
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.primary)
-                        
-                        Text(L10n.t("settings.customization.subtitle"))
-                            .font(.system(size: 14, weight: .regular))
-                            .foregroundStyle(.secondary)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(16)
-                .frame(maxWidth: .infinity, minHeight: 72)
-                .background(
-                    RoundedRectangle(cornerRadius: 26)
-                        .fill(Color(.secondarySystemGroupedBackground))
-                )
-                .contentShape(Rectangle())
-            }
-            .buttonStyle(PlainButtonStyle())
-            .listRowBackground(Color(.secondarySystemGroupedBackground))
-            .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-        } header: {
-            Text(L10n.t("settings.appearance"))
-                .font(.footnote)
-                .textCase(.uppercase)
-                .foregroundStyle(.secondary)
-        }
-    }
+
     
     private var achievementsSection: some View {
         Section {
@@ -1414,6 +1314,68 @@ struct SettingsView: View {
     }
     #endif
     
+    private var feedbackCard: some View {
+        VStack(spacing: 12) {
+            // Bir hata gördüm
+            ModernSettingsCard(
+                iconName: "exclamationmark.triangle.fill",
+                iconColor: .red,
+                title: L10n.t("settings.feedback.bug"),
+                description: L10n.t("settings.feedback.bug.description"),
+                action: {
+                    currentFeedbackType = .bug
+                    showingMailComposer = true
+                    feedbackManager.composeMail(type: .bug)
+                    analyticsManager.trackFeedback(type: "bug")
+                    HapticManager.light()
+                }
+            )
+            
+            // Özellik önerisi
+            ModernSettingsCard(
+                iconName: "lightbulb.fill",
+                iconColor: .yellow,
+                title: L10n.t("settings.feedback.feature"),
+                description: L10n.t("settings.feedback.feature.description"),
+                action: {
+                    currentFeedbackType = .feature
+                    showingMailComposer = true
+                    feedbackManager.composeMail(type: .feature)
+                    analyticsManager.trackFeedback(type: "feature")
+                    HapticManager.light()
+                }
+            )
+            
+            // Bana bir kahve ısmarla
+            ModernSettingsCard(
+                iconName: "cup.and.saucer.fill",
+                iconColor: .brown,
+                title: L10n.t("settings.feedback.coffee"),
+                description: L10n.t("settings.feedback.coffee.description"),
+                action: {
+                    currentFeedbackType = .coffee
+                    showingMailComposer = true
+                    feedbackManager.composeMail(type: .coffee)
+                    analyticsManager.trackFeedback(type: "coffee")
+                    HapticManager.success()
+                }
+            )
+            
+            // App Store'da değerlendir
+            ModernSettingsCard(
+                iconName: "star.fill",
+                iconColor: .orange,
+                title: L10n.t("settings.feedback.review"),
+                description: L10n.t("settings.feedback.review.description"),
+                action: {
+                    feedbackManager.requestAppStoreReview()
+                    analyticsManager.trackFeedback(type: "review")
+                    HapticManager.success()
+                }
+            )
+        }
+    }
+    
     private var aboutSection: some View {
         Section {
             VStack(spacing: 16) {
@@ -1522,7 +1484,7 @@ struct SettingsView: View {
                 iconColor: appThemeManager.accentColor.color
             ) {
                 languageCard
-                appThemeCard
+
                 customizationCard
             }
             
@@ -1578,6 +1540,15 @@ struct SettingsView: View {
                 iconColor: AriumTheme.accent
             ) {
                 statisticsCard
+            }
+            
+            // Feedback & Support
+            modernSection(
+                title: L10n.t("settings.feedback.title"),
+                icon: "heart.fill",
+                iconColor: .pink
+            ) {
+                feedbackCard
             }
             
             // Debug Section
@@ -1685,13 +1656,15 @@ struct SettingsView: View {
                     }
                 }
             }
-            .sheet(isPresented: $showingThemePicker) {
-                AppThemePickerSheet(
-                    selectedColor: $appThemeManager.accentColor
-                )
-            }
+
             .sheet(isPresented: $showingStatistics) {
                 StatisticsView(habits: habitStore.habits, isPremium: premiumManager.isPremium)
+            }
+            .sheet(isPresented: $showingMailComposer) {
+                if let type = currentFeedbackType,
+                   let mailComposer = feedbackManager.getMailComposeViewController(type: type) {
+                    MailComposeView(mailComposer: mailComposer)
+                }
             }
             .errorAlert(error: $premiumError)
             .errorAlert(error: $exportError)
@@ -2000,419 +1973,7 @@ struct LanguageOptionRow: View {
     }
 }
 
-// MARK: - App Theme Picker Sheet
 
-struct AppThemePickerSheet: View {
-    @Binding var selectedColor: AppAccentColor
-    @Environment(\.dismiss) var dismiss
-    
-    private var regularThemes: [AppAccentColor] {
-        AppAccentColor.allCases.filter { !$0.isSpecialOccasion }
-    }
-    
-    private var specialOccasionThemes: [AppAccentColor] {
-        AppAccentColor.allCases.filter { $0.isSpecialOccasion }
-    }
-    
-    var body: some View {
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 32) {
-                    // Special Occasion Themes
-                    if !specialOccasionThemes.isEmpty {
-                        VStack(alignment: .leading, spacing: 16) {
-                            HStack(spacing: 8) {
-                                Image(systemName: "sparkles")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(.orange)
-                                Text(L10n.t("appTheme.specialOccasions"))
-                                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                            }
-                            .padding(.horizontal, 4)
-                            
-                            LazyVGrid(columns: [
-                                GridItem(.flexible()),
-                                GridItem(.flexible()),
-                                GridItem(.flexible()),
-                                GridItem(.flexible())
-                            ], spacing: 16) {
-                                ForEach(specialOccasionThemes) { color in
-                                    SpecialOccasionColorButton(
-                                        color: color,
-                                        isSelected: selectedColor == color,
-                                        isActive: color.isCurrentlyActive
-                                    ) {
-                                        selectedColor = color
-                                        dismiss()
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    
-                    // Regular Themes
-                    VStack(alignment: .leading, spacing: 16) {
-                        HStack(spacing: 8) {
-                            Image(systemName: "paintpalette.fill")
-                                .font(.system(size: 16, weight: .semibold))
-                                .foregroundStyle(AriumTheme.accent)
-                            Text(L10n.t("appTheme.regularThemes"))
-                                .font(.system(size: 18, weight: .bold, design: .rounded))
-                        }
-                        .padding(.horizontal, 4)
-                        
-                        LazyVGrid(columns: [
-                            GridItem(.flexible()),
-                            GridItem(.flexible()),
-                            GridItem(.flexible()),
-                            GridItem(.flexible())
-                        ], spacing: 20) {
-                            ForEach(regularThemes) { color in
-                                ColorOptionButton(
-                                    color: color,
-                                    isSelected: selectedColor == color
-                                ) {
-                                    selectedColor = color
-                                    dismiss()
-                                }
-                            }
-                        }
-                    }
-                }
-                .padding()
-            }
-            .background(Color(.systemGroupedBackground))
-            .navigationTitle(L10n.t("settings.appTheme"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.t("button.cancel")) {
-                        dismiss()
-                    }
-                }
-            }
-        }
-    }
-    
-}
-
-// MARK: - Export Format Extension
-
-extension ExportFormat {
-    var displayName: String {
-        switch self {
-        case .json: return "JSON"
-        case .csv: return "CSV"
-        case .pdf: return "PDF"
-        }
-    }
-    
-    var description: String {
-        switch self {
-        case .json: return L10n.t("export.json.description")
-        case .csv: return L10n.t("export.csv.description")
-        case .pdf: return L10n.t("export.pdf.description")
-        }
-    }
-    
-    var color: Color {
-        switch self {
-        case .json: return .blue
-        case .csv: return .green
-        case .pdf: return .red
-        }
-    }
-}
-
-// MARK: - Export Habit Picker Sheet
-
-struct ExportHabitPickerSheet: View {
-    let habits: [Habit]
-    @Binding var selectedHabits: Set<UUID>
-    let onExport: ([Habit], ExportFormat) -> Void
-    @Environment(\.dismiss) var dismiss
-    @State private var selectedFormat: ExportFormat = .json
-    
-    var selectedHabitsArray: [Habit] {
-        habits.filter { selectedHabits.contains($0.id) }
-    }
-    
-    var body: some View {
-        NavigationStack {
-            List {
-                // Format Selection
-                Section {
-                    ForEach(ExportFormat.allCases, id: \.self) { format in
-                        Button {
-                            selectedFormat = format
-                        } label: {
-                            HStack(spacing: 16) {
-                                ZStack {
-                                    Circle()
-                                        .fill(format.color.opacity(0.15))
-                                        .frame(width: 44, height: 44)
-                                    
-                                    Image(systemName: format.icon)
-                                        .font(.system(size: 20))
-                                        .foregroundColor(format.color)
-                                }
-                                
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text(format.displayName)
-                                        .font(.system(size: 16, weight: .semibold))
-                                        .foregroundColor(.primary)
-                                    
-                                    Text(format.description)
-                                        .font(.caption)
-                                        .foregroundColor(.secondary)
-                                }
-                                
-                                Spacer()
-                                
-                                if selectedFormat == format {
-                                    Image(systemName: "checkmark.circle.fill")
-                                        .foregroundColor(format.color)
-                                }
-                            }
-                            .padding(.vertical, 8)
-                        }
-                    }
-                } header: {
-                    Text(L10n.t("export.format"))
-                }
-                
-                Section {
-                    Button {
-                        // Toggle all
-                        if selectedHabits.count == habits.count {
-                            selectedHabits.removeAll()
-                        } else {
-                            selectedHabits = Set(habits.map { $0.id })
-                        }
-                    } label: {
-                        HStack {
-                            Text(selectedHabits.count == habits.count 
-                                 ? L10n.t("export.deselectAll") 
-                                 : L10n.t("export.selectAll"))
-                            Spacer()
-                            Text("\(selectedHabits.count)/\(habits.count)")
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-                } header: {
-                    Text(L10n.t("export.selectHabits"))
-                }
-                
-                Section {
-                    ForEach(habits) { habit in
-                        HabitSelectionRow(
-                            habit: habit,
-                            isSelected: selectedHabits.contains(habit.id)
-                        ) {
-                            if selectedHabits.contains(habit.id) {
-                                selectedHabits.remove(habit.id)
-                            } else {
-                                selectedHabits.insert(habit.id)
-                            }
-                        }
-                    }
-                } header: {
-                    Text(L10n.t("export.habits"))
-                } footer: {
-                    Text(String(format: L10n.t("export.selectedCount"), selectedHabits.count))
-                }
-            }
-            .navigationTitle(L10n.t("export.title"))
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.t("button.cancel")) {
-                        dismiss()
-                    }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button(L10n.t("export.button")) {
-                        onExport(selectedHabitsArray, selectedFormat)
-                        dismiss()
-                    }
-                    .disabled(selectedHabits.isEmpty)
-                }
-            }
-        }
-    }
-}
-
-struct HabitSelectionRow: View {
-    let habit: Habit
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 12) {
-                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
-                    .font(.system(size: 22))
-                    .foregroundStyle(isSelected ? AriumTheme.accent : .secondary)
-                
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(habit.title)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundStyle(.primary)
-                    
-                    if !habit.notes.isEmpty {
-                        Text(habit.notes)
-                            .font(.system(size: 14))
-                            .foregroundStyle(.secondary)
-                            .lineLimit(1)
-                    }
-                }
-                
-                Spacer()
-            }
-            .padding(.vertical, 4)
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
-
-// MARK: - Special Occasion Color Button
-
-struct SpecialOccasionColorButton: View {
-    let color: AppAccentColor
-    let isSelected: Bool
-    let isActive: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 8) {
-                ZStack {
-                    // Color circle
-                    Circle()
-                        .fill(
-                            LinearGradient(
-                                colors: [color.color, color.lightColor],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            )
-                        )
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Circle()
-                                .stroke(isSelected ? Color.white : Color.clear, lineWidth: 3)
-                        )
-                        .overlay(
-                            Circle()
-                                .stroke(isSelected ? color.color : Color.clear, lineWidth: 1)
-                                .padding(2)
-                        )
-                        .shadow(
-                            color: isSelected ? color.color.opacity(0.4) : Color.black.opacity(0.1),
-                            radius: isSelected ? 12 : 4,
-                            x: 0,
-                            y: isSelected ? 6 : 2
-                        )
-                        .scaleEffect(isSelected ? 1.1 : 1.0)
-                    
-                    // Icon overlay
-                    if !color.icon.isEmpty {
-                        Text(color.icon)
-                            .font(.system(size: 24))
-                            .opacity(0.9)
-                    }
-                    
-                    // Active badge
-                    if isActive {
-                        Circle()
-                            .fill(.green)
-                            .frame(width: 16, height: 16)
-                            .overlay(
-                                Image(systemName: "checkmark")
-                                    .font(.system(size: 10, weight: .bold))
-                                    .foregroundStyle(.white)
-                            )
-                            .offset(x: 22, y: -22)
-                            .shadow(color: .green.opacity(0.5), radius: 4, x: 0, y: 2)
-                    }
-                }
-                
-                VStack(spacing: 2) {
-                    Text(color.name)
-                        .font(.system(size: 11, weight: .semibold, design: .rounded))
-                        .foregroundStyle(isSelected ? .primary : .secondary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
-                    
-                    if isActive {
-                        Text(L10n.t("appTheme.active"))
-                            .font(.system(size: 9, weight: .medium))
-                            .foregroundStyle(.green)
-                    }
-                }
-            }
-            .padding(.vertical, 4)
-            .animation(.spring(response: 0.3, dampingFraction: 0.7), value: isSelected)
-        }
-        .buttonStyle(.plain)
-    }
-}
-
-// MARK: - Color Option Button
-
-struct ColorOptionButton: View {
-    let color: AppAccentColor
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(color.color)
-                        .frame(width: 60, height: 60)
-                        .overlay(
-                            Circle()
-                                .stroke(
-                                    isSelected ? AriumTheme.accent : Color(.separator).opacity(0.3),
-                                    lineWidth: isSelected ? 3 : 1
-                                )
-                        )
-                        .shadow(
-                            color: isSelected ? color.color.opacity(0.4) : Color.black.opacity(0.1),
-                            radius: isSelected ? 8 : 4,
-                            x: 0,
-                            y: isSelected ? 4 : 2
-                        )
-                    
-                    if isSelected {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 20, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                }
-                
-                Text(color.name)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .regular))
-                    .foregroundStyle(.primary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 12)
-            .background(
-                RoundedRectangle(cornerRadius: 12)
-                    .fill(isSelected ? color.color.opacity(0.1) : Color(.secondarySystemBackground))
-            )
-            .overlay(
-                RoundedRectangle(cornerRadius: 12)
-                    .stroke(
-                        isSelected ? color.color.opacity(0.3) : Color(.separator).opacity(0.2),
-                        lineWidth: isSelected ? 2 : 1
-                    )
-            )
-        }
-        .buttonStyle(PlainButtonStyle())
-    }
-}
 
 // MARK: - Import Habit Selection Sheet
 
@@ -2917,6 +2478,185 @@ struct QuickStatCard: View {
             RoundedRectangle(cornerRadius: 18)
                 .stroke(iconColor.opacity(0.2), lineWidth: 1)
         )
+    }
+}
+
+// MARK: - Export Format Extension
+
+extension ExportFormat {
+    var displayName: String {
+        switch self {
+        case .json: return "JSON"
+        case .csv: return "CSV"
+        case .pdf: return "PDF"
+        }
+    }
+    
+    var description: String {
+        switch self {
+        case .json: return L10n.t("export.json.description")
+        case .csv: return L10n.t("export.csv.description")
+        case .pdf: return L10n.t("export.pdf.description")
+        }
+    }
+    
+    var color: Color {
+        switch self {
+        case .json: return .blue
+        case .csv: return .green
+        case .pdf: return .red
+        }
+    }
+}
+
+// MARK: - Export Habit Picker Sheet
+
+struct ExportHabitPickerSheet: View {
+    let habits: [Habit]
+    @Binding var selectedHabits: Set<UUID>
+    let onExport: ([Habit], ExportFormat) -> Void
+    @Environment(\.dismiss) var dismiss
+    @State private var selectedFormat: ExportFormat = .json
+    
+    var selectedHabitsArray: [Habit] {
+        habits.filter { selectedHabits.contains($0.id) }
+    }
+    
+    var body: some View {
+        NavigationStack {
+            List {
+                // Format Selection
+                Section {
+                    ForEach(ExportFormat.allCases, id: \.self) { format in
+                        Button {
+                            selectedFormat = format
+                        } label: {
+                            HStack(spacing: 16) {
+                                ZStack {
+                                    Circle()
+                                        .fill(format.color.opacity(0.15))
+                                        .frame(width: 44, height: 44)
+                                    
+                                    Image(systemName: format.icon)
+                                        .font(.system(size: 20))
+                                        .foregroundColor(format.color)
+                                }
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(format.displayName)
+                                        .font(.system(size: 16, weight: .semibold))
+                                        .foregroundColor(.primary)
+                                    
+                                    Text(format.description)
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                
+                                Spacer()
+                                
+                                if selectedFormat == format {
+                                    Image(systemName: "checkmark.circle.fill")
+                                        .foregroundColor(format.color)
+                                }
+                            }
+                            .padding(.vertical, 8)
+                        }
+                    }
+                } header: {
+                    Text(L10n.t("export.format"))
+                }
+                
+                Section {
+                    Button {
+                        // Toggle all
+                        if selectedHabits.count == habits.count {
+                            selectedHabits.removeAll()
+                        } else {
+                            selectedHabits = Set(habits.map { $0.id })
+                        }
+                    } label: {
+                        HStack {
+                            Text(selectedHabits.count == habits.count 
+                                 ? L10n.t("export.deselectAll") 
+                                 : L10n.t("export.selectAll"))
+                            Spacer()
+                            Text("\(selectedHabits.count)/\(habits.count)")
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                } header: {
+                    Text(L10n.t("export.selectHabits"))
+                }
+                
+                Section {
+                    ForEach(habits) { habit in
+                        HabitSelectionRow(
+                            habit: habit,
+                            isSelected: selectedHabits.contains(habit.id)
+                        ) {
+                            if selectedHabits.contains(habit.id) {
+                                selectedHabits.remove(habit.id)
+                            } else {
+                                selectedHabits.insert(habit.id)
+                            }
+                        }
+                    }
+                } header: {
+                    Text(L10n.t("export.habits"))
+                } footer: {
+                    Text(String(format: L10n.t("export.selectedCount"), selectedHabits.count))
+                }
+            }
+            .navigationTitle(L10n.t("export.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.t("button.cancel")) {
+                        dismiss()
+                    }
+                }
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.t("export.button")) {
+                        onExport(selectedHabitsArray, selectedFormat)
+                        dismiss()
+                    }
+                    .disabled(selectedHabits.isEmpty)
+                }
+            }
+        }
+    }
+}
+
+struct HabitSelectionRow: View {
+    let habit: Habit
+    let isSelected: Bool
+    let action: () -> Void
+    
+    var body: some View {
+        Button(action: action) {
+            HStack(spacing: 12) {
+                Image(systemName: isSelected ? "checkmark.circle.fill" : "circle")
+                    .font(.system(size: 22))
+                    .foregroundStyle(isSelected ? AriumTheme.accent : .secondary)
+                
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(habit.title)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.primary)
+                    
+                    if !habit.notes.isEmpty {
+                        Text(habit.notes)
+                            .font(.system(size: 14))
+                            .foregroundStyle(.secondary)
+                            .lineLimit(1)
+                    }
+                }
+                
+                Spacer()
+            }
+            .padding(.vertical, 4)
+        }
+        .buttonStyle(PlainButtonStyle())
     }
 }
 

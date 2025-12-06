@@ -222,6 +222,57 @@ enum L10n {
             "settings.debug.togglePremium": "Toggle Premium (Debug)",
             "settings.appTheme": "App Theme",
             "settings.appearance": "Appearance",
+            "settings.feedback.title": "Feedback & Support",
+            "settings.feedback.bug": "Report a Bug",
+            "settings.feedback.bug.description": "Found an issue? Let us know!",
+            "settings.feedback.feature": "Suggest a Feature",
+            "settings.feedback.feature.description": "Have an idea? We'd love to hear it!",
+            "settings.feedback.coffee": "Buy Me a Coffee",
+            "settings.feedback.coffee.description": "Support the development ☕",
+            "settings.feedback.review": "Rate on App Store",
+            "settings.feedback.review.description": "Love Arium? Leave a review!",
+            
+            // Feedback Emails
+            "settings.feedback.subject.bug": "Arium - Bug Report",
+            "settings.feedback.subject.feature": "Arium - Feature Request",
+            "settings.feedback.subject.support": "Arium - Support Request",
+            "settings.feedback.subject.coffee": "Arium - Thanks! ☕",
+            
+            "settings.feedback.email.bug": """
+                Hello,
+                
+                I found a bug in Arium. Here are the details:
+                
+                App Version: %@
+                Device: %@
+                iOS Version: %@
+                
+                Bug Details:
+                """,
+            "settings.feedback.email.feature": """
+                Hello,
+                
+                I have a feature suggestion for Arium:
+                
+                """,
+            "settings.feedback.email.support": """
+                Hello,
+                
+                I need help with Arium.
+                
+                App Version: %@
+                Device: %@
+                iOS Version: %@
+                
+                Issue Details:
+                """,
+            "settings.feedback.email.coffee": """
+                Hello,
+                
+                I love Arium and want to support the developers! ☕
+                
+                Thanks!
+                """,
             
             // Onboarding
             "onboarding.skip": "Skip",
@@ -436,6 +487,8 @@ enum L10n {
             // Notifications
             "notification.reminder.title": "⏰ Habit Reminder",
             "notification.reminder.body": "Time to complete: %@",
+            "notification.completion.title": "🎉 Bravo!",
+            "notification.completion.body": "You completed %@ today! Keep it up!",
             "notification.streak.warning.title": "🔥 Don't Break Your Streak!",
             "notification.streak.warning.body": "You have a %d-day streak for '%@'. Complete it today!",
             "notification.milestone.title": "🎉 Milestone Achieved!",
@@ -472,7 +525,7 @@ enum L10n {
             "settings.export": "Export Habits",
             "settings.export.habits": "Export Habits",
             "settings.customization": "Customization",
-            "settings.customization.subtitle": "Fonts, widgets, themes",
+            "settings.customization.subtitle": "Theme, Font, Widget",
             "settings.import": "Import Habits",
             "settings.backup": "File Backup",
             "settings.backup.subtitle": "Save your data in different formats",
@@ -733,6 +786,57 @@ enum L10n {
             "settings.debug.togglePremium": "Premium Aç/Kapat (Debug)",
             "settings.appTheme": "Uygulama Teması",
             "settings.appearance": "Görünüm",
+            "settings.feedback.title": "Geri Bildirim & Destek",
+            "settings.feedback.bug": "Bir Hata Gördüm",
+            "settings.feedback.bug.description": "Bir sorun mu buldunuz? Bize bildirin!",
+            "settings.feedback.feature": "Özellik Önerisi",
+            "settings.feedback.feature.description": "Bir fikriniz mi var? Duymak isteriz!",
+            "settings.feedback.coffee": "Bana Bir Kahve Ismarla",
+            "settings.feedback.coffee.description": "Geliştirmeyi destekle ☕",
+            "settings.feedback.review": "App Store'da Değerlendir",
+            "settings.feedback.review.description": "Arium'u seviyor musunuz? Yorum bırakın!",
+            
+            // Feedback Emails
+            "settings.feedback.subject.bug": "Arium - Hata Bildirimi",
+            "settings.feedback.subject.feature": "Arium - Özellik Önerisi",
+            "settings.feedback.subject.support": "Arium - Destek Talebi",
+            "settings.feedback.subject.coffee": "Arium - Teşekkürler! ☕",
+            
+            "settings.feedback.email.bug": """
+                Merhaba,
+                
+                Arium'da bir hata tespit ettim. Detaylar aşağıda:
+                
+                Uygulama Versiyonu: %@
+                Cihaz: %@
+                iOS Versiyonu: %@
+                
+                Hata Detayları:
+                """,
+            "settings.feedback.email.feature": """
+                Merhaba,
+                
+                Arium için bir özellik önerim var:
+                
+                """,
+            "settings.feedback.email.support": """
+                Merhaba,
+                
+                Arium ile ilgili bir sorunum var. Yardımcı olabilir misiniz?
+                
+                Uygulama Versiyonu: %@
+                Cihaz: %@
+                iOS Versiyonu: %@
+                
+                Sorun Detayları:
+                """,
+            "settings.feedback.email.coffee": """
+                Merhaba,
+                
+                Arium'u seviyorum ve geliştiricileri desteklemek istiyorum! ☕
+                
+                Teşekkürler!
+                """,
             
             // Onboarding
             "onboarding.skip": "Geç",
@@ -982,6 +1086,8 @@ enum L10n {
             // Notifications
             "notification.reminder.title": "⏰ Alışkanlık Hatırlatıcısı",
             "notification.reminder.body": "Tamamlama zamanı: %@",
+            "notification.completion.title": "🎉 Bravo!",
+            "notification.completion.body": "Bugün %@ alışkanlığını tamamladın! Harika iş!",
             "notification.streak.warning.title": "🔥 Serini Kaybetme!",
             "notification.streak.warning.body": "'%2$@' için %1$d günlük serin var. Bugün tamamla!",
             "notification.milestone.title": "🎉 Kilometre Taşına Ulaştın!",
@@ -1019,7 +1125,7 @@ enum L10n {
             "settings.export.habits": "Alışkanlıkları Dışa Aktar",
             "settings.export.description": "Alışkanlıklarınızı farklı formatlarda dışa aktarın",
             "settings.customization": "Özelleştirme",
-            "settings.customization.subtitle": "Font, widget, temalar",
+            "settings.customization.subtitle": "Tema, Yazı Tipi, Widget",
             "settings.import": "Alışkanlıkları İçe Aktar",
             "settings.backup": "Dosya Yedekleme",
             "settings.backup.subtitle": "Verilerinizi farklı formatlarda kaydedin",
@@ -1272,6 +1378,15 @@ enum L10n {
             "settings.debug.togglePremium": "Premium umschalten (Debug)",
             "settings.appTheme": "App-Design",
             "settings.appearance": "Erscheinungsbild",
+            "settings.feedback.title": "Feedback & Support",
+            "settings.feedback.bug": "Fehler melden",
+            "settings.feedback.bug.description": "Ein Problem gefunden? Lass es uns wissen!",
+            "settings.feedback.feature": "Funktion vorschlagen",
+            "settings.feedback.feature.description": "Eine Idee? Wir würden sie gerne hören!",
+            "settings.feedback.coffee": "Kaffee spendieren",
+            "settings.feedback.coffee.description": "Entwicklung unterstützen ☕",
+            "settings.feedback.review": "Im App Store bewerten",
+            "settings.feedback.review.description": "Arium lieben? Hinterlasse eine Bewertung!",
             
             // Onboarding
             "onboarding.skip": "Überspringen",
@@ -1760,6 +1875,15 @@ enum L10n {
             "settings.debug.togglePremium": "Basculer Premium (Débogage)",
             "settings.appTheme": "Thème de l'application",
             "settings.appearance": "Apparence",
+            "settings.feedback.title": "Commentaires & Support",
+            "settings.feedback.bug": "Signaler un bug",
+            "settings.feedback.bug.description": "Trouvé un problème ? Faites-le nous savoir !",
+            "settings.feedback.feature": "Suggérer une fonctionnalité",
+            "settings.feedback.feature.description": "Une idée ? Nous aimerions l'entendre !",
+            "settings.feedback.coffee": "Offrir un café",
+            "settings.feedback.coffee.description": "Soutenir le développement ☕",
+            "settings.feedback.review": "Noter sur l'App Store",
+            "settings.feedback.review.description": "Vous aimez Arium ? Laissez un avis !",
             
             // Onboarding
             "onboarding.skip": "Passer",
@@ -2246,6 +2370,15 @@ enum L10n {
             "settings.debug.togglePremium": "Alternar Premium (Depuración)",
             "settings.appTheme": "Tema de la aplicación",
             "settings.appearance": "Apariencia",
+            "settings.feedback.title": "Comentarios y Soporte",
+            "settings.feedback.bug": "Reportar un error",
+            "settings.feedback.bug.description": "¿Encontraste un problema? ¡Háznoslo saber!",
+            "settings.feedback.feature": "Sugerir una función",
+            "settings.feedback.feature.description": "¿Tienes una idea? ¡Nos encantaría escucharla!",
+            "settings.feedback.coffee": "Invítame un café",
+            "settings.feedback.coffee.description": "Apoya el desarrollo ☕",
+            "settings.feedback.review": "Calificar en App Store",
+            "settings.feedback.review.description": "¿Te encanta Arium? ¡Deja una reseña!",
             
             // Onboarding
             "onboarding.skip": "Omitir",
@@ -2730,6 +2863,15 @@ enum L10n {
             "settings.debug.togglePremium": "Attiva/Disattiva Premium (Debug)",
             "settings.appTheme": "Tema app",
             "settings.appearance": "Aspetto",
+            "settings.feedback.title": "Feedback e Supporto",
+            "settings.feedback.bug": "Segnala un bug",
+            "settings.feedback.bug.description": "Trovato un problema? Faccelo sapere!",
+            "settings.feedback.feature": "Suggerisci una funzione",
+            "settings.feedback.feature.description": "Hai un'idea? Ci piacerebbe sentirla!",
+            "settings.feedback.coffee": "Offrimi un caffè",
+            "settings.feedback.coffee.description": "Supporta lo sviluppo ☕",
+            "settings.feedback.review": "Valuta su App Store",
+            "settings.feedback.review.description": "Ami Arium? Lascia una recensione!",
             
             // Onboarding
             "onboarding.skip": "Salta",

@@ -8,6 +8,7 @@
 import Foundation
 import UIKit
 import PDFKit
+import OSLog
 
 enum ExportFormat: String, CaseIterable {
     case csv = "CSV"
@@ -33,6 +34,7 @@ enum DataExportError: Error, LocalizedError {
     case pdfGenerationFailed
     case invalidCSVFormat
     case csvImportFailed
+    case importFailed
     
     var errorDescription: String? {
         switch self {
@@ -41,6 +43,7 @@ enum DataExportError: Error, LocalizedError {
         case .pdfGenerationFailed: return L10n.t("export.error.pdfFailed")
         case .invalidCSVFormat: return L10n.t("import.error.invalidCSV")
         case .csvImportFailed: return L10n.t("import.error.csvFailed")
+        case .importFailed: return L10n.t("import.error.failed")
         }
     }
 }
@@ -48,6 +51,7 @@ enum DataExportError: Error, LocalizedError {
 @MainActor
 class DataExportManager {
     static let shared = DataExportManager()
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "DataExport")
     
     private init() {}
     
@@ -121,6 +125,30 @@ class DataExportManager {
         }
         
         return try saveToTemporaryFile(jsonString, filename: "Arium_Export_\(timestamp).json")
+    }
+    
+    // MARK: - JSON Import
+    
+    func importFromJSON(url: URL) throws -> [Habit] {
+        // Start accessing security scoped resource if needed
+        let accessing = url.startAccessingSecurityScopedResource()
+        defer {
+            if accessing {
+                url.stopAccessingSecurityScopedResource()
+            }
+        }
+        
+        let data = try Data(contentsOf: url)
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        
+        do {
+            let exportData = try decoder.decode(ExportData.self, from: data)
+            return exportData.habits
+        } catch {
+            logger.error("❌ JSON Import Failed: \(error.localizedDescription)")
+            throw DataExportError.importFailed
+        }
     }
     
     // MARK: - PDF Export

@@ -23,6 +23,9 @@ struct AriumApp: App {
                     .environmentObject(habitStore)
                     .environmentObject(appThemeManager)
                     .task {
+                        // Track app launch
+                        AnalyticsManager.shared.trackAppLaunch()
+                        
                         // Update habits status on app launch (async, non-blocking)
                         await habitStore.updateTodayStatus()
                         

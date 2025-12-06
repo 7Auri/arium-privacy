@@ -13,6 +13,7 @@ struct Habit: Identifiable, Codable, Equatable {
     var title: String
     var notes: String
     var createdAt: Date
+    var updatedAt: Date? // Değişiklik zamanı (Sync optimizasyonu için)
     var streak: Int
     var themeId: String
     var isCompletedToday: Bool
@@ -35,6 +36,7 @@ struct Habit: Identifiable, Codable, Equatable {
         title: String,
         notes: String = "",
         createdAt: Date = Date(),
+        updatedAt: Date? = nil,
         streak: Int = 0,
         themeId: String = "purple",
         isCompletedToday: Bool = false,
@@ -54,6 +56,7 @@ struct Habit: Identifiable, Codable, Equatable {
         self.title = title
         self.notes = notes
         self.createdAt = createdAt
+        self.updatedAt = updatedAt ?? createdAt // Eğer nil gelirse oluşturulma tarihini kullan
         self.streak = streak
         self.themeId = themeId
         self.isCompletedToday = isCompletedToday
@@ -76,6 +79,10 @@ struct Habit: Identifiable, Codable, Equatable {
     
     var effectiveStartDate: Date {
         startDate ?? createdAt
+    }
+    
+    var lastModified: Date {
+        updatedAt ?? createdAt
     }
     
     mutating func toggleCompletion() {
