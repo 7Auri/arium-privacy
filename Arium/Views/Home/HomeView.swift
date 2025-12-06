@@ -18,172 +18,59 @@ struct HomeView: View {
     // Force view update when language changes
     @State private var languageUpdateTrigger = UUID()
     
-    @State private var showingNoteSheet = false
     @State private var noteText = ""
     @State private var selectedHabitForNote: Habit?
     @State private var habitToDelete: Habit?
     @State private var showingDeleteAlert = false
     @State private var showingAchievements = false
+    @State private var showingInsights = false
+    @State private var showingStatistics = false
     @AppStorage("isSnowEnabled") private var isSnowEnabled = true
     @State private var snowAutoDisableTask: Task<Void, Never>?
+    @State private var showingConfetti = false
+    
+    private var backgroundGradient: some View {
+        LinearGradient(
+            colors: [
+                AriumTheme.background,
+                AriumTheme.background,
+                AriumTheme.accentLight.opacity(0.05)
+            ],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+    
+    private var headerBackgroundGradient: some View {
+        LinearGradient(
+            colors: [
+                AriumTheme.background,
+                AriumTheme.background.opacity(0.95)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea(edges: .top)
+    }
+    
+    private var headerView: some View {
+        ModernHeaderView(
+            greeting: viewModel.getGreeting(),
+            remainingSlots: habitStore.remainingFreeSlots,
+            isPremium: premiumManager.isPremium,
+            isSnowEnabled: $isSnowEnabled,
+            onSettingsTap: { viewModel.showingSettings = true },
+            onAchievementsTap: { showingAchievements = true },
+            onInsightsTap: { showingInsights = true },
+            onStatisticsTap: { showingStatistics = true }
+        )
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
+        .background(headerBackgroundGradient)
+    }
     
     var body: some View {
-        NavigationStack {
-            ZStack {
-                // Modern gradient background
-                LinearGradient(
-                    colors: [
-                        AriumTheme.background,
-                        AriumTheme.background,
-                        AriumTheme.accentLight.opacity(0.05)
-                    ],
-                    startPoint: .topLeading,
-                    endPoint: .bottomTrailing
-                )
-                .ignoresSafeArea()
-                
-                VStack(spacing: 0) {
-                    // Modern Header - Fixed at top
-                    ModernHeaderView(
-                        greeting: viewModel.getGreeting(),
-                        remainingSlots: habitStore.remainingFreeSlots,
-                        isPremium: premiumManager.isPremium,
-                        isSnowEnabled: $isSnowEnabled,
-                        onSettingsTap: { viewModel.showingSettings = true },
-                        onAchievementsTap: { showingAchievements = true }
-                    )
-                    .padding(.horizontal, 20)
-                    .padding(.top, 8)
-                    .background(
-                        LinearGradient(
-                            colors: [
-                                AriumTheme.background,
-                                AriumTheme.background.opacity(0.95)
-                            ],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                        .ignoresSafeArea(edges: .top)
-                    )
-                    
-                    // Scrollable Content
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            // Today's Summary Card
-                            if !habitStore.habits.isEmpty {
-                                TodaySummaryCard(
-                                    completed: viewModel.completedToday(from: habitStore.habits),
-                                    total: viewModel.filteredHabits(from: habitStore.habits).count,
-                                    longestStreak: habitStore.getLongestStreak(),
-                                    completionRate: viewModel.todayCompletionRate(from: habitStore.habits)
-                                )
-                                .padding(.horizontal, 20)
-                                .padding(.top, 20)
-                                
-                                // Quick Filters
-                                QuickFilterView(selectedFilter: $viewModel.selectedFilter)
-                                    .padding(.horizontal, 20)
-                                
-                                // Stats - Premium Style
-                                ModernStatsView(
-                                    totalCompletions: habitStore.getTotalCompletions(),
-                                    longestStreak: habitStore.getLongestStreak(),
-                                    completionRate: habitStore.getCompletionRate()
-                                )
-                                .padding(.horizontal, 20)
-                                
-                                // Category Filter (Premium only)
-                                if premiumManager.isPremium {
-                                    CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
-                                }
-                                
-                                // Search Bar
-                                SearchBarView(searchText: $viewModel.searchText)
-                                    .padding(.horizontal, 20)
-                            }
-                            
-                            // Habits List or Empty State
-                            if habitStore.habits.isEmpty {
-                                ModernEmptyStateView()
-                                    .padding(.top, 40)
-                            } else {
-                                VStack(spacing: 8) {
-                                    ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
-                                        SwipeableHabitCard(
-                                            habit: habit,
-                                            onTap: {
-                                                HapticManager.selection()
-                                                viewModel.selectedHabit = habit
-                                            },
-                                            onToggle: {
-                                                // If habit has daily repetitions, open detail view instead
-                                                if habit.dailyRepetitions > 1 {
-                                                    HapticManager.selection()
-                                                    viewModel.selectedHabit = habit
-                                                } else if habit.isCompletedToday {
-                                                    // Already completed, just toggle off
-                                                    HapticManager.light()
-                                                    viewModel.toggleHabitCompletion(habit, store: habitStore)
-                                                } else {
-                                                    // Not completed, check premium for notes
-                                                    HapticManager.success()
-                                                    if premiumManager.isPremium {
-                                                        selectedHabitForNote = habit
-                                                        noteText = ""
-                                                        showingNoteSheet = true
-                                                    } else {
-                                                        // Free users: just complete without notes
-                                                        viewModel.toggleHabitCompletion(habit, store: habitStore)
-                                                    }
-                                                }
-                                            },
-                                            onDelete: {
-                                                HapticManager.warning()
-                                                habitToDelete = habit
-                                                showingDeleteAlert = true
-                                            },
-                                            onComplete: {
-                                                HapticManager.success()
-                                                if premiumManager.isPremium {
-                                                    selectedHabitForNote = habit
-                                                    noteText = ""
-                                                    showingNoteSheet = true
-                                                } else {
-                                                    viewModel.toggleHabitCompletion(habit, store: habitStore)
-                                                }
-                                            }
-                                        )
-                                        .transition(.asymmetric(
-                                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                                            removal: .move(edge: .leading).combined(with: .opacity)
-                                        ))
-                                    }
-                                }
-                                .padding(.horizontal, 20)
-                                .padding(.top, 8)
-                                .padding(.bottom, 100)
-                            }
-                        }
-                    }
-                    .refreshable {
-                        await refreshHabits()
-                    }
-                }
-                
-                // Modern Floating Add Button
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        ModernAddButton {
-                            viewModel.attemptAddHabit(store: habitStore)
-                        }
-                        .padding(.trailing, 20)
-                        .padding(.bottom, 16)
-                    }
-                }
-                .ignoresSafeArea(edges: .bottom)
-            }
+        mainContent
             .overlay {
                 // Snow animation for Christmas theme (on top of everything)
                 if appThemeManager.accentColor == .christmas && isSnowEnabled {
@@ -253,113 +140,142 @@ struct HomeView: View {
                 snowAutoDisableTask?.cancel()
                 snowAutoDisableTask = nil
             }
-            .navigationBarHidden(true)
-            .sheet(isPresented: $viewModel.showingAddHabit) {
-                AddHabitView()
-                    .environmentObject(habitStore)
+    }
+    
+    private var scrollableContent: some View {
+        HomeContentView(
+            premiumManager: premiumManager,
+            viewModel: viewModel,
+            noteText: $noteText,
+            selectedHabitForNote: $selectedHabitForNote,
+            habitToDelete: $habitToDelete,
+            showingDeleteAlert: $showingDeleteAlert
+        )
+        .environmentObject(habitStore)
+        .refreshable {
+            await refreshHabits()
+        }
+        .onChange(of: habitStore.habits) { habits in
+            checkForConfetti(habits: habits)
+        }
+    }
+    
+    private var contentStack: some View {
+        ZStack {
+            // Modern gradient background
+            backgroundGradient
+                .ignoresSafeArea()
+            
+            VStack(spacing: 0) {
+                // Modern Header - Fixed at top
+                headerView
+                
+                // Scrollable Content
+                scrollableContent
             }
-            .sheet(item: $viewModel.selectedHabit) { habit in
-                HabitDetailView(habit: habit)
-                    .environmentObject(habitStore)
+            
+            // Confetti Overlay
+            if showingConfetti {
+                ConfettiView()
+                    .allowsHitTesting(false)
+                    .ignoresSafeArea()
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            showingConfetti = false
+                        }
+                    }
             }
-            .sheet(isPresented: $viewModel.showingSettings) {
-                SettingsView()
-                    .environmentObject(habitStore)
+            
+            // Modern Floating Add Button
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    ModernAddButton {
+                        viewModel.attemptAddHabit(store: habitStore)
+                    }
+                    .padding(.trailing, 20)
+                    .padding(.bottom, 16)
+                }
             }
-            .sheet(isPresented: $showingAchievements) {
-                NavigationStack {
-                    AchievementsView()
-                        .environmentObject(habitStore)
-                        .environmentObject(premiumManager)
-                        .toolbar {
-                            ToolbarItem(placement: .cancellationAction) {
-                                Button(L10n.t("button.done")) {
-                                    showingAchievements = false
-                                }
+            .ignoresSafeArea(edges: .bottom)
+        }
+    }
+    
+    private var mainContent: some View {
+        NavigationStack {
+            contentStack
+                .navigationBarHidden(true)
+        }
+        .sheet(isPresented: $viewModel.showingAddHabit) {
+            AddHabitView()
+                .environmentObject(habitStore)
+        }
+        .sheet(item: $viewModel.selectedHabit) { habit in
+            HabitDetailView(habit: habit)
+                .environmentObject(habitStore)
+        }
+        .sheet(isPresented: $viewModel.showingSettings) {
+            SettingsView()
+                .environmentObject(habitStore)
+        }
+        .sheet(isPresented: $showingAchievements) {
+            NavigationStack {
+                AchievementsView()
+                    .environmentObject(habitStore)
+                    .environmentObject(premiumManager)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(L10n.t("button.done")) {
+                                showingAchievements = false
                             }
                         }
-                }
-            }
-            .sheet(isPresented: $showingNoteSheet) {
-                if let habit = selectedHabitForNote {
-                    DailyNoteSheet(
-                        noteText: $noteText,
-                        themeColor: habit.theme.accent,
-                        onComplete: {
-                            habitStore.toggleHabitCompletion(habit.id, note: noteText)
-                            showingNoteSheet = false
-                        },
-                        onSkip: {
-                            habitStore.toggleHabitCompletion(habit.id)
-                            showingNoteSheet = false
-                        }
-                    )
-                    .presentationDetents([.medium, .large])
-                    .presentationDragIndicator(.visible)
-                    .interactiveDismissDisabled(false)
-                }
-            }
-            .alert(L10n.t("habit.delete.confirm"), isPresented: $showingDeleteAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) {
-                    habitToDelete = nil
-                }
-                Button(L10n.t("button.delete"), role: .destructive) {
-                    if let habit = habitToDelete {
-                        HapticManager.warning()
-                        viewModel.deleteHabit(habit, store: habitStore)
-                        habitToDelete = nil
                     }
-                }
-            } message: {
-                if let habit = habitToDelete {
-                    Text(L10n.t("habit.delete.message"))
-                }
             }
-            .alert(L10n.t("premium.title"), isPresented: $viewModel.showingPremiumAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) { }
-                Button(L10n.t("premium.button")) {
-                    Task {
-                        do {
-                            try await premiumManager.purchasePremium()
-                        } catch {
-                            viewModel.showingError = true
-                            viewModel.currentError = error as? AppError ?? PremiumError.unknown
-                        }
-                    }
+        }
+        .sheet(isPresented: $showingInsights) {
+            InsightsView(isPresented: $showingInsights)
+                .environmentObject(habitStore)
+        }
+        .sheet(isPresented: $showingStatistics) {
+            StatisticsView(habits: habitStore.habits, isPremium: premiumManager.isPremium)
+                .environmentObject(habitStore)
+        }
+        .sheet(item: $selectedHabitForNote) { habit in
+            DailyNoteSheet(
+                noteText: $noteText,
+                themeColor: habit.theme.accent,
+                onComplete: {
+                    habitStore.toggleHabitCompletion(habit.id, note: noteText)
+                    selectedHabitForNote = nil
+                },
+                onSkip: {
+                    habitStore.toggleHabitCompletion(habit.id)
+                    selectedHabitForNote = nil
                 }
-            } message: {
-                Text(L10n.t("premium.message"))
+            )
+            .presentationDetents([.medium, .large])
+            .presentationDragIndicator(.visible)
+            .interactiveDismissDisabled(false)
+        }
+        .modifier(AlertsModifier(
+            viewModel: viewModel,
+            habitStore: habitStore,
+            premiumManager: premiumManager,
+            achievementManager: achievementManager,
+            habitToDelete: $habitToDelete,
+            showingDeleteAlert: $showingDeleteAlert
+        ))
+        .onAppear {
+            // Free kullanıcılar için kategori filtresini sıfırla
+            if !premiumManager.isPremium {
+                viewModel.selectedCategory = nil
             }
-            .errorAlert(error: $viewModel.currentError)
-            .loadingOverlay(isLoading: habitStore.isLoading || premiumManager.isLoading)
-            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.purchase.success.message"))
-            }
-            .onAppear {
-                // Free kullanıcılar için kategori filtresini sıfırla
-                if !premiumManager.isPremium {
-                    viewModel.selectedCategory = nil
-                }
-            }
-            .onChange(of: premiumManager.isPremium) { oldValue, newValue in
-                // Premium durumu değiştiğinde kategori filtresini sıfırla
-                if !newValue {
-                    viewModel.selectedCategory = nil
-                }
-            }
-            .alert(
-                "🏆 " + (achievementManager.latestUnlockedAchievement?.title ?? L10n.t("achievement.unlocked.title")),
-                isPresented: $achievementManager.showingUnlockAlert
-            ) {
-                Button(L10n.t("button.ok")) {
-                    achievementManager.showingUnlockAlert = false
-                }
-            } message: {
-                if let achievement = achievementManager.latestUnlockedAchievement {
-                    Text(achievement.description + "\n\n" + String(format: L10n.t("achievement.xp"), achievement.xpReward))
-                }
+        }
+        .onChange(of: premiumManager.isPremium) { oldValue, newValue in
+            // Premium durumu değiştiğinde kategori filtresini sıfırla
+            if !newValue {
+                viewModel.selectedCategory = nil
             }
         }
     }
@@ -372,6 +288,109 @@ struct HomeView: View {
         try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
         await habitStore.updateTodayStatus()
         HapticManager.light()
+    }
+    private func checkForConfetti(habits: [Habit]) {
+        guard !habits.isEmpty else { return }
+        
+        // Calculate completion rate for selected date
+        let rate = viewModel.completionRate(for: viewModel.selectedDate, habits: habits)
+        
+        if rate == 1.0 && !showingConfetti {
+            // Show confetti celebration!
+            HapticManager.success()
+            withAnimation {
+                showingConfetti = true
+            }
+        }
+    }
+}
+
+// MARK: - Extracted Content
+
+private struct HomeContentView: View {
+    @EnvironmentObject var habitStore: HabitStore
+    @ObservedObject var premiumManager: PremiumManager
+    @ObservedObject var viewModel: HomeViewModel
+    @Binding var noteText: String
+    @Binding var selectedHabitForNote: Habit?
+    @Binding var habitToDelete: Habit?
+    @Binding var showingDeleteAlert: Bool
+
+    var body: some View {
+        ScrollView {
+            WeeklyCalendarView(selectedDate: $viewModel.selectedDate)
+                .padding(.horizontal, 20)
+                .padding(.top, 16)
+
+            ModernStatsView(
+                totalCompletions: habitStore.habits.reduce(0) { $0 + $1.completionDates.count },
+                longestStreak: habitStore.habits.map { $0.streak }.max() ?? 0,
+                completionRate: viewModel.completionRate(for: viewModel.selectedDate, habits: habitStore.habits)
+            )
+            .padding(.horizontal, 20)
+
+            if premiumManager.isPremium {
+                CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
+            }
+
+            SearchBarView(searchText: $viewModel.searchText)
+                .padding(.horizontal, 20)
+
+            if habitStore.habits.isEmpty {
+                ModernEmptyStateView()
+                    .padding(.top, 40)
+            } else {
+                VStack(spacing: 8) {
+                    ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
+                        SwipeableHabitCard(
+                            habit: habit,
+                            onTap: {
+                                HapticManager.selection()
+                                viewModel.selectedHabit = habit
+                            },
+                            onToggle: {
+                                if habit.dailyRepetitions > 1 {
+                                    HapticManager.selection()
+                                    viewModel.selectedHabit = habit
+                                } else if viewModel.isCompleted(habit, on: viewModel.selectedDate) {
+                                    HapticManager.light()
+                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                                } else {
+                                    HapticManager.success()
+                                    if premiumManager.isPremium {
+                                        selectedHabitForNote = habit
+                                        noteText = ""
+                                    } else {
+                                        viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                                    }
+                                }
+                            },
+                            onDelete: {
+                                HapticManager.warning()
+                                habitToDelete = habit
+                                showingDeleteAlert = true
+                            },
+                            onComplete: {
+                                HapticManager.success()
+                                if premiumManager.isPremium {
+                                    selectedHabitForNote = habit
+                                    noteText = ""
+                                } else {
+                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                                }
+                            }
+                        )
+                        .transition(.asymmetric(
+                            insertion: .move(edge: .trailing).combined(with: .opacity),
+                            removal: .move(edge: .leading).combined(with: .opacity)
+                        ))
+                    }
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 8)
+                .padding(.bottom, 100)
+            }
+        }
     }
 }
 
@@ -388,44 +407,65 @@ struct ModernHeaderView: View {
     @Binding var isSnowEnabled: Bool
     let onSettingsTap: () -> Void
     let onAchievementsTap: () -> Void
+    let onInsightsTap: () -> Void
+    let onStatisticsTap: () -> Void
     
     @State private var showingSlotsInfo = false
     @State private var showingPremiumError = false
     @State private var premiumError: AppError?
     
     var body: some View {
-        HStack(alignment: .center, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(greeting)
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [AriumTheme.textPrimary, AriumTheme.accent],
-                            startPoint: .leading,
-                            endPoint: .trailing
+        VStack(spacing: 12) {
+            // Top row: Greeting, App Name, and Settings
+            HStack(alignment: .center, spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(greeting)
+                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AriumTheme.textPrimary, AriumTheme.accent],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
                         )
-                    )
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                    
+                    Text(L10n.t("app.name"))
+                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .tracking(2)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [
+                                    appThemeManager.accentColor.color,
+                                    appThemeManager.accentColor.color.opacity(0.7)
+                                ],
+                                startPoint: .leading,
+                                endPoint: .trailing
+                            )
+                        )
+                        .lineLimit(1)
+                        .shadow(color: appThemeManager.accentColor.color.opacity(0.4), radius: 6, x: 0, y: 3)
+                }
                 
-                Text("Arium")
-                    .font(.system(size: 22, weight: .bold, design: .rounded))
-                    .tracking(1)
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [
-                                appThemeManager.accentColor.color,
-                                appThemeManager.accentColor.color.opacity(0.8),
-                                Color.blue.opacity(0.6)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-                    .shadow(color: appThemeManager.accentColor.color.opacity(0.4), radius: 6, x: 0, y: 3)
+                Spacer()
+                
+                // Settings Button
+                Button(action: onSettingsTap) {
+                    Image(systemName: "gearshape.fill")
+                        .font(.system(size: 18, weight: .medium))
+                        .foregroundStyle(AriumTheme.textSecondary)
+                        .frame(width: 44, height: 44)
+                        .background(AriumTheme.cardBackground)
+                        .clipShape(Circle())
+                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
+                }
             }
             
-            Spacer()
-            
+            // Bottom row: Action buttons
             HStack(spacing: 12) {
+                Spacer()
+                
                 // Snow Toggle Button (only for Christmas theme)
                 if appThemeManager.accentColor == .christmas {
                     Button(action: {
@@ -455,6 +495,52 @@ struct ModernHeaderView: View {
                     }
                 }
                 
+                // Insights Button (Magic Wand) - NEW
+                Button(action: {
+                    HapticManager.selection()
+                    onInsightsTap()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.purple.opacity(0.2), Color.pink.opacity(0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "wand.and.stars")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Color.purple)
+                    }
+                    .shadow(color: Color.purple.opacity(0.2), radius: 8, x: 0, y: 4)
+                }
+                
+                // Statistics Button
+                Button(action: {
+                    HapticManager.selection()
+                    onStatisticsTap()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.blue.opacity(0.2), Color.cyan.opacity(0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "chart.bar.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                            .foregroundStyle(Color.blue)
+                    }
+                    .shadow(color: Color.blue.opacity(0.2), radius: 8, x: 0, y: 4)
+                }
+
                 // Achievements Button
                 Button(action: {
                     HapticManager.selection()
@@ -537,19 +623,9 @@ struct ModernHeaderView: View {
                         Text(L10n.t("premium.purchase.success.message"))
                     }
                 }
-                
-                // Settings Button
-                Button(action: onSettingsTap) {
-                    Image(systemName: "gearshape.fill")
-                        .font(.system(size: 18, weight: .medium))
-                        .foregroundStyle(AriumTheme.textSecondary)
-                        .frame(width: 44, height: 44)
-                        .background(AriumTheme.cardBackground)
-                        .clipShape(Circle())
-                        .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
-                }
             }
         }
+        .padding(.horizontal)
     }
 }
 
@@ -1150,6 +1226,7 @@ struct ModernEmptyStateView: View {
 struct CategoryFilterView: View {
     @Binding var selectedCategory: HabitCategory?
     @ObservedObject private var l10nManager = L10nManager.shared
+    @ObservedObject private var appThemeManager = AppThemeManager.shared
     
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
@@ -1159,7 +1236,7 @@ struct CategoryFilterView: View {
                     title: L10n.t("habit.allCategories"),
                     icon: "square.grid.2x2",
                     iconType: .sfSymbol,
-                    color: AriumTheme.accent,
+                    color: appThemeManager.accentColor.color,
                     isSelected: selectedCategory == nil
                 ) {
                     HapticManager.selection()
@@ -1333,201 +1410,6 @@ struct ModernAddButton: View {
                     }
                 }
         )
-    }
-}
-
-// MARK: - Today's Summary Card
-
-struct TodaySummaryCard: View {
-    let completed: Int
-    let total: Int
-    let longestStreak: Int
-    let completionRate: Double
-    
-    var body: some View {
-        VStack(spacing: 16) {
-            // Header
-            HStack {
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(L10n.t("home.today.title"))
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(AriumTheme.textSecondary)
-                    
-                    Text("\(completed)/\(total)")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
-                        .foregroundStyle(AriumTheme.textPrimary)
-                }
-                
-                Spacer()
-                
-                // Progress Ring
-                ZStack {
-                    Circle()
-                        .stroke(
-                            AriumTheme.cardBorder.opacity(0.2),
-                            lineWidth: 8
-                        )
-                    
-                    Circle()
-                        .trim(from: 0, to: completionRate)
-                        .stroke(
-                            LinearGradient(
-                                colors: [AriumTheme.accent, AriumTheme.accentLight],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            style: StrokeStyle(lineWidth: 8, lineCap: .round)
-                        )
-                        .rotationEffect(.degrees(-90))
-                        .animation(.spring(response: 0.6, dampingFraction: 0.8), value: completionRate)
-                    
-                    VStack(spacing: 2) {
-                        Text("\(Int(completionRate * 100))%")
-                            .font(.system(size: 14, weight: .bold, design: .rounded))
-                            .foregroundStyle(AriumTheme.accent)
-                    }
-                }
-                .frame(width: 70, height: 70)
-            }
-            
-            // Stats Row
-            HStack(spacing: 20) {
-                // Streak
-                HStack(spacing: 6) {
-                    Image(systemName: "flame.fill")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.orange, .red],
-                                startPoint: .top,
-                                endPoint: .bottom
-                            )
-                        )
-                    Text("\(longestStreak)")
-                        .font(.system(size: 18, weight: .bold, design: .rounded))
-                        .foregroundStyle(AriumTheme.textPrimary)
-                    Text(L10n.t("habit.days"))
-                        .font(.system(size: 12, weight: .medium))
-                        .foregroundStyle(AriumTheme.textSecondary)
-                }
-                
-                Spacer()
-                
-                // Completion Status
-                HStack(spacing: 6) {
-                    if completed == total && total > 0 {
-                        Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 16, weight: .semibold))
-                            .foregroundStyle(.green)
-                        Text(L10n.t("home.today.allCompleted"))
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundStyle(.green)
-                    } else {
-                        Text(L10n.t("home.today.inProgress"))
-                            .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(AriumTheme.textSecondary)
-                    }
-                }
-            }
-        }
-        .padding(20)
-        .background(
-            ZStack {
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(AriumTheme.cardBackground)
-                
-                RoundedRectangle(cornerRadius: 24)
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                AriumTheme.accent.opacity(0.1),
-                                AriumTheme.accentLight.opacity(0.05),
-                                Color.clear
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
-                    )
-            }
-        )
-        .overlay(
-            RoundedRectangle(cornerRadius: 24)
-                .stroke(
-                    LinearGradient(
-                        colors: [
-                            AriumTheme.accent.opacity(0.3),
-                            AriumTheme.accentLight.opacity(0.2)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    ),
-                    lineWidth: 1.5
-                )
-        )
-        .shadow(color: AriumTheme.accent.opacity(0.15), radius: 20, x: 0, y: 8)
-    }
-}
-
-// MARK: - Quick Filter View
-
-struct QuickFilterView: View {
-    @Binding var selectedFilter: HomeViewModel.QuickFilter
-    
-    var body: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 10) {
-                ForEach(HomeViewModel.QuickFilter.allCases, id: \.self) { filter in
-                    QuickFilterChip(
-                        filter: filter,
-                        isSelected: selectedFilter == filter
-                    ) {
-                        withAnimation(.spring(response: 0.25, dampingFraction: 0.7)) {
-                            selectedFilter = filter
-                        }
-                        HapticManager.selection()
-                    }
-                }
-            }
-            .padding(.horizontal, 4)
-        }
-    }
-}
-
-struct QuickFilterChip: View {
-    let filter: HomeViewModel.QuickFilter
-    let isSelected: Bool
-    let action: () -> Void
-    
-    var body: some View {
-        Button(action: action) {
-            HStack(spacing: 6) {
-                Image(systemName: filter.icon)
-                    .font(.system(size: 14, weight: .medium))
-                
-                Text(filter.localizedName)
-                    .font(.subheadline)
-                    .fontWeight(.medium)
-            }
-            .foregroundStyle(isSelected ? .white : AriumTheme.textPrimary)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(
-                Capsule()
-                    .fill(isSelected ? AriumTheme.accent : AriumTheme.cardBackground)
-            )
-            .overlay(
-                Capsule()
-                    .stroke(isSelected ? Color.clear : AriumTheme.cardBorder.opacity(0.3), lineWidth: 1)
-            )
-            .shadow(
-                color: isSelected ? AriumTheme.accent.opacity(0.3) : Color.clear,
-                radius: isSelected ? 8 : 0,
-                x: 0,
-                y: isSelected ? 4 : 0
-            )
-            .scaleEffect(isSelected ? 1.02 : 1.0)
-        }
-        .buttonStyle(PlainButtonStyle())
     }
 }
 

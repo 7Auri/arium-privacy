@@ -27,15 +27,47 @@ final class HomeViewModelTests: XCTestCase {
         try await super.tearDown()
     }
     
-    // MARK: - Toggle Completion Tests
+    // MARK: - Date Selection & Completion Tests
     
-    func testToggleHabitCompletion() throws {
+    func testDateSelectionDefaultsToToday() {
+        XCTAssertTrue(Calendar.current.isDateInToday(viewModel.selectedDate))
+    }
+    
+    func testToggleCompletionOnSelectedDate() throws {
         let habit = Habit(title: "Read")
         try habitStore.addHabit(habit)
         
-        viewModel.toggleHabitCompletion(habit, store: habitStore)
+        let today = Date()
+        viewModel.selectedDate = today
         
+        // Toggle (Mark as completed)
+        viewModel.toggleCompletion(habit, date: today, store: habitStore)
         XCTAssertTrue(habitStore.habits.first?.isCompletedToday ?? false)
+        XCTAssertTrue(viewModel.isCompleted(habitStore.habits.first!, on: today))
+        
+        // Toggle again (Unmark)
+        viewModel.toggleCompletion(habitStore.habits.first!, date: today, store: habitStore)
+        XCTAssertFalse(habitStore.habits.first?.isCompletedToday ?? true)
+        XCTAssertFalse(viewModel.isCompleted(habitStore.habits.first!, on: today))
+    }
+    
+    func testToggleCompletionOnPastDate() throws {
+        let habit = Habit(title: "Past Habit")
+        try habitStore.addHabit(habit)
+        
+        let calendar = Calendar.current
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) else { return }
+        
+        viewModel.selectedDate = yesterday
+        
+        // Toggle for yesterday
+        viewModel.toggleCompletion(habit, date: yesterday, store: habitStore)
+        
+        // Should be completed on yesterday
+        XCTAssertTrue(viewModel.isCompleted(habitStore.habits.first!, on: yesterday))
+        
+        // Should NOT be completed today
+        XCTAssertFalse(viewModel.isCompleted(habitStore.habits.first!, on: Date()))
     }
     
     // MARK: - Delete Habit Tests

@@ -17,6 +17,7 @@ struct ImprovedTemplatesView: View {
     @State private var selectedCategory: HabitCategory? = nil
     @State private var showOnlyFree = false
     @State private var showOnlyPopular = false
+    @State private var showingPremiumAlert = false
     
     var body: some View {
         NavigationStack {
@@ -28,17 +29,26 @@ struct ImprovedTemplatesView: View {
                 filterSection
                 
                 // Templates Grid
-                ScrollView {
-                    LazyVStack(spacing: 16) {
-                        // Popular section (if not filtered)
-                        if !showOnlyFree && selectedCategory == nil && searchText.isEmpty {
-                            popularSection
+                ScrollViewReader { proxy in
+                    ScrollView {
+                        LazyVStack(spacing: 16) {
+                            // Popular section (if not filtered)
+                            if !showOnlyFree && selectedCategory == nil && searchText.isEmpty {
+                                popularSection
+                            }
+                            
+                            // All templates section
+                            allTemplatesSection
                         }
-                        
-                        // All templates section
-                        allTemplatesSection
+                        .padding()
                     }
-                    .padding()
+                    .onChange(of: selectedCategory) { category in
+                        if let category = category {
+                            withAnimation {
+                                proxy.scrollTo("category-\(category.rawValue)", anchor: .top)
+                            }
+                        }
+                    }
                 }
             }
             .navigationTitle(L10n.t("habit.templates.title"))
@@ -50,6 +60,20 @@ struct ImprovedTemplatesView: View {
                     }
                     .foregroundColor(AriumTheme.accent)
                 }
+            }
+            .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
+                Button(L10n.t("button.cancel"), role: .cancel) { }
+                Button(L10n.t("premium.button")) {
+                    Task {
+                        do {
+                            try await premiumManager.purchasePremium()
+                        } catch {
+                            // Handle error silently
+                        }
+                    }
+                }
+            } message: {
+                Text(L10n.t("premium.templates.message"))
             }
         }
     }
@@ -85,32 +109,37 @@ struct ImprovedTemplatesView: View {
             HStack(spacing: 12) {
                 // Popular filter
                 TemplateFilterChip(
-                    title: "⭐ " + L10n.t("template.filter.popular"),
+                    icon: "star.fill",
+                    title: L10n.t("template.filter.popular"),
+                    color: .orange,
                     isSelected: showOnlyPopular
                 ) {
                     showOnlyPopular.toggle()
                     if showOnlyPopular {
                         showOnlyFree = false
+                        selectedCategory = nil
                     }
                 }
                 
-                // Free filter
-                if !premiumManager.isPremium {
-                    TemplateFilterChip(
-                        title: "🆓 " + L10n.t("template.filter.free"),
-                        isSelected: showOnlyFree
-                    ) {
-                        showOnlyFree.toggle()
-                        if showOnlyFree {
-                            showOnlyPopular = false
-                        }
-                    }
+                // Premium filter
+                TemplateFilterChip(
+                    icon: "crown.fill",
+                    title: L10n.t("template.filter.premium"),
+                    color: AriumTheme.warning,
+                    isSelected: showOnlyFree == false && selectedCategory == nil && !showOnlyPopular && searchText.isEmpty
+                ) {
+                    showOnlyFree = false
+                    showOnlyPopular = false
+                    selectedCategory = nil
                 }
                 
                 // Category filters
                 ForEach([HabitCategory.health, .personal, .learning, .work, .finance, .social], id: \.self) { category in
                     TemplateFilterChip(
-                        title: category.icon + " " + L10n.t("category.\(category.rawValue)"),
+                        icon: nil,
+                        emoji: category.icon,
+                        title: L10n.t("category.\(category.rawValue)"),
+                        color: category.color,
                         isSelected: selectedCategory == category
                     ) {
                         if selectedCategory == category {
@@ -142,7 +171,7 @@ struct ImprovedTemplatesView: View {
             .padding(.horizontal, 4)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
-                ForEach(HabitTemplate.popularTemplates) { template in
+                ForEach(popularTemplatesFiltered) { template in
                     TemplateCardCompact(template: template) {
                         selectTemplate(template)
                     }
@@ -173,6 +202,7 @@ struct ImprovedTemplatesView: View {
                 }
             }
         }
+        .id(selectedCategory != nil ? "category-\(selectedCategory!.rawValue)" : "all-templates")
     }
     
     // MARK: - Computed Properties
@@ -203,10 +233,8 @@ struct ImprovedTemplatesView: View {
             templates = templates.filter { $0.isPopular }
         }
         
-        // Filter premium templates if not premium user
-        if !premiumManager.isPremium {
-            templates = templates.filter { !$0.isPremium }
-        }
+        // Don't filter premium templates - show them to encourage upgrades
+        // Premium check is done in selectTemplate() instead
         
         return templates
     }
@@ -223,13 +251,30 @@ struct ImprovedTemplatesView: View {
         }
     }
     
+    private var popularTemplatesFiltered: [HabitTemplate] {
+        if premiumManager.isPremium {
+            return HabitTemplate.popularTemplates
+        } else {
+            return HabitTemplate.popularTemplates.filter { !$0.isPremium }
+        }
+    }
+    
     // MARK: - Actions
     
     private func selectTemplate(_ template: HabitTemplate) {
+        // Prevent free users from selecting premium templates
+        if template.isPremium && !premiumManager.isPremium {
+            // Show premium upgrade alert
+            showingPremiumAlert = true
+            HapticManager.warning()
+            return
+        }
+        
         viewModel.title = template.title
         viewModel.notes = template.description
         viewModel.selectedCategory = template.category
         viewModel.goalDays = template.suggestedGoalDays
+        HapticManager.success()
         dismiss()
     }
 }
@@ -237,19 +282,46 @@ struct ImprovedTemplatesView: View {
 // MARK: - Template Filter Chip
 
 struct TemplateFilterChip: View {
+    let icon: String?
+    var emoji: String? = nil
     let title: String
+    let color: Color
     let isSelected: Bool
     let action: () -> Void
     
+    init(icon: String? = nil, emoji: String? = nil, title: String, color: Color = AriumTheme.accent, isSelected: Bool, action: @escaping () -> Void) {
+        self.icon = icon
+        self.emoji = emoji
+        self.title = title
+        self.color = color
+        self.isSelected = isSelected
+        self.action = action
+    }
+    
     var body: some View {
         Button(action: action) {
-            Text(title)
-                .font(.caption.bold())
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .background(isSelected ? AriumTheme.accent : Color(.systemGray6))
-                .foregroundColor(isSelected ? .white : .primary)
-                .cornerRadius(16)
+            HStack(spacing: 6) {
+                if let emoji = emoji {
+                    Text(emoji)
+                        .font(.body)
+                } else if let icon = icon {
+                    Image(systemName: icon)
+                        .font(.caption.bold())
+                }
+                
+                Text(title)
+                    .font(.caption.bold())
+            }
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(
+                isSelected ? 
+                    color :
+                    Color(.systemGray6)
+            )
+            .foregroundColor(isSelected ? .white : .primary)
+            .cornerRadius(20)
+            .shadow(color: isSelected ? color.opacity(0.3) : Color.clear, radius: 4, x: 0, y: 2)
         }
     }
 }

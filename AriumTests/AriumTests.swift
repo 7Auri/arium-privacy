@@ -6,8 +6,10 @@
 //
 
 import Testing
+import Foundation
 @testable import Arium
 
+@MainActor
 struct AriumTests {
     
     @Test func testAppInitialization() async throws {

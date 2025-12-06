@@ -17,6 +17,9 @@ class FeedbackManager: ObservableObject {
     @Published var showingMailComposer = false
     @Published var mailComposeResult: Result<MFMailComposeResult, Error>?
     
+    // Strong reference to retain the mail compose delegate while the composer is presented
+    private var mailComposeDelegate: MailComposeDelegate?
+    
     private let supportEmail = "support@zorbeyteam.com"
     private static let appName = "Arium"
     private static var appVersion: String {
@@ -91,12 +94,20 @@ class FeedbackManager: ObservableObject {
         guard canSendMail() else { return nil }
         
         let composer = MFMailComposeViewController()
-        composer.mailComposeDelegate = MailComposeDelegate(manager: self)
+        // Create and retain a strong reference to the delegate to avoid deallocation warnings
+        let delegate = MailComposeDelegate(manager: self)
+        self.mailComposeDelegate = delegate
+        composer.mailComposeDelegate = delegate
         composer.setToRecipients([supportEmail])
         composer.setSubject(type.subject)
         composer.setMessageBody(type.bodyPrefix, isHTML: false)
         
         return composer
+    }
+    
+    // Expose a safe way to clear the retained delegate without breaking access control
+    func clearMailComposeDelegate() {
+        mailComposeDelegate = nil
     }
     
     // MARK: - App Store Review
@@ -118,9 +129,13 @@ private class MailComposeDelegate: NSObject, MFMailComposeViewControllerDelegate
     }
     
     func mailComposeController(_ controller: MFMailComposeViewController, didFinishWith result: MFMailComposeResult, error: Error?) {
-        controller.dismiss(animated: true)
-        
         Task { @MainActor in
+            // Dismiss UI on the main actor
+            controller.dismiss(animated: true)
+
+            // Clear retained delegate after dismissal to avoid retaining it longer than needed
+            manager?.clearMailComposeDelegate()
+
             if let error = error {
                 manager?.mailComposeResult = .failure(error)
             } else {

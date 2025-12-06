@@ -705,22 +705,15 @@ struct HabitDetailView: View {
     }
     
     private func handleNoteComplete(habitId: UUID) {
-        // Habit is already completed (all repetitions done)
-        // Just save the note if provided
-        if let index = habitStore.habits.firstIndex(where: { $0.id == habitId }) {
-            var updatedHabit = habitStore.habits[index]
-            if !noteText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
-                updatedHabit.setNote(noteText, for: Date())
-            }
-            habitStore.updateHabit(updatedHabit)
-            refreshHabit()
-        }
+        // Toggle completion AND save note
+        habitStore.toggleHabitCompletion(habitId, note: noteText)
+        refreshHabit()
         showingNoteAlert = false
     }
     
     private func handleNoteSkip(habitId: UUID) {
-        // Habit is already completed (all repetitions done)
-        // No note to save, just dismiss
+        // Just complete, no note
+        habitStore.toggleHabitCompletion(habitId)
         refreshHabit()
         showingNoteAlert = false
     }

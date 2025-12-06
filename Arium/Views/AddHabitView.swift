@@ -26,38 +26,23 @@ struct AddHabitView: View {
                 VStack(spacing: 20) {
                     // Templates Button
                     Button(action: {
-                        if premiumManager.isPremium {
-                            showingTemplates = true
-                        } else {
-                            premiumAlertMessage = L10n.t("premium.templates.message")
-                            showingPremiumAlert = true
-                        }
+                        showingTemplates = true
                     }) {
                         HStack(spacing: 12) {
                             ZStack {
                                 Circle()
                                     .fill(
-                                        premiumManager.isPremium
-                                        ? LinearGradient(
+                                        LinearGradient(
                                             colors: [AriumTheme.accent.opacity(0.2), AriumTheme.accent.opacity(0.1)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                        : LinearGradient(
-                                            colors: [Color(.tertiarySystemBackground), Color(.tertiarySystemBackground)],
                                             startPoint: .topLeading,
                                             endPoint: .bottomTrailing
                                         )
                                     )
                                     .frame(width: 44, height: 44)
                                 
-                                Image(systemName: premiumManager.isPremium ? "sparkles" : "lock.fill")
+                                Image(systemName: "sparkles")
                                     .font(.system(size: 18, weight: .semibold))
-                                    .foregroundStyle(
-                                        premiumManager.isPremium
-                                        ? AriumTheme.accent
-                                        : Color(.secondaryLabel)
-                                    )
+                                    .foregroundStyle(AriumTheme.accent)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
@@ -65,7 +50,7 @@ struct AddHabitView: View {
                                     .font(.system(size: 16, weight: .semibold))
                                     .foregroundStyle(.primary)
                                 
-                                Text(premiumManager.isPremium ? L10n.t("habit.templates.description") : L10n.t("premium.templates.message"))
+                                Text(L10n.t("habit.templates.description"))
                                     .font(.system(size: 13, weight: .regular))
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
@@ -73,21 +58,9 @@ struct AddHabitView: View {
                             
                             Spacer()
                             
-                            if !premiumManager.isPremium {
-                                Image(systemName: "crown.fill")
-                                    .font(.system(size: 16, weight: .semibold))
-                                    .foregroundStyle(
-                                        LinearGradient(
-                                            colors: [.orange, .orange.opacity(0.8)],
-                                            startPoint: .topLeading,
-                                            endPoint: .bottomTrailing
-                                        )
-                                    )
-                            } else {
-                                Image(systemName: "chevron.right")
-                                    .font(.system(size: 14, weight: .semibold))
-                                    .foregroundStyle(.tertiary)
-                            }
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
                         }
                         .frame(maxWidth: .infinity)
                         .padding(16)
@@ -96,38 +69,29 @@ struct AddHabitView: View {
                                 RoundedRectangle(cornerRadius: 16)
                                     .fill(Color(.secondarySystemBackground))
                                 
-                                if premiumManager.isPremium {
-                                    RoundedRectangle(cornerRadius: 16)
-                                        .fill(
-                                            LinearGradient(
-                                                colors: [
-                                                    AriumTheme.accent.opacity(0.08),
-                                                    AriumTheme.accent.opacity(0.03),
-                                                    Color.clear
-                                                ],
-                                                startPoint: .topLeading,
-                                                endPoint: .bottomTrailing
-                                            )
+                                RoundedRectangle(cornerRadius: 16)
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [
+                                                AriumTheme.accent.opacity(0.08),
+                                                AriumTheme.accent.opacity(0.03),
+                                                Color.clear
+                                            ],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
                                         )
-                                }
+                                    )
                             }
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
-                                .stroke(
-                                    premiumManager.isPremium
-                                    ? AriumTheme.accent.opacity(0.3)
-                                    : Color(.separator).opacity(0.3),
-                                    lineWidth: premiumManager.isPremium ? 1.5 : 1
-                                )
+                                .stroke(AriumTheme.accent.opacity(0.3), lineWidth: 1.5)
                         )
                         .shadow(
-                            color: premiumManager.isPremium
-                            ? AriumTheme.accent.opacity(0.1)
-                            : Color.clear,
-                            radius: premiumManager.isPremium ? 8 : 0,
+                            color: AriumTheme.accent.opacity(0.1),
+                            radius: 8,
                             x: 0,
-                            y: premiumManager.isPremium ? 4 : 0
+                            y: 4
                         )
                     }
         .sheet(isPresented: $showingTemplates) {
@@ -171,7 +135,7 @@ struct AddHabitView: View {
                             .textInputAutocapitalization(.sentences)
                     }
                     
-                    // Category Selector (Premium)
+                    // Category Selector
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(L10n.t("habit.category"))
@@ -184,10 +148,12 @@ struct AddHabitView: View {
                                     .font(.caption2)
                                     .foregroundColor(.orange)
                             }
+                            
+                            Spacer()
                         }
                         
                         if premiumManager.isPremium {
-                            // Premium: Tüm kategoriler
+                            // Premium: All categories
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     ForEach(HabitCategory.allCases) { category in
@@ -203,43 +169,17 @@ struct AddHabitView: View {
                                 }
                             }
                         } else {
-                            // Free: Sadece Personal kategorisi (görünür ama değiştirilemez)
+                            // Free: Only Personal category
                             ScrollView(.horizontal, showsIndicators: false) {
                                 HStack(spacing: 12) {
                                     CategoryButton(
                                         category: .personal,
-                                        isSelected: true,
-                                        isLocked: true
+                                        isSelected: true
                                     ) {
-                                        premiumAlertMessage = L10n.t("premium.categoryLocked")
-                                        showingPremiumAlert = true
-                                    }
-                                    
-                                    // Diğer kategoriler kilitli olarak göster
-                                    ForEach(HabitCategory.allCases.filter { $0 != .personal }) { category in
-                                        CategoryButton(
-                                            category: category,
-                                            isSelected: false,
-                                            isLocked: true
-                                        ) {
-                                            premiumAlertMessage = L10n.t("premium.categoryLocked")
-                                            showingPremiumAlert = true
-                                        }
+                                        // Do nothing - locked to personal
                                     }
                                 }
                             }
-                            
-                            // Premium upgrade mesajı
-                            HStack(spacing: 6) {
-                                Image(systemName: "lock.fill")
-                                    .font(.caption2)
-                                    .foregroundStyle(.secondary)
-                                
-                                Text(L10n.t("premium.categoryLocked"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                            }
-                            .padding(.top, 4)
                         }
                     }
                     
@@ -266,49 +206,46 @@ struct AddHabitView: View {
                         }
                     }
                     
-                    // Start Date Selector (Premium)
+                    // Start Date Selector
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
-                            HStack(spacing: 6) {
-                                Text(L10n.t("habit.startDate"))
-                                    .font(.footnote)
-                                    .textCase(.uppercase)
-                                    .foregroundStyle(.secondary)
-                                
-                                if !premiumManager.isPremium {
-                                    Image(systemName: "crown.fill")
-                                        .font(.caption2)
-                                        .foregroundColor(.orange)
-                                }
+                            Text(L10n.t("habit.startDate"))
+                                .font(.footnote)
+                                .textCase(.uppercase)
+                                .foregroundStyle(.secondary)
+                            
+                            if !premiumManager.isPremium {
+                                Image(systemName: "crown.fill")
+                                    .font(.caption2)
+                                    .foregroundColor(.orange)
                             }
                             
                             Spacer()
                             
-                            Button {
-                                if premiumManager.isPremium {
+                            if premiumManager.isPremium {
+                                Button {
                                     withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                                         viewModel.showingDatePicker.toggle()
                                     }
-                                } else {
-                                    if !premiumManager.isPremium {
-                                        premiumAlertMessage = L10n.t("premium.featureMessage")
-                                        showingPremiumAlert = true
+                                } label: {
+                                    HStack(spacing: 6) {
+                                        Text(viewModel.startDate.localizedDateString())
+                                            .font(.subheadline)
+                                            .foregroundStyle(.primary)
+                                        
+                                        Image(systemName: "calendar")
+                                            .font(.caption)
+                                            .foregroundColor(viewModel.selectedTheme.accent)
                                     }
+                                    .padding(.horizontal, 12)
+                                    .padding(.vertical, 6)
+                                    .background(Color(.tertiarySystemBackground))
+                                    .cornerRadius(8)
                                 }
-                            } label: {
-                                HStack(spacing: 6) {
-                                    Text(viewModel.startDate.localizedDateString())
-                                        .font(.subheadline)
-                                        .foregroundStyle(.primary)
-                                    
-                                    Image(systemName: premiumManager.isPremium ? "calendar" : "lock.fill")
-                                        .font(.caption)
-                                        .foregroundColor(viewModel.selectedTheme.accent)
-                                }
-                                .padding(.horizontal, 12)
-                                .padding(.vertical, 6)
-                                .background(Color(.tertiarySystemBackground))
-                                .cornerRadius(8)
+                            } else {
+                                Text(viewModel.startDate.localizedDateString())
+                                    .font(.subheadline)
+                                    .foregroundStyle(.secondary)
                             }
                         }
                         
@@ -331,11 +268,10 @@ struct AddHabitView: View {
                         RoundedRectangle(cornerRadius: 12)
                             .stroke(Color(.separator), lineWidth: 1)
                     )
-                    .opacity(premiumManager.isPremium ? 1.0 : 0.7)
                     
-                    // Goal Days Selector (Premium)
+                    // Goal Days Selector
                     VStack(alignment: .leading, spacing: 12) {
-                        HStack(spacing: 6) {
+                        HStack {
                             Text(L10n.t("habit.goalDays"))
                                 .font(.footnote)
                                 .textCase(.uppercase)
@@ -346,6 +282,8 @@ struct AddHabitView: View {
                                     .font(.caption2)
                                     .foregroundColor(.orange)
                             }
+                            
+                            Spacer()
                         }
                         
                         if premiumManager.isPremium {
@@ -403,22 +341,12 @@ struct AddHabitView: View {
                             }
                         } else {
                             // Free tier - locked to 21 days
-                            VStack(spacing: 8) {
-                                GoalDayButton(
-                                    days: 21,
-                                    isSelected: true,
-                                    accentColor: viewModel.selectedTheme.accent
-                                ) {
-                                    if !premiumManager.isPremium {
-                                        premiumAlertMessage = L10n.t("premium.goalDaysLocked")
-                                        showingPremiumAlert = true
-                                    }
-                                }
-                                
-                                Text(L10n.t("premium.goalDaysLocked"))
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                    .multilineTextAlignment(.center)
+                            GoalDayButton(
+                                days: 21,
+                                isSelected: true,
+                                accentColor: viewModel.selectedTheme.accent
+                            ) {
+                                // Do nothing - locked to 21 days
                             }
                         }
                     }

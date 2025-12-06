@@ -10,6 +10,7 @@ import AppIntents
 
 @main
 struct AriumApp: App {
+    @UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     @StateObject private var habitStore = HabitStore()
     @StateObject private var appThemeManager = AppThemeManager.shared
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
@@ -19,7 +20,7 @@ struct AriumApp: App {
     var body: some Scene {
         WindowGroup {
             if hasSeenOnboarding {
-                HomeView()
+                ContentView()
                     .environmentObject(habitStore)
                     .environmentObject(appThemeManager)
                     .task {
@@ -79,5 +80,19 @@ struct AriumApp: App {
                 break
             }
         }
+    }
+}
+
+// MARK: - App Delegate for Remote Notifications
+class AppDelegate: NSObject, UIApplicationDelegate {
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        application.registerForRemoteNotifications()
+        return true
+    }
+    
+    func application(_ application: UIApplication, didReceiveRemoteNotification userInfo: [AnyHashable : Any], fetchCompletionHandler completionHandler: @escaping (UIBackgroundFetchResult) -> Void) {
+        // Handle silent push
+        let result = CloudSyncManager.shared.handleNotification(userInfo: userInfo)
+        completionHandler(result)
     }
 }

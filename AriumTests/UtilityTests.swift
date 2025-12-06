@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import SwiftUI
 @testable import Arium
 
 final class UtilityTests: XCTestCase {

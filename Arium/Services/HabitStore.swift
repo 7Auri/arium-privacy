@@ -139,32 +139,43 @@ class HabitStore: NSObject, ObservableObject {
         // Sync happens automatically on app launch/activation or manually via "Sync Now" button
     }
     
-    func toggleHabitCompletion(_ habitId: UUID, note: String? = nil) {
+    func toggleHabitCompletion(_ habitId: UUID, note: String? = nil, date: Date = Date()) {
         if let index = habits.firstIndex(where: { $0.id == habitId }) {
-            let wasCompleted = habits[index].isCompletedToday
-            habits[index].toggleCompletion()
+            let wasCompleted = habits[index].checkIfCompletedToday() // Check actual completion for that day?
+            // Actually, we need to know if it *was* completed on that date to know if we are toggle ON or OFF.
+            // But we can check after toggling if the count increased? Or just check before.
+            // Let's rely on the toggled state.
+            
+            habits[index].toggleCompletion(on: date)
             habits[index].updatedAt = Date()
             
+            // Check if completed on that specific date after toggle
+            // We need a helper or just check completionDates
+            let calendar = Calendar.current
+            let isCompletedOnDate = habits[index].completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+            
             // If completing and note is provided, save it
-            if habits[index].isCompletedToday, let note = note, !note.isEmpty {
-                habits[index].setNote(note, for: Date())
+            if isCompletedOnDate, let note = note, !note.isEmpty {
+                habits[index].setNote(note, for: date)
             }
             
-            // Check for milestones (non-blocking)
-            if !wasCompleted && habits[index].isCompletedToday {
-                let streak = habits[index].streak
-                if [7, 21, 30, 100].contains(streak) {
+            // Notifications only if today
+            if calendar.isDateInToday(date) {
+                if isCompletedOnDate && !wasCompleted { // If we just completed it today
+                    let streak = habits[index].streak
+                    if [7, 21, 30, 100].contains(streak) {
+                        let currentHabit = habits[index]
+                        Task {
+                            await notificationManager.scheduleMilestoneNotification(for: currentHabit, milestone: streak)
+                        }
+                    }
+                    
+                    // Cancel today's reminder and send completion celebration
                     let currentHabit = habits[index]
                     Task {
-                        await notificationManager.scheduleMilestoneNotification(for: currentHabit, milestone: streak)
+                        await notificationManager.cancelTodayReminder(for: currentHabit.id)
+                        await notificationManager.sendCompletionCelebration(for: currentHabit)
                     }
-                }
-                
-                // Cancel today's reminder and send completion celebration
-                let currentHabit = habits[index]
-                Task {
-                    await notificationManager.cancelTodayReminder(for: currentHabit.id)
-                    await notificationManager.sendCompletionCelebration(for: currentHabit)
                 }
             }
             

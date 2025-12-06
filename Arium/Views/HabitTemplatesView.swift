@@ -18,92 +18,135 @@ struct HabitTemplatesView: View {
     
     var body: some View {
         NavigationStack {
-            if premiumManager.isPremium {
-                ScrollView {
-                    LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
-                        ForEach(HabitTemplate.templates) { template in
-                            TemplateCard(template: template) {
-                                viewModel.title = template.title
-                                viewModel.notes = template.description
-                                viewModel.selectedCategory = template.category
-                                viewModel.goalDays = template.suggestedGoalDays
-                                dismiss()
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Free Templates Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(L10n.t("templates.free"))
+                            .font(.title3)
+                            .fontWeight(.bold)
+                            .foregroundColor(AriumTheme.textPrimary)
+                            .padding(.horizontal)
+                        
+                        LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                            ForEach(HabitTemplate.freeTemplates) { template in
+                                TemplateCard(
+                                    template: template,
+                                    isPremiumUser: premiumManager.isPremium
+                                ) {
+                                    viewModel.title = template.title
+                                    viewModel.notes = template.description
+                                    viewModel.selectedCategory = template.category
+                                    viewModel.goalDays = template.suggestedGoalDays
+                                    dismiss()
+                                }
                             }
                         }
-                    }
-                    .padding()
-                }
-                .navigationTitle(L10n.t("habit.templates.title"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(L10n.t("button.cancel")) {
-                            dismiss()
-                        }
-                    }
-                }
-            } else {
-                // Premium Locked View
-                VStack(spacing: 20) {
-                    Image(systemName: "lock.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(.secondary)
-                    
-                    Text(L10n.t("premium.title"))
-                        .font(.title2)
-                        .fontWeight(.bold)
-                    
-                    Text(L10n.t("premium.templates.message"))
-                        .font(.body)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
                         .padding(.horizontal)
+                    }
                     
-                    Button {
-                        showingPremiumAlert = true
-                    } label: {
-                        Text(L10n.t("premium.button"))
-                            .font(.headline)
-                            .foregroundStyle(.white)
-                            .frame(maxWidth: .infinity)
-                            .padding()
-                            .background(AriumTheme.accent)
-                            .cornerRadius(12)
-                    }
-                    .padding(.horizontal)
-                }
-                .padding()
-                .navigationTitle(L10n.t("habit.templates.title"))
-                .navigationBarTitleDisplayMode(.inline)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarTrailing) {
-                        Button(L10n.t("button.cancel")) {
-                            dismiss()
+                    // Premium Templates Section
+                    if premiumManager.isPremium {
+                        VStack(alignment: .leading, spacing: 12) {
+                            HStack {
+                                Text(L10n.t("templates.premium"))
+                                    .font(.title3)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(AriumTheme.textPrimary)
+                                
+                                Image(systemName: "crown.fill")
+                                    .foregroundColor(AriumTheme.warning)
+                                    .font(.caption)
+                            }
+                            .padding(.horizontal)
+                            
+                            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                                ForEach(HabitTemplate.premiumTemplates) { template in
+                                    TemplateCard(
+                                        template: template,
+                                        isPremiumUser: premiumManager.isPremium
+                                    ) {
+                                        viewModel.title = template.title
+                                        viewModel.notes = template.description
+                                        viewModel.selectedCategory = template.category
+                                        viewModel.goalDays = template.suggestedGoalDays
+                                        dismiss()
+                                    }
+                                }
+                            }
+                            .padding(.horizontal)
                         }
-                    }
-                }
-                .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
-                    Button(L10n.t("button.cancel"), role: .cancel) { }
-                    Button(L10n.t("premium.button")) {
-                        Task {
-                            do {
-                                try await premiumManager.purchasePremium()
-                            } catch {
-                                showingError = true
-                                currentError = error as? AppError ?? PremiumError.unknown
+                    } else {
+                        // Premium Upsell Card
+                        VStack(spacing: 16) {
+                            HStack {
+                                Image(systemName: "crown.fill")
+                                    .font(.title2)
+                                    .foregroundColor(AriumTheme.warning)
+                                
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text(L10n.t("templates.premium.unlock"))
+                                        .font(.headline)
+                                        .foregroundColor(AriumTheme.textPrimary)
+                                    
+                                    Text(L10n.t("templates.premium.message"))
+                                        .font(.caption)
+                                        .foregroundColor(AriumTheme.textSecondary)
+                                }
+                                
+                                Spacer()
+                            }
+                            
+                            Button {
+                                showingPremiumAlert = true
+                            } label: {
+                                Text(L10n.t("premium.button"))
+                                    .font(.headline)
+                                    .foregroundColor(.white)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(AriumTheme.accent)
+                                    .cornerRadius(12)
                             }
                         }
+                        .padding()
+                        .background(Color(.secondarySystemBackground))
+                        .cornerRadius(16)
+                        .padding(.horizontal)
                     }
-                } message: {
-                    Text(L10n.t("premium.message"))
                 }
-                .errorAlert(error: $currentError)
-                .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
-                .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                    Button(L10n.t("button.ok")) { }
-                } message: {
-                    Text(L10n.t("premium.purchase.success.message"))
+                .padding(.vertical)
+            }
+            .navigationTitle(L10n.t("habit.templates.title"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button(L10n.t("button.cancel")) {
+                        dismiss()
+                    }
                 }
+            }
+            .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
+                Button(L10n.t("button.cancel"), role: .cancel) { }
+                Button(L10n.t("premium.button")) {
+                    Task {
+                        do {
+                            try await premiumManager.purchasePremium()
+                        } catch {
+                            showingError = true
+                            currentError = error as? AppError ?? PremiumError.unknown
+                        }
+                    }
+                }
+            } message: {
+                Text(L10n.t("premium.message"))
+            }
+            .errorAlert(error: $currentError)
+            .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
+            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
+                Button(L10n.t("button.ok")) { }
+            } message: {
+                Text(L10n.t("premium.purchase.success.message"))
             }
         }
     }
@@ -111,47 +154,66 @@ struct HabitTemplatesView: View {
 
 struct TemplateCard: View {
     let template: HabitTemplate
+    let isPremiumUser: Bool
     let action: () -> Void
     
     var body: some View {
         Button(action: action) {
-            VStack(spacing: 12) {
-                Image(systemName: template.icon)
-                    .font(.system(size: 32))
-                    .foregroundStyle(template.category.color)
-                    .frame(height: 32)
-                
-                VStack(spacing: 4) {
-                    Text(template.title)
-                        .font(.headline)
-                        .foregroundStyle(.primary)
-                        .lineLimit(1)
-                        .minimumScaleFactor(0.8)
+            ZStack(alignment: .topTrailing) {
+                VStack(spacing: 12) {
+                    Image(systemName: template.icon)
+                        .font(.system(size: 32))
+                        .foregroundStyle(template.category.color)
+                        .frame(height: 32)
                     
-                    Text(template.description)
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                        .multilineTextAlignment(.center)
-                        .lineLimit(2)
-                        .fixedSize(horizontal: false, vertical: true)
-                        .frame(minHeight: 32, maxHeight: 32)
+                    VStack(spacing: 4) {
+                        Text(template.title)
+                            .font(.headline)
+                            .foregroundStyle(.primary)
+                            .lineLimit(1)
+                            .minimumScaleFactor(0.8)
+                        
+                        Text(template.description)
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                            .multilineTextAlignment(.center)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
+                            .frame(minHeight: 32, maxHeight: 32)
+                    }
+                    
+                    HStack(spacing: 4) {
+                        Image(systemName: "flame.fill")
+                            .font(.caption2)
+                            .foregroundStyle(.orange)
+                        Text("\(template.suggestedGoalDays) \(L10n.t("habit.days"))")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
                 }
+                .frame(maxWidth: .infinity, minHeight: 160)
+                .padding()
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(16)
                 
-                HStack(spacing: 4) {
-                    Image(systemName: "flame.fill")
-                        .font(.caption2)
-                        .foregroundStyle(.orange)
-                    Text("\(template.suggestedGoalDays) \(L10n.t("habit.days"))")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                // Premium Badge (only show if template is premium and user is not premium)
+                if template.isPremium && !isPremiumUser {
+                    HStack(spacing: 4) {
+                        Image(systemName: "crown.fill")
+                            .font(.caption2)
+                        Text("PRO")
+                            .font(.caption2)
+                            .fontWeight(.bold)
+                    }
+                    .foregroundColor(.white)
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(AriumTheme.warning)
+                    .cornerRadius(8)
+                    .padding(8)
                 }
             }
-            .frame(maxWidth: .infinity, minHeight: 160)
-            .padding()
-            .background(Color(.secondarySystemBackground))
-            .cornerRadius(16)
         }
         .buttonStyle(.plain)
     }
 }
-

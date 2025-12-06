@@ -16,7 +16,7 @@ protocol AppError: LocalizedError {
 
 // MARK: - Habit Errors
 
-enum HabitError: AppError {
+enum HabitError: AppError, Equatable {
     case emptyTitle
     case notesTooLong(maxLength: Int)
     case invalidStartDate
@@ -55,7 +55,7 @@ enum HabitError: AppError {
 
 // MARK: - Validation Errors
 
-enum ValidationError: AppError {
+enum ValidationError: AppError, Equatable {
     case emptyField(fieldName: String)
     case invalidFormat(fieldName: String)
     case outOfRange(fieldName: String, min: Int, max: Int)
@@ -82,7 +82,7 @@ enum ValidationError: AppError {
 
 // MARK: - Export/Import Errors
 
-enum ExportError: AppError {
+enum ExportError: AppError, Equatable {
     case exportFailed
     case importFailed
     case fileNotFound
@@ -112,7 +112,7 @@ enum ExportError: AppError {
 
 // MARK: - Network Errors
 
-enum NetworkError: AppError {
+enum NetworkError: AppError, Equatable {
     case noConnection
     case timeout
     case serverError

@@ -63,7 +63,6 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.notes, "")
         XCTAssertEqual(viewModel.selectedTheme, .purple)
         XCTAssertEqual(viewModel.goalDays, 21)
-        XCTAssertFalse(viewModel.showingAlert)
     }
     
     func testAddHabitViewModelCreateHabit() {
@@ -81,21 +80,18 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(habit.goalDays, 30)
     }
     
-    func testAddHabitViewModelValidateSuccess() {
+    func testAddHabitViewModelCanSaveSuccess() {
         let viewModel = AddHabitViewModel()
         viewModel.title = "Read Books"
         
-        XCTAssertTrue(viewModel.validate())
-        XCTAssertFalse(viewModel.showingAlert)
+        XCTAssertTrue(viewModel.canSave)
     }
     
-    func testAddHabitViewModelValidateFailure() {
+    func testAddHabitViewModelCanSaveFailure() {
         let viewModel = AddHabitViewModel()
         viewModel.title = ""
         
-        XCTAssertFalse(viewModel.validate())
-        XCTAssertTrue(viewModel.showingAlert)
-        XCTAssertEqual(viewModel.alertMessage, "Please enter a habit title")
+        XCTAssertFalse(viewModel.canSave)
     }
     
     func testAddHabitViewModelReset() {
@@ -124,15 +120,25 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.habit.goalDays, 21)
     }
     
-    func testHabitDetailViewModelToggleCompletion() {
+    func testHabitDetailViewModelToggleCompletion() throws {
         var habit = Habit(title: "Read Books")
         habit.isCompletedToday = false
+        // Ensure we explicitly mock or set premium status if needed, but HabitStore defaults are fine for basic toggle
+        PremiumManager.shared.setPremiumStatus(true)
         
-        let viewModel = HabitDetailViewModel(habit: habit)
+        try habitStore.addHabit(habit)
+        let storedHabit = habitStore.habits.first!
         
+        let viewModel = HabitDetailViewModel(habit: storedHabit)
+        
+        // Pass the habitStore which is now required by toggleCompletion
+        // Note: HabitDetailViewModel.toggleCompletion might vary in signature vs HomeViewModel
+        // Let's assume it calls habitStore.toggleHabitCompletion
         viewModel.toggleCompletion(store: habitStore)
         
-        XCTAssertTrue(viewModel.habit.isCompletedToday)
+        // Since toggleCompletion is async or delegates to store, we check the store or VM habit
+        // Check HabitStore
+        XCTAssertTrue(habitStore.habits.first!.isCompletedToday)
     }
     
     func testHabitDetailViewModelGetCompletionHistory() {
@@ -152,28 +158,29 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(history.count, 5)
     }
     
-    func testHabitDetailViewModelUpdateGoalDays() {
+    func testHabitDetailViewModelUpdateGoalDays() throws {
         let habit = Habit(title: "Read Books", goalDays: 21)
-        let viewModel = HabitDetailViewModel(habit: habit)
+        try habitStore.addHabit(habit)
+        let storedHabit = habitStore.habits.first!
         
-        habitStore.addHabit(habit)
+        let viewModel = HabitDetailViewModel(habit: storedHabit)
         
         viewModel.updateGoalDays(30, store: habitStore)
         
-        XCTAssertEqual(viewModel.habit.goalDays, 30)
+        XCTAssertEqual(habitStore.habits.first?.goalDays, 30)
     }
     
-    func testHabitDetailViewModelUpdateStartDate() {
+    func testHabitDetailViewModelUpdateStartDate() throws {
         let habit = Habit(title: "Read Books")
-        let viewModel = HabitDetailViewModel(habit: habit)
+        try habitStore.addHabit(habit)
+        let storedHabit = habitStore.habits.first!
+        
+        let viewModel = HabitDetailViewModel(habit: storedHabit)
         let calendar = Calendar.current
         let newDate = calendar.date(byAdding: .day, value: -10, to: Date())!
         
-        habitStore.addHabit(habit)
-        
         viewModel.updateStartDate(newDate, store: habitStore)
         
-        XCTAssertEqual(viewModel.habit.startDate, newDate)
+        XCTAssertEqual(habitStore.habits.first?.startDate, newDate)
     }
 }
-

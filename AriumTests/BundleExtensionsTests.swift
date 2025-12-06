@@ -6,6 +6,7 @@
 //
 
 import XCTest
+import Foundation
 @testable import Arium
 
 final class BundleExtensionsTests: XCTestCase {

@@ -405,6 +405,159 @@ struct HabitTemplate: Identifiable, Codable {
             dailyRepetitions: 1,
             repetitionLabels: nil
         ),
+        
+        // NEW TEMPLATES
+        // Health & Fitness
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.morningRun.title"),
+            description: L10n.t("template.morningRun.description"),
+            category: .health,
+            suggestedGoalDays: 30,
+            icon: "figure.run.circle.fill",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.eveningYoga.title"),
+            description: L10n.t("template.eveningYoga.description"),
+            category: .health,
+            suggestedGoalDays: 21,
+            icon: "figure.yoga",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.pushups.title"),
+            description: L10n.t("template.pushups.description"),
+            category: .health,
+            suggestedGoalDays: 30,
+            icon: "figure.strengthtraining.traditional",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        
+        // Personal Development
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.dailyPlanning.title"),
+            description: L10n.t("template.dailyPlanning.description"),
+            category: .personal,
+            suggestedGoalDays: 21,
+            icon: "calendar.badge.checkmark",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.goalReview.title"),
+            description: L10n.t("template.goalReview.description"),
+            category: .personal,
+            suggestedGoalDays: 90,
+            icon: "target",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.learnNew.title"),
+            description: L10n.t("template.learnNew.description"),
+            category: .learning,
+            suggestedGoalDays: 60,
+            icon: "lightbulb.fill",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        
+        // Productivity
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.inboxZero.title"),
+            description: L10n.t("template.inboxZero.description"),
+            category: .work,
+            suggestedGoalDays: 30,
+            icon: "tray.fill",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.creativeTime.title"),
+            description: L10n.t("template.creativeTime.description"),
+            category: .personal,
+            suggestedGoalDays: 30,
+            icon: "paintbrush.fill",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.timeBlocking.title"),
+            description: L10n.t("template.timeBlocking.description"),
+            category: .work,
+            suggestedGoalDays: 21,
+            icon: "clock.badge.checkmark.fill",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        
+        // Wellness
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.natureWalk.title"),
+            description: L10n.t("template.natureWalk.description"),
+            category: .health,
+            suggestedGoalDays: 14,
+            icon: "leaf.fill",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.musicPractice.title"),
+            description: L10n.t("template.musicPractice.description"),
+            category: .personal,
+            suggestedGoalDays: 60,
+            icon: "music.note",
+            isPopular: false,
+            isPremium: true,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
+        HabitTemplate(
+            id: UUID(),
+            title: L10n.t("template.healthySnack.title"),
+            description: L10n.t("template.healthySnack.description"),
+            category: .health,
+            suggestedGoalDays: 21,
+            icon: "carrot.fill",
+            isPopular: false,
+            isPremium: false,
+            dailyRepetitions: 1,
+            repetitionLabels: nil
+        ),
     ]
     
     // Filter templates by category

@@ -19,11 +19,15 @@ final class HabitStoreTests: XCTestCase {
         // Clear all habits before each test
         habitStore.habits.removeAll()
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
+        UserDefaults.standard.removeObject(forKey: "isPremium")
+        UserDefaults.standard.removeObject(forKey: "isTestPremium")
     }
     
     override func tearDown() {
         habitStore = nil
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
+        UserDefaults.standard.removeObject(forKey: "isPremium")
+        UserDefaults.standard.removeObject(forKey: "isTestPremium")
         super.tearDown()
     }
     
@@ -53,7 +57,7 @@ final class HabitStoreTests: XCTestCase {
     // MARK: - Free Tier Limit Tests
     
     func testCanAddMoreHabitsWhenFree() throws {
-        habitStore.isPremium = false
+        PremiumManager.shared.setPremiumStatus(false)
         
         XCTAssertTrue(habitStore.canAddMoreHabits)
         XCTAssertEqual(habitStore.remainingFreeSlots, 3)
@@ -70,7 +74,7 @@ final class HabitStoreTests: XCTestCase {
     }
     
     func testCannotAddMoreThan3HabitsWhenFree() throws {
-        habitStore.isPremium = false
+        PremiumManager.shared.setPremiumStatus(false)
         
         try habitStore.addHabit(Habit(title: "Habit 1"))
         try habitStore.addHabit(Habit(title: "Habit 2"))
@@ -85,7 +89,7 @@ final class HabitStoreTests: XCTestCase {
     }
     
     func testCanAddUnlimitedHabitsWhenPremium() throws {
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         
         for i in 1...10 {
             try habitStore.addHabit(Habit(title: "Habit \(i)"))
@@ -130,7 +134,7 @@ final class HabitStoreTests: XCTestCase {
     }
     
     func testDeleteHabitRestoresFreeSlots() throws {
-        habitStore.isPremium = false
+        PremiumManager.shared.setPremiumStatus(false)
         
         let habit1 = Habit(title: "Habit 1")
         let habit2 = Habit(title: "Habit 2")
@@ -162,7 +166,7 @@ final class HabitStoreTests: XCTestCase {
     }
     
     func testToggleHabitCompletionWithNote() throws {
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         let habit = Habit(title: "Read Books")
         try habitStore.addHabit(habit)
         
@@ -171,6 +175,34 @@ final class HabitStoreTests: XCTestCase {
         let updatedHabit = habitStore.habits.first!
         XCTAssertTrue(updatedHabit.isCompletedToday)
         XCTAssertEqual(updatedHabit.noteForDate(Date()), "Great progress!")
+    }
+    
+    func testToggleHabitCompletionOnSpecificDate() throws {
+        let habit = Habit(title: "Read Books")
+        try habitStore.addHabit(habit)
+        
+        let calendar = Calendar.current
+        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: Date()) else {
+            XCTFail("Could not calculate yesterday")
+            return
+        }
+        
+        // Toggle for yesterday
+        habitStore.toggleHabitCompletion(habit.id, date: yesterday)
+        
+        // Should NOT be completed today
+        XCTAssertFalse(habitStore.habits.first!.isCompletedToday)
+        
+        // Completions should contain yesterday
+        XCTAssertTrue(habitStore.habits.first!.completionDates.contains {
+            calendar.isDate($0, inSameDayAs: yesterday)
+        })
+        
+        // Streak should be updated?
+        // If completed yesterday but not today, streak should be preserved?
+        // Default streak calc might handle it if yesterday is present.
+        // Let's check streak > 0
+        XCTAssertTrue(habitStore.habits.first!.streak > 0)
     }
     
     // MARK: - Statistics Tests

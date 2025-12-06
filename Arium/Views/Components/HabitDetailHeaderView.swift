@@ -22,19 +22,15 @@ struct HabitDetailHeaderView: View {
                 .frame(width: 140, height: 140)
                 .animation(.spring(response: 0.6, dampingFraction: 0.8), value: habit.isCompletedToday)
                 
-                VStack(spacing: 6) {
-                    Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                        .font(.system(size: 36, weight: .semibold))
-                        .foregroundColor(habit.isCompletedToday ? habit.theme.accent : Color(.tertiaryLabel))
-                        .symbolEffect(.bounce, value: habit.isCompletedToday)
-                    
+                VStack(spacing: 2) {
                     Text("\(habit.streak)")
-                        .font(.system(size: 32, weight: .bold, design: .rounded))
+                        .font(.system(size: 44, weight: .heavy, design: .rounded))
                         .foregroundStyle(.primary)
+                        .contentTransition(.numericText(countsDown: false))
                     
-                    Text(L10n.t("habit.streak"))
-                        .font(.caption)
-                        .fontWeight(.medium)
+                    Text(L10n.t("habit.streak").uppercased())
+                        .font(.system(size: 12, weight: .bold))
+                        .tracking(1)
                         .foregroundStyle(.secondary)
                 }
             }

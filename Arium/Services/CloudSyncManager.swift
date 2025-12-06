@@ -8,6 +8,16 @@
 import Foundation
 import CloudKit
 import OSLog
+#if canImport(UIKit)
+import UIKit
+#else
+// Minimal fallback to allow compilation on platforms without UIKit
+public enum UIBackgroundFetchResult: Int {
+    case newData
+    case noData
+    case failed
+}
+#endif
 
 @MainActor
 class CloudSyncManager: ObservableObject {
@@ -32,6 +42,7 @@ class CloudSyncManager: ObservableObject {
             let isAvailable = await checkAccountStatus()
             if isAvailable {
                 print("✅ iCloud CloudKit is available and enabled")
+                await subscribeToChanges()
             } else {
                 print("⚠️ iCloud CloudKit is not available (check iCloud account or Developer account)")
             }
@@ -427,12 +438,12 @@ class CloudSyncManager: ObservableObject {
             // Merge with cloud habits (prefer cloud if newer)
             for cloudHabit in cloudHabits {
                 if let localHabit = mergedHabits[cloudHabit.id] {
-                    // Compare dates and keep newer
-                    if cloudHabit.createdAt > localHabit.createdAt {
+                    // Compare modification dates and keep newer
+                    if cloudHabit.lastModified > localHabit.lastModified {
                         mergedHabits[cloudHabit.id] = cloudHabit
-                        print("🔄 Merged: Using cloud version for habit '\(cloudHabit.title)' (newer)")
+                        print("🔄 Merged: Using cloud version for habit '\(cloudHabit.title)' (remote is newer)")
                     } else {
-                        print("ℹ️ Keeping local version for habit '\(localHabit.title)' (newer)")
+                        print("ℹ️ Keeping local version for habit '\(localHabit.title)' (local is newer)")
                     }
                 } else {
                     // New habit from cloud
@@ -597,5 +608,65 @@ class CloudSyncManager: ObservableObject {
             isReminderEnabled: useCloudMetadata ? cloud.isReminderEnabled : local.isReminderEnabled
         )
     }
+    // MARK: - Background Sync (Subscriptions)
+    
+    func subscribeToChanges() async {
+        guard let privateDatabase = privateDatabase else { return }
+        
+        let subscriptionID = "arium-habit-changes"
+        
+        do {
+            // Check if subscription already exists
+            _ = try await privateDatabase.subscription(for: subscriptionID)
+            logger.info("✅ Database subscription already exists")
+        } catch {
+            // Subscription doesn't exist, create it
+            let subscription = CKDatabaseSubscription(subscriptionID: subscriptionID)
+            let notificationInfo = CKSubscription.NotificationInfo()
+            
+            // "shouldSendContentAvailable" true sends a silent push!
+            notificationInfo.shouldSendContentAvailable = true
+            subscription.notificationInfo = notificationInfo
+            
+            do {
+                try await privateDatabase.save(subscription)
+                logger.info("✅ Successfully created database subscription for silent push")
+            } catch {
+                logger.error("❌ Failed to create database subscription: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    func handleNotification(userInfo: [AnyHashable: Any]) -> UIBackgroundFetchResult {
+        logger.info("📩 Received silent push notification")
+        
+        guard let notification = CKNotification(fromRemoteNotificationDictionary: userInfo),
+              notification.subscriptionID == "arium-habit-changes" else {
+            return .noData
+        }
+        
+        // Trigger sync
+        Task {
+            do {
+                // Fetch local habits first to have something to merge with
+                // In a real scenario, you might want to fetch these from a database/storage
+                // For now, we rely on the in-memory store or trigger a reload in the app
+                logger.info("🔄 Background sync triggered by push")
+                
+                // We need to notify the app to sync.
+                // Since this manager doesn't hold the source of truth for ALL habits (HabitStore does),
+                // we'll post a notification that HabitStore can listen to.
+                await MainActor.run {
+                    NotificationCenter.default.post(name: .cloudKitDataChanged, object: nil)
+                }
+            }
+        }
+        
+        return .newData
+    }
+}
+
+extension Notification.Name {
+    static let cloudKitDataChanged = Notification.Name("cloudKitDataChanged")
 }
 

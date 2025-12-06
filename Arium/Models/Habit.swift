@@ -85,20 +85,24 @@ struct Habit: Identifiable, Codable, Equatable {
         updatedAt ?? createdAt
     }
     
-    mutating func toggleCompletion() {
-        isCompletedToday.toggle()
+    mutating func toggleCompletion(on date: Date = Date()) {
+        let calendar = Calendar.current
+        let isToday = calendar.isDateInToday(date)
         
-        if isCompletedToday {
-            completionDates.append(Date())
-            calculateStreak()
+        // Check if already completed on that date
+        let isCompletedOnDate = completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+        
+        if isCompletedOnDate {
+            // Remove completion
+            completionDates.removeAll { calendar.isDate($0, inSameDayAs: date) }
+            if isToday { isCompletedToday = false }
         } else {
-            // Remove today's completion
-            let calendar = Calendar.current
-            completionDates.removeAll { date in
-                calendar.isDateInToday(date)
-            }
-            calculateStreak()
+            // Add completion
+            completionDates.append(date)
+            if isToday { isCompletedToday = true }
         }
+        
+        calculateStreak()
     }
     
     mutating func calculateStreak() {

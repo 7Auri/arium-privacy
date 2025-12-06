@@ -9,6 +9,7 @@ import XCTest
 import SwiftUI
 @testable import Arium
 
+@MainActor
 final class AppThemeManagerTests: XCTestCase {
     
     func testAllAccentColorsExist() {

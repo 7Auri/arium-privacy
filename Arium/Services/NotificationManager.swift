@@ -588,7 +588,7 @@ class NotificationManager: NSObject, ObservableObject {
         content.badge = 1
         content.categoryIdentifier = "ACHIEVEMENT"
         content.userInfo = [
-            "achievementId": achievement.id,
+            "achievementId": achievement.id.rawValue,
             "type": "achievement_unlock",
             "xpReward": achievement.xpReward
         ]

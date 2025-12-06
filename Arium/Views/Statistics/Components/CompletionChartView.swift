@@ -22,7 +22,7 @@ struct CompletionChartView: View {
                 ForEach(dailyStats) { stat in
                     BarMark(
                         x: .value("Date", stat.date, unit: .day),
-                        y: .value("Completed", stat.completed ? 1 : 0)
+                        y: .value("Completions", stat.completionCount)
                     )
                     .foregroundStyle(
                         stat.completed ?
@@ -41,23 +41,24 @@ struct CompletionChartView: View {
                 }
             }
             .chartXAxis {
-                AxisMarks(values: .stride(by: .day, count: isPremium ? 5 : 1)) { value in
+                AxisMarks(values: .stride(by: .day, count: calculateXAxisStride())) { value in
                     if let date = value.as(Date.self) {
                         AxisValueLabel {
                             VStack(spacing: 2) {
-                                Text(date, format: .dateTime.day())
+                                Text(formatDate(date))
                                     .font(.caption2)
                                     .foregroundColor(AriumTheme.textSecondary)
                             }
                         }
+                        .foregroundStyle(AriumTheme.textSecondary)
                     }
                 }
             }
             .chartYAxis {
-                AxisMarks(values: [0, 1]) { value in
+                AxisMarks { value in
                     AxisValueLabel {
                         if let intValue = value.as(Int.self) {
-                            Text(intValue == 1 ? "✓" : "")
+                            Text("\(intValue)")
                                 .font(.caption2)
                                 .foregroundColor(AriumTheme.textSecondary)
                         }
@@ -92,6 +93,53 @@ struct CompletionChartView: View {
             }
             .padding(.horizontal, 4)
         }
+    }
+    
+    private func calculateXAxisStride() -> Int {
+        let count = dailyStats.count
+        
+        // Dynamically adjust stride based on data point count
+        if count <= 7 {
+            return 1  // Show every day for a week
+        } else if count <= 30 {
+            return isPremium ? 3 : 7  // Show every 3-7 days for a month
+        } else if count <= 90 {
+            return isPremium ? 7 : 15  // Show every 7-15 days for 3 months
+        } else if count <= 180 {
+            return isPremium ? 15 : 30  // Show every 15-30 days for 6 months
+        } else {
+            return isPremium ? 30 : 60  // Show every 30-60 days for longer periods
+        }
+    }
+    
+    private func formatDate(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        
+        // Set locale based on L10nManager
+        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
+        switch lang {
+        case "tr":
+            formatter.locale = Locale(identifier: "tr_TR")
+        case "de":
+            formatter.locale = Locale(identifier: "de_DE")
+        case "fr":
+            formatter.locale = Locale(identifier: "fr_FR")
+        case "es":
+            formatter.locale = Locale(identifier: "es_ES")
+        case "it":
+            formatter.locale = Locale(identifier: "it_IT")
+        default:
+            formatter.locale = Locale(identifier: "en_US")
+        }
+        
+        // Use month abbreviation for long periods, day number for short periods
+        if dailyStats.count > 60 {
+            formatter.dateFormat = "MMM"  // Abbreviated month
+        } else {
+            formatter.dateFormat = "d"  // Day number
+        }
+        
+        return formatter.string(from: date)
     }
 }
 
