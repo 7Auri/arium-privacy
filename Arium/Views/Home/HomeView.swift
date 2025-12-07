@@ -233,7 +233,11 @@ struct HomeView: View {
                 HStack {
                     Spacer()
                     ModernAddButton {
-                        viewModel.attemptAddHabit(store: habitStore)
+                        if habitStore.canAddMoreHabits {
+                            sheetCoordinator.showAddHabit()
+                        } else {
+                            viewModel.showingPremiumAlert = true
+                        }
                     }
                     .padding(.trailing, 20)
                     .padding(.bottom, 16)
