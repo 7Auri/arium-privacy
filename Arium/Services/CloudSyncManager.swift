@@ -118,11 +118,31 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Upload Habits (Delta Sync Optimization)
     
     func uploadHabits(_ habits: [Habit]) async throws {
+        // Use retry manager for network operations
+        try await RetryManager.retryIf(
+            maxAttempts: 3,
+            shouldRetry: { error in
+                // Retry on network errors and server errors
+                if let ckError = error as? CKError {
+                    return ckError.code == .networkUnavailable || 
+                           ckError.code == .serviceUnavailable ||
+                           ckError.code == .requestRateLimited
+                }
+                return false
+            }
+        ) {
+            try await self.performUpload(habits)
+        }
+    }
+    
+    private func performUpload(_ habits: [Habit]) async throws {
         // Account status'u kontrol et
         let isAvailable = await checkAccountStatus()
         guard isAvailable, let privateDatabase = privateDatabase else {
             throw NSError(domain: "CloudSyncManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "iCloud sync is disabled"])
         }
+        
+        // Original upload logic continues here...
         
         let lastSync = UserDefaults.standard.object(forKey: "LastCloudSyncDate") as? Date ?? Date.distantPast
         
@@ -163,10 +183,6 @@ class CloudSyncManager: ObservableObject {
                         conflictRecordIDs.append(recordID)
                         logger.warning("⚠️ Conflict detected for record \(recordID.recordName)")
                     } else {
-                        logger.error("⚠️ Failed to save record \(recordID.recordName): \(error.localizedDescription)")
-                    }
-                @unknown default:
-                    if let error = result as? Error {
                         logger.error("⚠️ Failed to save record \(recordID.recordName): \(error.localizedDescription)")
                     }
                 }
@@ -264,6 +280,24 @@ class CloudSyncManager: ObservableObject {
     // MARK: - Download Habits
     
     func downloadHabits() async throws -> [Habit] {
+        // Use retry manager for network operations
+        try await RetryManager.retryIf(
+            maxAttempts: 3,
+            shouldRetry: { error in
+                // Retry on network errors and server errors
+                if let ckError = error as? CKError {
+                    return ckError.code == .networkUnavailable || 
+                           ckError.code == .serviceUnavailable ||
+                           ckError.code == .requestRateLimited
+                }
+                return false
+            }
+        ) {
+            try await self.performDownload()
+        }
+    }
+    
+    private func performDownload() async throws -> [Habit] {
         guard syncEnabled, let privateDatabase = privateDatabase else {
             // Silent fail - user hasn't enabled iCloud sync
             throw NSError(domain: "CloudSyncManager", code: 1, userInfo: [NSLocalizedDescriptionKey: "iCloud sync is disabled"])
@@ -283,8 +317,6 @@ class CloudSyncManager: ObservableObject {
                     return recordToHabit(record)
                 case .failure(let error):
                     print("❌ Failed to fetch record: \(error)")
-                    return nil
-                @unknown default:
                     return nil
                 }
             }
@@ -335,8 +367,6 @@ class CloudSyncManager: ObservableObject {
                             return recordToHabit(record)
                         case .failure(let error):
                             print("❌ Failed to fetch record: \(error)")
-                            return nil
-                        @unknown default:
                             return nil
                         }
                     }

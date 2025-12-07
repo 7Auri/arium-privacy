@@ -36,15 +36,33 @@ struct LoadingOverlay: ViewModifier {
     let message: String?
     
     func body(content: Content) -> some View {
-        ZStack {
-            content
-                .disabled(isLoading)
-                .blur(radius: isLoading ? 2 : 0)
-            
-            if isLoading {
-                LoadingView(message: message)
+        content
+            .overlay {
+                if isLoading {
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        
+                        VStack(spacing: 16) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .tint(.white)
+                            
+                            if let message = message {
+                                Text(message)
+                                    .font(.subheadline)
+                                    .foregroundColor(.white)
+                                    .padding(.horizontal)
+                            }
+                        }
+                        .padding(24)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(.ultraThinMaterial)
+                        )
+                    }
+                }
             }
-        }
     }
 }
 

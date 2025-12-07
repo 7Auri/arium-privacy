@@ -23,6 +23,7 @@ struct AriumApp: App {
                 ContentView()
                     .environmentObject(habitStore)
                     .environmentObject(appThemeManager)
+                    .environmentObject(FontManager.shared)
                     .task {
                         // Track app launch
                         AnalyticsManager.shared.trackAppLaunch()
@@ -43,6 +44,7 @@ struct AriumApp: App {
                 OnboardingView()
                     .environmentObject(habitStore)
                     .environmentObject(appThemeManager)
+                    .environmentObject(FontManager.shared)
             }
         }
         .onChange(of: scenePhase) { oldPhase, newPhase in

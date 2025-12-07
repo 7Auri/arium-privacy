@@ -68,7 +68,7 @@ class DataExportManager {
             let row = [
                 habit.id.uuidString,
                 escapeCsvField(habit.title),
-                habit.category.localizedName,
+                habit.category.rawValue, // Use rawValue for stable export
                 dateFormatter.string(from: habit.createdAt),
                 "\(habit.streak)",
                 "\(habit.completionDates.count)",
@@ -329,11 +329,18 @@ class DataExportManager {
                 continue
             }
             
-            // Find category by localized name
-            let categoryName = fields[2]
-            let category = HabitCategory.allCases.first { category in
-                category.localizedName == categoryName
-            } ?? .personal // Default to personal if not found
+            // Find category by safe rawValue first, then fallback to testing logic for old imports
+            let categoryString = fields[2]
+            var category: HabitCategory
+            
+            if let cat = HabitCategory(rawValue: categoryString) {
+                category = cat
+            } else {
+                // Backward compatibility lookup
+                category = HabitCategory.allCases.first { category in
+                    category.localizedName == categoryString
+                } ?? .personal // Default to personal if not found
+            }
             
             let title = unescapeCsvField(fields[1])
             let notes = unescapeCsvField(fields[8])

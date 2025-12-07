@@ -22,10 +22,19 @@ enum InsightType {
     case monthlyTrendDown // Declining vs last month
     case sentimentTrendUp // Mood improving
     case sentimentTrendDown // Mood declining
+    // New insight types
+    case consistencyChampion // Most consistent habit
+    case comebackKid // Recovered from decline
+    case timeOptimizer // Most productive time of day
+    case categoryMaster // Best performing category
+    case goalAchiever // Completed goal challenges
+    case socialButterfly // Social habits success
+    case healthHero // Health habits excellence
+    case learningLeader // Learning habits mastery
     
     var color: Color {
         switch self {
-        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp:
+        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader:
             return .green
         case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown:
             return .orange
@@ -48,6 +57,14 @@ enum InsightType {
         case .monthlyTrendDown: return "chart.line.downtrend.xyaxis"
         case .sentimentTrendUp: return "arrow.up.heart.fill"
         case .sentimentTrendDown: return "arrow.down.heart.fill"
+        case .consistencyChampion: return "checkmark.circle.fill"
+        case .comebackKid: return "arrow.clockwise.circle.fill"
+        case .timeOptimizer: return "clock.fill"
+        case .categoryMaster: return "star.fill"
+        case .goalAchiever: return "flag.checkered"
+        case .socialButterfly: return "person.2.fill"
+        case .healthHero: return "heart.fill"
+        case .learningLeader: return "book.fill"
         }
     }
 }
@@ -59,4 +76,72 @@ struct Insight: Identifiable {
     let message: String
     let relatedHabitId: UUID?
     let date: Date = Date()
+    let suggestedActions: [InsightAction] // Actionable insights
+    let confidence: Double // ML confidence score (0.0 - 1.0)
+    
+    init(type: InsightType, title: String, message: String, relatedHabitId: UUID? = nil, suggestedActions: [InsightAction] = [], confidence: Double = 0.8) {
+        self.type = type
+        self.title = title
+        self.message = message
+        self.relatedHabitId = relatedHabitId
+        self.suggestedActions = suggestedActions
+        self.confidence = confidence
+    }
+}
+
+// Actionable insights - suggested actions for each insight
+enum InsightAction: Identifiable {
+    case focusOnHabit(UUID)
+    case updateGoal(UUID)
+    case setReminder(UUID)
+    case adjustSchedule(UUID)
+    case reviewProgress(UUID)
+    case celebrateAchievement
+    case tryNewApproach(UUID)
+    
+    var id: String {
+        switch self {
+        case .focusOnHabit(let id): return "focus-\(id)"
+        case .updateGoal(let id): return "goal-\(id)"
+        case .setReminder(let id): return "reminder-\(id)"
+        case .adjustSchedule(let id): return "schedule-\(id)"
+        case .reviewProgress(let id): return "review-\(id)"
+        case .celebrateAchievement: return "celebrate"
+        case .tryNewApproach(let id): return "approach-\(id)"
+        }
+    }
+    
+    var habitId: UUID? {
+        switch self {
+        case .focusOnHabit(let id), .updateGoal(let id), .setReminder(let id),
+             .adjustSchedule(let id), .reviewProgress(let id), .tryNewApproach(let id):
+            return id
+        case .celebrateAchievement:
+            return nil
+        }
+    }
+    
+    var title: String {
+        switch self {
+        case .focusOnHabit: return L10n.t("insight.action.focus")
+        case .updateGoal: return L10n.t("insight.action.updateGoal")
+        case .setReminder: return L10n.t("insight.action.setReminder")
+        case .adjustSchedule: return L10n.t("insight.action.adjustSchedule")
+        case .reviewProgress: return L10n.t("insight.action.reviewProgress")
+        case .celebrateAchievement: return L10n.t("insight.action.celebrate")
+        case .tryNewApproach: return L10n.t("insight.action.tryNewApproach")
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .focusOnHabit: return "target"
+        case .updateGoal: return "flag.fill"
+        case .setReminder: return "bell.fill"
+        case .adjustSchedule: return "calendar"
+        case .reviewProgress: return "chart.bar.fill"
+        case .celebrateAchievement: return "party.popper.fill"
+        case .tryNewApproach: return "lightbulb.fill"
+        }
+    }
 }

@@ -1044,6 +1044,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
 				INFOPLIST_KEY_UIAppFonts = "DancingScript-VariableFont_wght.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1081,6 +1083,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
 				INFOPLIST_KEY_UIAppFonts = "DancingScript-VariableFont_wght.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;

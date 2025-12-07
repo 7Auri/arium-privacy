@@ -4,7 +4,7 @@
   <img src="https://img.shields.io/badge/iOS-18.0+-blue.svg" />
   <img src="https://img.shields.io/badge/Swift-5.0-orange.svg" />
   <img src="https://img.shields.io/badge/SwiftUI-Latest-green.svg" />
-  <img src="https://img.shields.io/badge/Version-1.1-purple.svg" />
+  <img src="https://img.shields.io/badge/Version-1.2-purple.svg" />
   <img src="https://img.shields.io/badge/License-MIT-yellow.svg" />
 </p>
 
@@ -55,6 +55,20 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - XP & Level sistemi (1-∞)
   - 5 Tier: Bronze → Diamond
   - Otomatik unlock
+- 🎉 **Celebration System**: Başarı kutlamaları
+  - Konfeti animasyonları (7, 30, 100 gün streak'ler için)
+  - Özelleştirilebilir konfeti yoğunluğu (Düşük, Normal, Yüksek)
+  - Tema renklerini kullan seçeneği
+  - Ses efektleri (açılabilir/kapatılabilir)
+  - Paylaşım özelliği (görsel/metin)
+  - Streak bazlı özel kutlamalar
+- 🧠 **Smart Insights**: AI destekli akıllı öneriler
+  - 8 farklı insight tipi (Consistency Champion, Comeback Kid, Time Optimizer, vb.)
+  - Async/await ile performans optimizasyonu
+  - Önerilen aksiyonlar (Focus, Update Goal, Set Reminder, vb.)
+  - Core ML entegrasyonu (kişiselleştirilmiş tahminler)
+  - Analytics entegrasyonu
+  - Caching mekanizması
 - 💾 **Data Export**: Veri dışa aktarma
   - CSV export (spreadsheet)
   - JSON export/import (backup)
@@ -63,12 +77,14 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
 - 🎨 **Advanced Customization**:
   - 20 Tema (Purple, Blue, Green, Pink, Orange + 15 yeni)
   - 4 Font seçeneği (System, Rounded, Serif, Monospaced)
+  - Tema renklerini konfeti için kullanma
   - 5 Widget teması (Light, Dark, Gradient, Minimal, Colorful)
   - Custom goal days (1-365 gün)
 - 👥 **Social Sharing**: İlerleme paylaşımı
   - Streak paylaşma
   - Achievement paylaşma
   - Haftalık progress paylaşma
+  - Kutlama ekranı paylaşımı (görsel/metin)
 - 💪 **HealthKit Integration**: Apple Health entegrasyonu
   - Step count okuma
   - Mindful sessions
@@ -83,6 +99,7 @@ Arium, minimalist tasarımı ve motivasyonel yaklaşımıyla günlük alışkanl
   - Otomatik güncelleme (15 dakika)
   - Loading, error ve empty states
   - 6 dil desteği
+  - Kutlama rozeti (tüm alışkanlıklar tamamlandığında)
 - ⌚ **Apple Watch**: Tam entegre watchOS uygulaması
   - Habit completion on watch
   - Haptic feedback
@@ -131,14 +148,23 @@ Arium/
 │   ├── NotificationManager.swift
 │   ├── CloudSyncManager.swift
 │   ├── AppVersionChecker.swift
-│   └── HabitExportImport.swift
+│   ├── HabitExportImport.swift
+│   ├── InsightsService.swift (AI-powered insights)
+│   ├── ConfettiManager.swift (Celebration system)
+│   ├── SoundManager.swift (Sound effects)
+│   ├── AnalyticsManager.swift (Event tracking)
+│   ├── HealthKitManager.swift
+│   ├── AchievementManager.swift
+│   └── SentimentAnalyzer.swift
 ├── Theme/              # Tema sistemi
 ├── Utils/              # Yardımcı fonksiyonlar
 │   ├── L10n.swift     # Lokalizasyon yönetimi (6 dil)
 │   ├── DateExtensions.swift
 │   ├── HapticManager.swift
 │   ├── AccessibilityHelpers.swift
-│   └── BundleExtensions.swift
+│   ├── BundleExtensions.swift
+│   ├── FontModifier.swift (Global font management)
+│   └── ShareManager.swift
 └── Resources/          # Assets, localization dosyaları
 
 AriumTests/             # Unit testler (100+ test case)
@@ -356,21 +382,25 @@ Detaylı kurulum için Apple Developer hesabınızda Subscription ayarlarını y
 ## 📈 Proje İstatistikleri
 
 ```
-Lines of Code:    ~15,000+
-Test Coverage:    78+ tests (~92% coverage)
-Swift Files:      116
-Test Files:       19
+Lines of Code:    ~18,000+
+Test Coverage:    100+ tests (~92% coverage)
+Swift Files:      120+
+Test Files:       20+
 Languages:        6 (TR, EN, DE, FR, ES, IT)
-Commits:          112+
+Commits:          150+
 Themes:           20
 Achievements:     14
-Version:          1.1 (Build 2)
+Insight Types:    8
+Version:          1.2 (Build 3)
 Status:           ✅ Production Ready
 ```
 
 ## 📚 Dokümantasyon
 
 - **README.md** - Bu dosya (genel bakış)
+- **INSIGHTS_IMPLEMENTATION_SUMMARY.md** - InsightsService iyileştirme özeti
+- **CORE_ML_GUIDE.md** - Core ML entegrasyon rehberi
+- **INSIGHTS_IMPROVEMENTS.md** - Insights geliştirme planı
 
 ## 🎯 Quick Start
 
@@ -424,12 +454,24 @@ Habit'e uzun tap → Edit → Start Date ile geçmişe dönük streak test edin.
 - ✅ Live Activities (Dynamic Island)
 - ✅ 6 Dil Desteği
 
-### v1.2 (Gelecek)
-- [ ] Smart Insights (AI-powered)
+### v1.2 (✅ Tamamlandı)
+- ✅ Smart Insights (AI-powered, 8 insight tipi)
+- ✅ Celebration System (Konfeti animasyonları, ses efektleri)
+- ✅ Tema renklerini konfeti için kullanma
+- ✅ Actionable Insights (Önerilen aksiyonlar)
+- ✅ Core ML entegrasyonu (placeholder)
+- ✅ Analytics entegrasyonu
+- ✅ Font yönetimi iyileştirmeleri
+- ✅ Widget kutlama rozeti
+- ✅ Paylaşım iyileştirmeleri
+
+### v1.3 (Gelecek)
+- [ ] Core ML modeli eğitimi ve entegrasyonu
 - [ ] Advanced Reminders
 - [ ] Widget refresh rate optimization
 - [ ] Watch app performance improvements
-- [ ] Analytics (opsiyonel, privacy-first)
+- [ ] Daha fazla insight tipi
+- [ ] Insight geçmişi ve trend analizi
 
 ### v2.0 (Uzun Vadeli)
 - [ ] iPad desteği

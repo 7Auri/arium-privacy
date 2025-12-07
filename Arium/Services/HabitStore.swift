@@ -202,8 +202,37 @@ class HabitStore: NSObject, ObservableObject {
             }
         }
         
+        // Check HealthKit completions
+        if isPremium {
+            await checkHealthKitCompletions()
+        }
+        
         if hasChanges {
             saveHabits(immediate: false)
+        }
+    }
+    
+    // MARK: - HealthKit Sync
+    
+    func checkHealthKitCompletions() async {
+        let healthHabits = habits.filter { $0.healthKitMetric != nil && $0.healthKitGoal != nil }
+        guard !healthHabits.isEmpty else { return }
+        
+        for index in habits.indices {
+            let habit = habits[index]
+            guard let metric = habit.healthKitMetric,
+                  let goal = habit.healthKitGoal,
+                  !habit.isCompletedToday else { continue }
+            
+            // Check value
+            let value = await HealthKitManager.shared.getMetricValue(for: metric, date: Date())
+            
+            if value >= goal {
+                // Mark as completed
+                // Use toggleHabitCompletion to handle streaks etc.
+                toggleHabitCompletion(habit.id)
+                print("✅ HealthKit auto-complete: \(habit.title) (Value: \(value) >= Goal: \(goal))")
+            }
         }
     }
     

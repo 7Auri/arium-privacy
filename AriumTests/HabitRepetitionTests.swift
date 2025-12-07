@@ -113,19 +113,21 @@ struct HabitRepetitionTests {
         #expect(labels1[2] == "Evening")
         
         // Test without custom labels (should generate defaults)
+        // Test without custom labels (should generate defaults)
+        // Using 6 repetitions to trigger the default case (1-5 have specific names)
         let habitWithoutLabels = Habit(
             title: "Test",
             themeId: "purple",
             category: .health,
-            dailyRepetitions: 3,
+            dailyRepetitions: 6,
             repetitionLabels: nil
         )
         
         let labels2 = habitWithoutLabels.displayRepetitionLabels
-        #expect(labels2.count == 3)
-        #expect(labels2[0] == "1")
-        #expect(labels2[1] == "2")
-        #expect(labels2[2] == "3")
+        #expect(labels2.count == 6)
+        #expect(labels2[0].hasPrefix("1."))
+        #expect(labels2[1].hasPrefix("2."))
+        #expect(labels2[5].hasPrefix("6."))
     }
     
     @Test func testResetDailyCompletions() async throws {

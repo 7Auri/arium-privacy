@@ -233,6 +233,14 @@ final class HabitExportImportTests: XCTestCase {
         let items = [
             ImportHabitItem(
                 id: existingHabit.id,
+                habit: existingHabit,
+                isExisting: true,
+                isDuplicate: false,
+                isSelected: true,
+                duplicateResolution: nil
+            ),
+            ImportHabitItem(
+                id: existingHabit.id,
                 habit: duplicateHabit,
                 isExisting: false,
                 isDuplicate: true,
@@ -274,6 +282,7 @@ final class HabitExportImportTests: XCTestCase {
         XCTAssertEqual(merged.count, 3)
     }
 }
+
 
 
 

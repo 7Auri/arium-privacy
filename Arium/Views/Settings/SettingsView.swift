@@ -1487,7 +1487,7 @@ struct SettingsView: View {
 
                 customizationCard
             }
-            
+
             // Achievements
             modernSection(
                 title: L10n.t("achievements.title"),

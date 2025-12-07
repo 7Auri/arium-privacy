@@ -174,7 +174,6 @@ struct HabitDetailView: View {
     }
     
     private func getNotesWithDates() -> [(date: Date, note: String)] {
-        let calendar = Calendar.current
         var notesWithDates: [(date: Date, note: String)] = []
         
         for (dateKey, note) in viewModel.habit.completionNotes {
@@ -565,6 +564,9 @@ struct HabitDetailView: View {
                     repetitionsView
                 }
                 
+                // HealthKit Integration - Temporarily disabled
+                // healthKitView
+                
                 startDateView
                 goalDaysView
                 themeView
@@ -599,7 +601,18 @@ struct HabitDetailView: View {
                         index: index,
                         onToggle: { index in
                             var updatedHabit = viewModel.habit
-                            let allCompleted = updatedHabit.toggleRepetition(at: index)
+                            // Store previous state to determine if we just completed it
+                            let wasCompleted = updatedHabit.isCompletedToday
+                            
+                            updatedHabit.toggleRepetitionCompletion(at: index)
+                            
+                            let isNowCompleted = updatedHabit.isCompletedToday
+                            // Identify if we just finished it
+                            let allCompleted = isNowCompleted && !wasCompleted 
+                            
+                            // If just marking as completed (even if already was? no, wasCompleted check prevents completion handling if untoggling)
+                            // Actually the original logic "Returns true if all repetitions are now completed (and weren't before)"
+                            // My manual check: isNowCompleted && !wasCompleted achieves exactly that.
                             habitStore.updateHabit(updatedHabit)
                             viewModel.habit = updatedHabit
                             HapticManager.success()
@@ -649,7 +662,25 @@ struct HabitDetailView: View {
         }
         viewModel.refreshCompletionForNewDay()
         refreshHabit()
+        // HealthKit Integration - Temporarily disabled
+        // viewModel.initializeHealthKitParams()
     }
+    
+    // MARK: - HealthKit View (Temporarily disabled)
+    
+    // private var healthKitView: some View {
+    //     HealthKitSettingsView(
+    //         isEnabled: $viewModel.isHealthKitEnabled,
+    //         selectedMetric: $viewModel.healthKitMetric,
+    //         goalValue: $viewModel.healthKitGoal
+    //     )
+    //     .padding(.horizontal, 20)
+    //     .onChange(of: viewModel.isHealthKitEnabled) { _, _ in viewModel.updateHealthKit(store: habitStore) }
+    //     .onChange(of: viewModel.healthKitMetric) { _, _ in viewModel.updateHealthKit(store: habitStore) }
+    //     .onChange(of: viewModel.healthKitGoal) { _, _ in 
+    //          viewModel.updateHealthKit(store: habitStore) 
+    //     }
+    // }
     
     private func handleHabitsChange() {
         let habitId = viewModel.habit.id
@@ -1213,3 +1244,4 @@ struct NoteHistoryItem: View {
     HabitDetailView(habit: Habit(title: "Read", notes: "Read 30 minutes daily", streak: 5))
         .environmentObject(HabitStore())
 }
+

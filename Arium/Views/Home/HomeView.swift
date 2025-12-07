@@ -10,6 +10,7 @@ import SwiftUI
 struct HomeView: View {
     @EnvironmentObject var habitStore: HabitStore
     @StateObject private var viewModel = HomeViewModel()
+    @StateObject private var sheetCoordinator = SheetCoordinator()
     @ObservedObject private var l10nManager = L10nManager.shared
     @ObservedObject private var appThemeManager = AppThemeManager.shared
     @StateObject private var premiumManager = PremiumManager.shared
@@ -19,15 +20,20 @@ struct HomeView: View {
     @State private var languageUpdateTrigger = UUID()
     
     @State private var noteText = ""
-    @State private var selectedHabitForNote: Habit?
     @State private var habitToDelete: Habit?
     @State private var showingDeleteAlert = false
-    @State private var showingAchievements = false
-    @State private var showingInsights = false
-    @State private var showingStatistics = false
     @AppStorage("isSnowEnabled") private var isSnowEnabled = true
     @State private var snowAutoDisableTask: Task<Void, Never>?
     @State private var showingConfetti = false
+    @State private var currentCelebrationType: ConfettiManager.CelebrationType = .allHabitsCompleted
+    @State private var celebrationStats: (habitsCount: Int, maxStreak: Int)?
+    
+    // Günlük kutlama ekranı kontrolü için
+    @AppStorage("lastCelebrationShownDate") private var lastCelebrationShownDate: String = ""
+    
+    // Konfetti kontrolü için cache - sürekli tetiklenmeyi önlemek için
+    @State private var lastCheckedCompletionRate: Double = -1
+    @State private var lastCheckedDate: Date = Date.distantPast
     
     private var backgroundGradient: some View {
         LinearGradient(
@@ -59,10 +65,10 @@ struct HomeView: View {
             remainingSlots: habitStore.remainingFreeSlots,
             isPremium: premiumManager.isPremium,
             isSnowEnabled: $isSnowEnabled,
-            onSettingsTap: { viewModel.showingSettings = true },
-            onAchievementsTap: { showingAchievements = true },
-            onInsightsTap: { showingInsights = true },
-            onStatisticsTap: { showingStatistics = true }
+            onSettingsTap: { sheetCoordinator.showSettings() },
+            onAchievementsTap: { sheetCoordinator.showAchievements() },
+            onInsightsTap: { sheetCoordinator.showInsights() },
+            onStatisticsTap: { sheetCoordinator.showStatistics() }
         )
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -146,8 +152,8 @@ struct HomeView: View {
         HomeContentView(
             premiumManager: premiumManager,
             viewModel: viewModel,
+            sheetCoordinator: sheetCoordinator,
             noteText: $noteText,
-            selectedHabitForNote: $selectedHabitForNote,
             habitToDelete: $habitToDelete,
             showingDeleteAlert: $showingDeleteAlert
         )
@@ -155,8 +161,24 @@ struct HomeView: View {
         .refreshable {
             await refreshHabits()
         }
-        .onChange(of: habitStore.habits) { habits in
-            checkForConfetti(habits: habits)
+        .onChange(of: habitStore.habits) { oldHabits, newHabits in
+            // State değişikliğini Task içinde yaparak "Modifying state during view update" hatasını önle
+            Task { @MainActor in
+                // Sadece gerçekten değişiklik varsa kontrol et
+                let currentRate = viewModel.completionRate(for: viewModel.selectedDate, habits: newHabits)
+                let currentDate = viewModel.selectedDate
+                
+                // Aynı tarih ve aynı completion rate ise tekrar kontrol etme
+                if Calendar.current.isDate(currentDate, inSameDayAs: lastCheckedDate) && 
+                   abs(currentRate - lastCheckedCompletionRate) < 0.01 {
+                    return
+                }
+                
+                lastCheckedCompletionRate = currentRate
+                lastCheckedDate = currentDate
+                
+                checkForConfetti(habits: newHabits)
+            }
         }
     }
     
@@ -174,19 +196,38 @@ struct HomeView: View {
                 scrollableContent
             }
             
-            // Confetti Overlay
+            // Confetti Overlay - Enhanced with message
             if showingConfetti {
-                ConfettiView()
+                ConfettiView(celebrationType: currentCelebrationType)
                     .allowsHitTesting(false)
                     .ignoresSafeArea()
+                    .transition(.opacity)
                     .onAppear {
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
-                            showingConfetti = false
+                        // Keep confetti visible for celebration duration
+                        let duration = currentCelebrationType.duration
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: UInt64(duration * 1_000_000_000))
+                            withAnimation(.easeOut(duration: 0.5)) {
+                                showingConfetti = false
+                            }
+                            
+                            // Show share option after confetti (sadece günde bir kez)
+                            if let stats = celebrationStats, shouldShowCelebrationSheet() {
+                                try? await Task.sleep(nanoseconds: 500_000_000) // 0.5 seconds
+                                sheetCoordinator.showShareCelebration(
+                                    celebrationType: currentCelebrationType,
+                                    habitsCount: stats.habitsCount,
+                                    maxStreak: stats.maxStreak,
+                                    date: viewModel.selectedDate
+                                )
+                                // Son gösterim tarihini kaydet
+                                markCelebrationShown()
+                            }
                         }
                     }
             }
             
-            // Modern Floating Add Button
+            // Modern Floating Add Button - Always visible
             VStack {
                 Spacer()
                 HStack {
@@ -206,57 +247,6 @@ struct HomeView: View {
         NavigationStack {
             contentStack
                 .navigationBarHidden(true)
-        }
-        .sheet(isPresented: $viewModel.showingAddHabit) {
-            AddHabitView()
-                .environmentObject(habitStore)
-        }
-        .sheet(item: $viewModel.selectedHabit) { habit in
-            HabitDetailView(habit: habit)
-                .environmentObject(habitStore)
-        }
-        .sheet(isPresented: $viewModel.showingSettings) {
-            SettingsView()
-                .environmentObject(habitStore)
-        }
-        .sheet(isPresented: $showingAchievements) {
-            NavigationStack {
-                AchievementsView()
-                    .environmentObject(habitStore)
-                    .environmentObject(premiumManager)
-                    .toolbar {
-                        ToolbarItem(placement: .cancellationAction) {
-                            Button(L10n.t("button.done")) {
-                                showingAchievements = false
-                            }
-                        }
-                    }
-            }
-        }
-        .sheet(isPresented: $showingInsights) {
-            InsightsView(isPresented: $showingInsights)
-                .environmentObject(habitStore)
-        }
-        .sheet(isPresented: $showingStatistics) {
-            StatisticsView(habits: habitStore.habits, isPremium: premiumManager.isPremium)
-                .environmentObject(habitStore)
-        }
-        .sheet(item: $selectedHabitForNote) { habit in
-            DailyNoteSheet(
-                noteText: $noteText,
-                themeColor: habit.theme.accent,
-                onComplete: {
-                    habitStore.toggleHabitCompletion(habit.id, note: noteText)
-                    selectedHabitForNote = nil
-                },
-                onSkip: {
-                    habitStore.toggleHabitCompletion(habit.id)
-                    selectedHabitForNote = nil
-                }
-            )
-            .presentationDetents([.medium, .large])
-            .presentationDragIndicator(.visible)
-            .interactiveDismissDisabled(false)
         }
         .modifier(AlertsModifier(
             viewModel: viewModel,
@@ -278,6 +268,16 @@ struct HomeView: View {
                 viewModel.selectedCategory = nil
             }
         }
+        .sheet(isPresented: $sheetCoordinator.showingSheet) {
+            sheetCoordinator.sheetContent(
+                habitStore: habitStore,
+                premiumManager: premiumManager,
+                noteText: $noteText,
+                showingInsights: .constant(false),
+                shareImage: nil,
+                habitForNote: nil
+            )
+        }
     }
     
     // MARK: - Helper Functions
@@ -289,19 +289,105 @@ struct HomeView: View {
         await habitStore.updateTodayStatus()
         HapticManager.light()
     }
+    @MainActor
     private func checkForConfetti(habits: [Habit]) {
         guard !habits.isEmpty else { return }
         
         // Calculate completion rate for selected date
         let rate = viewModel.completionRate(for: viewModel.selectedDate, habits: habits)
         
-        if rate == 1.0 && !showingConfetti {
-            // Show confetti celebration!
-            HapticManager.success()
-            withAnimation {
-                showingConfetti = true
+        // Sadece yeni bir başarı olduğunda kutlama göster (günde bir kez)
+        if rate == 1.0 && !showingConfetti && shouldShowCelebration() {
+            // Check for streak-based celebrations first
+            let maxStreak = habits.map { $0.streak }.max() ?? 0
+            let celebrationType: ConfettiManager.CelebrationType
+            
+            if maxStreak >= 100 {
+                celebrationType = .streak100Days
+            } else if maxStreak >= 30 {
+                celebrationType = .streak30Days
+            } else if maxStreak >= 7 {
+                celebrationType = .streak7Days
+            } else {
+                celebrationType = .allHabitsCompleted
+            }
+            
+            // Show confetti celebration with haptic feedback
+            HapticManager.heavy()
+            
+            // Store stats for sharing
+            celebrationStats = (habits.count, maxStreak)
+            
+            // State değişikliğini Task içinde yaparak "Modifying state during view update" hatasını önle
+            Task { @MainActor in
+                // Show confetti with spring animation
+                withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
+                    showingConfetti = true
+                    currentCelebrationType = celebrationType
+                }
+            }
+            
+            // Track celebration with performance monitoring
+            let startTime = Date()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateStyle = .medium
+            dateFormatter.timeStyle = .none
+            
+            AnalyticsManager.shared.trackEvent("all_habits_completed", parameters: [
+                "date": dateFormatter.string(from: viewModel.selectedDate),
+                "total_habits": habits.count,
+                "max_streak": maxStreak,
+                "celebration_type": String(describing: celebrationType)
+            ])
+            
+            // Track confetti performance
+            let confettiManager = ConfettiManager.shared
+            AnalyticsManager.shared.trackConfettiShown(
+                type: celebrationType,
+                particleCount: celebrationType.particleCount(intensity: confettiManager.intensity),
+                startTime: startTime
+            )
+            
+            // Kutlama gösterildiğini işaretle
+            markCelebrationShown()
+        } else if rate < 1.0 && showingConfetti {
+            // Hide confetti if completion rate drops - Task içinde yap
+            Task { @MainActor in
+                withAnimation(.easeOut(duration: 0.3)) {
+                    showingConfetti = false
+                }
             }
         }
+    }
+    
+    /// Kutlama ekranının bugün gösterilip gösterilmeyeceğini kontrol eder
+    private func shouldShowCelebration() -> Bool {
+        let today = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: today)
+        
+        // Eğer bugün daha önce gösterilmediyse, göster
+        return lastCelebrationShownDate != todayString
+    }
+    
+    /// Kutlama ekranının bugün gösterilip gösterilmeyeceğini kontrol eder (sheet için)
+    private func shouldShowCelebrationSheet() -> Bool {
+        let today = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        let todayString = dateFormatter.string(from: today)
+        
+        // Eğer bugün daha önce gösterilmediyse, göster
+        return lastCelebrationShownDate != todayString
+    }
+    
+    /// Kutlama gösterildiğini işaretle
+    private func markCelebrationShown() {
+        let today = Date()
+        let dateFormatter = DateFormatter()
+        dateFormatter.dateFormat = "yyyy-MM-dd"
+        lastCelebrationShownDate = dateFormatter.string(from: today)
     }
 }
 
@@ -311,8 +397,8 @@ private struct HomeContentView: View {
     @EnvironmentObject var habitStore: HabitStore
     @ObservedObject var premiumManager: PremiumManager
     @ObservedObject var viewModel: HomeViewModel
+    @ObservedObject var sheetCoordinator: SheetCoordinator
     @Binding var noteText: String
-    @Binding var selectedHabitForNote: Habit?
     @Binding var habitToDelete: Habit?
     @Binding var showingDeleteAlert: Bool
 
@@ -346,20 +432,20 @@ private struct HomeContentView: View {
                             habit: habit,
                             onTap: {
                                 HapticManager.selection()
-                                viewModel.selectedHabit = habit
+                                sheetCoordinator.showHabitDetail(habit)
                             },
                             onToggle: {
                                 if habit.dailyRepetitions > 1 {
                                     HapticManager.selection()
-                                    viewModel.selectedHabit = habit
+                                    sheetCoordinator.showHabitDetail(habit)
                                 } else if viewModel.isCompleted(habit, on: viewModel.selectedDate) {
                                     HapticManager.light()
                                     viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
                                 } else {
                                     HapticManager.success()
                                     if premiumManager.isPremium {
-                                        selectedHabitForNote = habit
                                         noteText = ""
+                                        sheetCoordinator.showDailyNote(for: habit)
                                     } else {
                                         viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
                                     }
@@ -373,8 +459,8 @@ private struct HomeContentView: View {
                             onComplete: {
                                 HapticManager.success()
                                 if premiumManager.isPremium {
-                                    selectedHabitForNote = habit
                                     noteText = ""
+                                    sheetCoordinator.showDailyNote(for: habit)
                                 } else {
                                     viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
                                 }
@@ -1150,6 +1236,9 @@ struct ModernEmptyStateView: View {
     @State private var isAnimating = false
     @State private var sparkleRotation: Double = 0
     
+    // Accessibility
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    
     var body: some View {
         VStack(spacing: 24) {
             Spacer()
@@ -1186,13 +1275,20 @@ struct ModernEmptyStateView: View {
                     .opacity(isAnimating ? 1.0 : 0.5)
             }
             .onAppear {
-                withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                if !reduceMotion {
+                    withAnimation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true)) {
+                        isAnimating = true
+                    }
+                    withAnimation(.linear(duration: 8.0).repeatForever(autoreverses: false)) {
+                        sparkleRotation = 360
+                    }
+                } else {
                     isAnimating = true
-                }
-                withAnimation(.linear(duration: 8.0).repeatForever(autoreverses: false)) {
-                    sparkleRotation = 360
+                    sparkleRotation = 0
                 }
             }
+            .accessibilityLabel(L10n.t("home.empty.title"))
+            .accessibilityHint(L10n.t("home.empty.subtitle"))
             
             VStack(spacing: 12) {
                 Text(L10n.t("home.empty.title"))
@@ -1397,6 +1493,8 @@ struct ModernAddButton: View {
                 .scaleEffect(isPressed ? 0.92 : 1.0)
         }
         .buttonStyle(PlainButtonStyle())
+        .accessibilityLabel(L10n.t("button.add"))
+        .accessibilityHint(L10n.t("habit.new"))
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in

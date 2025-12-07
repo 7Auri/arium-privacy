@@ -228,13 +228,26 @@ struct MediumWidgetView: View {
                     
                     Spacer()
                     
-                    Text("\(habits.filter { $0.isCompletedToday }.count)/\(habits.count)")
-                        .font(.caption)
-                        .fontWeight(.semibold)
-                        .padding(.horizontal, 8)
-                        .padding(.vertical, 4)
-                        .background(Color.green.opacity(0.2))
-                        .cornerRadius(8)
+                    HStack(spacing: 4) {
+                        Text("\(habits.filter { $0.isCompletedToday }.count)/\(habits.count)")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                        
+                        // Celebration badge if all completed
+                        if !habits.isEmpty && habits.allSatisfy({ $0.isCompletedToday }) {
+                            Image(systemName: "party.popper.fill")
+                                .font(.caption2)
+                                .foregroundColor(.yellow)
+                        }
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(
+                        habits.allSatisfy({ $0.isCompletedToday }) && !habits.isEmpty
+                        ? Color.yellow.opacity(0.3)
+                        : Color.green.opacity(0.2)
+                    )
+                    .cornerRadius(8)
                 }
                 
                 ForEach(habits.prefix(3)) { habit in

@@ -12,6 +12,7 @@ struct ContentView: View {
     @EnvironmentObject var habitStore: HabitStore
     @State private var selectedTab: AppTab? = .home
     @State private var showingInsightsSheet = false
+    @StateObject private var premiumManager = PremiumManager.shared
 
     var body: some View {
         if horizontalSizeClass == .regular {
@@ -25,17 +26,16 @@ struct ContentView: View {
                         HomeView()
                             .navigationBarHidden(true) // Sidebar handles title
                     case .insights:
-                        InsightsView(isPresented: $showingInsightsSheet)
-                            .navigationBarBackButtonHidden(true)
+                        InsightsView(
+                            isPresented: $showingInsightsSheet,
+                            isPresentedAsSheet: false
+                        )
                     case .statistics:
-                         // Reuse HomeView but maybe scroll to stats? 
-                         // For now, let's just show a placeholder or extracting Stats logic later.
-                         // Or better: Just show the Insights view here too or a new StatisticsView if we had one.
-                         // Given current codebase, Statistics is part of Home.
-                         // Let's create a wrapper for Stats if needed, or just redirect to Home for now.
-                         Text(L10n.t("statistics.title"))
-                             .font(.largeTitle)
-                             .foregroundColor(.secondary)
+                        StatisticsView(
+                            habits: habitStore.habits,
+                            isPremium: premiumManager.isPremium,
+                            isPresentedAsSheet: false
+                        )
                     case .settings:
                         SettingsView()
                     }

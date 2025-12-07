@@ -17,6 +17,7 @@ struct ImprovedTemplatesView: View {
     @State private var selectedCategory: HabitCategory? = nil
     @State private var showOnlyFree = false
     @State private var showOnlyPopular = false
+    @State private var showOnlyPremium = false
     @State private var showingPremiumAlert = false
     
     var body: some View {
@@ -32,8 +33,9 @@ struct ImprovedTemplatesView: View {
                 ScrollViewReader { proxy in
                     ScrollView {
                         LazyVStack(spacing: 16) {
-                            // Popular section (if not filtered)
-                            if !showOnlyFree && selectedCategory == nil && searchText.isEmpty {
+                            // Popular section (Featured)
+                            // Only show if NO filters are active (default view)
+                            if !showOnlyFree && !showOnlyPopular && !showOnlyPremium && selectedCategory == nil && searchText.isEmpty {
                                 popularSection
                             }
                             
@@ -42,8 +44,8 @@ struct ImprovedTemplatesView: View {
                         }
                         .padding()
                     }
-                    .onChange(of: selectedCategory) { category in
-                        if let category = category {
+                    .onChange(of: selectedCategory) { oldCategory, newCategory in
+                        if let category = newCategory {
                             withAnimation {
                                 proxy.scrollTo("category-\(category.rawValue)", anchor: .top)
                             }
@@ -91,7 +93,7 @@ struct ImprovedTemplatesView: View {
             if !searchText.isEmpty {
                 Button(action: { searchText = "" }) {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundColor(.secondary)
+                    .foregroundColor(.secondary)
                 }
             }
         }
@@ -107,6 +109,19 @@ struct ImprovedTemplatesView: View {
     private var filterSection: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 12) {
+                // All filter
+                TemplateFilterChip(
+                    title: L10n.t("template.filter.all"),
+                    isSelected: selectedCategory == nil && !showOnlyPopular && !showOnlyPremium && !showOnlyFree
+                ) {
+                    withAnimation {
+                        selectedCategory = nil
+                        showOnlyPopular = false
+                        showOnlyPremium = false
+                        showOnlyFree = false
+                    }
+                }
+                
                 // Popular filter
                 TemplateFilterChip(
                     icon: "star.fill",
@@ -117,6 +132,7 @@ struct ImprovedTemplatesView: View {
                     showOnlyPopular.toggle()
                     if showOnlyPopular {
                         showOnlyFree = false
+                        showOnlyPremium = false
                         selectedCategory = nil
                     }
                 }
@@ -126,11 +142,14 @@ struct ImprovedTemplatesView: View {
                     icon: "crown.fill",
                     title: L10n.t("template.filter.premium"),
                     color: AriumTheme.warning,
-                    isSelected: showOnlyFree == false && selectedCategory == nil && !showOnlyPopular && searchText.isEmpty
+                    isSelected: showOnlyPremium
                 ) {
-                    showOnlyFree = false
-                    showOnlyPopular = false
-                    selectedCategory = nil
+                    showOnlyPremium.toggle()
+                    if showOnlyPremium {
+                        showOnlyFree = false
+                        showOnlyPopular = false
+                        selectedCategory = nil
+                    }
                 }
                 
                 // Category filters
@@ -148,6 +167,7 @@ struct ImprovedTemplatesView: View {
                             selectedCategory = category
                             showOnlyPopular = false
                             showOnlyFree = false
+                            showOnlyPremium = false
                         }
                     }
                 }
@@ -171,6 +191,7 @@ struct ImprovedTemplatesView: View {
             .padding(.horizontal, 4)
             
             LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 12) {
+                 // Always show popular templates here, unfiltered (except by premium status if user is free, handled in computed prop)
                 ForEach(popularTemplatesFiltered) { template in
                     TemplateCardCompact(template: template) {
                         selectTemplate(template)
@@ -228,13 +249,29 @@ struct ImprovedTemplatesView: View {
             templates = templates.filter { !$0.isPremium }
         }
         
+        // Apply premium filter
+        if showOnlyPremium {
+            templates = templates.filter { $0.isPremium }
+        }
+        
         // Apply popular filter
         if showOnlyPopular {
             templates = templates.filter { $0.isPopular }
         }
         
-        // Don't filter premium templates - show them to encourage upgrades
-        // Premium check is done in selectTemplate() instead
+        // If NO filters are set (default view), exclude popular templates from this list
+        // because they are already shown in the "popularSection" above.
+        // We check the exact same condition used to show popularSection
+        let isDefaultView = !showOnlyFree && !showOnlyPopular && !showOnlyPremium && selectedCategory == nil && searchText.isEmpty
+        
+        if isDefaultView {
+             // Exclude templates that are in the popular section
+             // Note: popularTemplatesFiltered handles the 'hide premium from popular if user is free' logic
+             // But simpler: just exclude any template marked as isPopular?
+             // Or better: exclude exactly the IDs shown above.
+             // Let's just exclude isPopular == true to be safe and consistent.
+             templates = templates.filter { !$0.isPopular }
+        }
         
         return templates
     }

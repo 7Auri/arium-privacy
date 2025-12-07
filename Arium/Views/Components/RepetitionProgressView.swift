@@ -129,6 +129,8 @@ struct RepetitionCheckboxView: View {
             )
         }
         .buttonStyle(.plain)
+        .accessibilityLabel("\(label), \(isCompleted ? L10n.t("habit.completed") : L10n.t("habit.notCompleted"))")
+        .accessibilityHint(isCompleted ? L10n.t("habit.tapToUndo") : L10n.t("habit.tapToComplete"))
     }
     
     private var isCompleted: Bool {

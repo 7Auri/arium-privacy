@@ -22,7 +22,7 @@ struct AlertsModifier: ViewModifier {
                     }
                 }
             } message: {
-                if let habit = habitToDelete {
+                if habitToDelete != nil {
                     Text(L10n.t("habit.delete.message"))
                 }
             }

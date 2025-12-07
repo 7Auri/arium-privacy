@@ -44,6 +44,8 @@ struct ErrorView: View {
                         .background(AriumTheme.accent)
                         .cornerRadius(12)
                 }
+                .accessibilityLabel(L10n.t("error.retry"))
+                .accessibilityHint(L10n.t("error.retry.hint"))
             }
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)

@@ -48,14 +48,32 @@ extension Font {
             // Try to load font using CoreText
             if let fontData = NSData(contentsOfFile: fontPath) as Data?,
                let dataProvider = CGDataProvider(data: fontData as CFData),
-               let font = CGFont(dataProvider) {
+               let cgFont = CGFont(dataProvider) {
                 var error: Unmanaged<CFError>?
-                if CTFontManagerRegisterGraphicsFont(font, &error) {
+                // Use new API for iOS 18+, fallback to old API for older versions
+                let registered: Bool
+                if #available(iOS 18.0, *) {
+                    // Use new API: Register font from URL
+                    if let fontURL = URL(fileURLWithPath: fontPath) as CFURL? {
+                        var errorRef: Unmanaged<CFError>?
+                        registered = CTFontManagerRegisterFontsForURL(fontURL, .process, &errorRef)
+                        if !registered, let error = errorRef?.takeRetainedValue() {
+                            print("❌ Failed to register font with new API: \(error)")
+                        }
+                    } else {
+                        registered = false
+                    }
+                } else {
+                    // Use deprecated API for older iOS versions
+                    registered = CTFontManagerRegisterGraphicsFont(cgFont, &error)
+                }
+                
+                if registered {
                     print("✅ Font registered successfully via CoreText")
                     // Get the font name from the CGFont
-                    if let fontName = font.postScriptName as String? {
+                    if let fontName = cgFont.postScriptName as String? {
                         print("✅ Font PostScript name: \(fontName)")
-                        if let uiFont = UIFont(name: fontName, size: size) {
+                        if UIFont(name: fontName, size: size) != nil {
                             return .custom(fontName, size: size)
                         }
                     }
@@ -109,7 +127,7 @@ extension Font {
         ]
         
         for fontName in fontNames {
-            if let font = UIFont(name: fontName, size: size) {
+            if UIFont(name: fontName, size: size) != nil {
                 print("✅ Found Dancing Script font: \(fontName)")
                 return .custom(fontName, size: size)
             }

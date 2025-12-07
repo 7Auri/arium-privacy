@@ -12,6 +12,7 @@ struct CustomizationView: View {
     @StateObject private var fontManager = FontManager.shared
     @StateObject private var appThemeManager = AppThemeManager.shared
     @StateObject private var widgetThemeManager = WidgetThemeManager.shared
+    @StateObject private var confettiManager = ConfettiManager.shared
     @Environment(\.dismiss) var dismiss
     
     // Helpers for themes
@@ -28,6 +29,7 @@ struct CustomizationView: View {
             List {
                 appThemeSection
                 fontSection
+                confettiSettingsSection
                 widgetThemeSection
             }
             .navigationTitle("🎨 \(L10n.t("settings.customization"))")
@@ -118,8 +120,11 @@ struct CustomizationView: View {
         Section {
             ForEach(AppFont.allCases) { font in
                 Button(action: {
-                    fontManager.setFont(font)
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        fontManager.setFont(font)
+                    }
                     HapticManager.selection()
+                    
                     // Reload widgets to apply font change
                     WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
                     WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
@@ -132,7 +137,7 @@ struct CustomizationView: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(font.displayName)
-                                .font(.body)
+                                .font(font.font(size: 17))
                                 .foregroundColor(.primary)
                             
                             Text(L10n.t("font.preview.text"))
@@ -154,6 +159,55 @@ struct CustomizationView: View {
             }
         } header: {
             Text(L10n.t("font.title"))
+        }
+    }
+    
+    private var confettiSettingsSection: some View {
+        Section {
+            // Confetti Intensity
+            HStack {
+                Label(L10n.t("confetti.settings.intensity"), systemImage: "party.popper.fill")
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Picker("", selection: $confettiManager.intensity) {
+                    ForEach(ConfettiManager.ConfettiIntensity.allCases, id: \.self) { intensity in
+                        Text(intensity.displayName).tag(intensity)
+                    }
+                }
+                .pickerStyle(.menu)
+                .tint(appThemeManager.accentColor.color)
+            }
+            .padding(.vertical, 4)
+            
+            // Sound Effects
+            HStack {
+                Label(L10n.t("confetti.settings.sound"), systemImage: "speaker.wave.2.fill")
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Toggle("", isOn: $confettiManager.soundEnabled)
+                    .labelsHidden()
+                    .tint(.blue)
+            }
+            .padding(.vertical, 4)
+            
+            // Use Theme Colors
+            HStack {
+                Label(L10n.t("confetti.settings.customColors"), systemImage: "paintpalette.fill")
+                    .foregroundColor(.primary)
+                
+                Spacer()
+                
+                Toggle("", isOn: $confettiManager.useCustomColors)
+                    .labelsHidden()
+                    .tint(appThemeManager.accentColor.color)
+            }
+            .padding(.vertical, 4)
+        } header: {
+            Text(L10n.t("confetti.settings.title"))
         }
     }
     

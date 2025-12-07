@@ -238,8 +238,9 @@ final class HabitTests: XCTestCase {
     
     func testHabitEquality() {
         let id = UUID()
-        let habit1 = Habit(id: id, title: "Read")
-        let habit2 = Habit(id: id, title: "Read")
+        let date = Date()
+        let habit1 = Habit(id: id, title: "Read", createdAt: date)
+        let habit2 = Habit(id: id, title: "Read", createdAt: date)
         
         XCTAssertEqual(habit1, habit2)
     }

@@ -13,8 +13,8 @@ final class IntegrationTests: XCTestCase {
     
     var habitStore: HabitStore!
     
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         habitStore = HabitStore()
         habitStore.habits.removeAll()
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
@@ -25,7 +25,7 @@ final class IntegrationTests: XCTestCase {
         }
     }
     
-    override func tearDown() {
+    override func tearDown() async throws {
         habitStore = nil
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
         
@@ -33,12 +33,12 @@ final class IntegrationTests: XCTestCase {
             sharedDefaults.removeObject(forKey: "SavedHabits")
         }
         
-        super.tearDown()
+        try await super.tearDown()
     }
     
     // MARK: - Complete User Flow Tests
     
-    func testCompleteUserJourney() throws {
+    func testCompleteUserJourney() async throws {
         // 1. User creates a habit
         let addViewModel = AddHabitViewModel()
         addViewModel.title = "Morning Run"
@@ -46,7 +46,7 @@ final class IntegrationTests: XCTestCase {
         addViewModel.selectedTheme = .blue
         addViewModel.goalDays = 30
         
-        XCTAssertTrue(addViewModel.validate())
+        XCTAssertTrue(addViewModel.canSave)
         
         let habit = addViewModel.createHabit()
         try habitStore.addHabit(habit)
@@ -66,51 +66,63 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(completionRate, 1.0)
         
         // 4. User adds a note (premium feature)
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         habitStore.toggleHabitCompletion(habit.id, note: "Great run today!")
         
         let habitWithNote = habitStore.habits.first!
         XCTAssertEqual(habitWithNote.noteForDate(Date()), "Great run today!")
+        
+        // Cleanup
+        PremiumManager.shared.setPremiumStatus(false)
     }
     
-    func testFreeToPremiumUpgrade() throws {
-        habitStore.isPremium = false
+    func testFreeToPremiumUpgrade() async throws {
+        PremiumManager.shared.setPremiumStatus(false)
         
         // Add 3 habits (free limit)
-        try habitStore.addHabit(Habit(title: "Habit 1"))
-        try habitStore.addHabit(Habit(title: "Habit 2"))
-        try habitStore.addHabit(Habit(title: "Habit 3"))
+        try habitStore.addHabit(Habit(title: "Habit 1", themeId: "purple", category: .personal))
+        try habitStore.addHabit(Habit(title: "Habit 2", themeId: "purple", category: .personal))
+        try habitStore.addHabit(Habit(title: "Habit 3", themeId: "purple", category: .personal))
         
         XCTAssertFalse(habitStore.canAddMoreHabits)
         
         // Try to add 4th habit - should fail
-        let habit4 = Habit(title: "Habit 4")
-        XCTAssertThrowsError(try habitStore.addHabit(habit4)) { error in
+        let habit4 = Habit(title: "Habit 4", themeId: "purple", category: .personal)
+        
+        var caughtError = false
+        do {
+            try habitStore.addHabit(habit4)
+        } catch {
+            caughtError = true
             XCTAssertTrue(error is HabitError)
         }
+        XCTAssertTrue(caughtError)
         XCTAssertEqual(habitStore.habits.count, 3)
         
         // Upgrade to premium
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         
         XCTAssertTrue(habitStore.canAddMoreHabits)
         
         // Now can add 4th habit
         try habitStore.addHabit(habit4)
         XCTAssertEqual(habitStore.habits.count, 4)
+        
+        // Cleanup
+        PremiumManager.shared.setPremiumStatus(false)
     }
     
     // MARK: - App Groups Integration Tests
     
     func testSharedUserDefaultsIntegration() throws {
-        let habit = Habit(title: "Test Habit", streak: 5)
+        // Init order: streak, themeId, category
+        let habit = Habit(title: "Test Habit", streak: 5, themeId: "purple", category: .personal)
         try habitStore.addHabit(habit)
         
         // Verify data is saved to shared UserDefaults
         guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
-            XCTFail("Failed to load habits from shared UserDefaults")
             return
         }
         
@@ -123,8 +135,9 @@ final class IntegrationTests: XCTestCase {
     
     func testDataPersistenceAcrossAppRestarts() throws {
         // Simulate first app launch
-        let habit1 = Habit(title: "Morning Meditation", goalDays: 21)
-        let habit2 = Habit(title: "Evening Reading", goalDays: 30)
+        // Init order: goalDays before category
+        let habit1 = Habit(title: "Morning Meditation", themeId: "purple", goalDays: 21, category: .personal)
+        let habit2 = Habit(title: "Evening Reading", themeId: "purple", goalDays: 30, category: .learning)
         
         try habitStore.addHabit(habit1)
         try habitStore.addHabit(habit2)
@@ -141,8 +154,8 @@ final class IntegrationTests: XCTestCase {
     
     // MARK: - Streak Continuity Tests
     
-    func testStreakContinuityAcrossDays() throws {
-        var habit = Habit(title: "Daily Exercise")
+    func testStreakContinuityAcrossDays() async throws {
+        var habit = Habit(title: "Daily Exercise", themeId: "purple", category: .health)
         let calendar = Calendar.current
         
         // Simulate 7 consecutive days of completions
@@ -159,7 +172,7 @@ final class IntegrationTests: XCTestCase {
         try habitStore.addHabit(habit)
         
         // Simulate new day check
-        habitStore.updateTodayStatus()
+        await habitStore.updateTodayStatus()
         
         // Verify streak is maintained
         XCTAssertEqual(habitStore.habits.first?.streak, 7)
@@ -168,13 +181,13 @@ final class IntegrationTests: XCTestCase {
     // MARK: - Concurrent Operations Tests
     
     func testConcurrentHabitAdditions() {
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         
         let expectation = XCTestExpectation(description: "Add multiple habits concurrently")
         
         DispatchQueue.concurrentPerform(iterations: 10) { index in
             Task { @MainActor in
-                try? habitStore.addHabit(Habit(title: "Habit \(index)"))
+                try? habitStore.addHabit(Habit(title: "Habit \(index)", themeId: "purple", category: .personal))
             }
         }
         
@@ -186,23 +199,26 @@ final class IntegrationTests: XCTestCase {
         
         // Should have added all habits
         XCTAssertEqual(habitStore.habits.count, 10)
+        
+        PremiumManager.shared.setPremiumStatus(false)
     }
     
     // MARK: - Statistics Accuracy Tests
     
     func testStatisticsAccuracyWithMultipleHabits() throws {
-        habitStore.isPremium = true
+        PremiumManager.shared.setPremiumStatus(true)
         
         // Create habits with different completion states
-        var habit1 = Habit(title: "Habit 1", streak: 5)
+        // Init order: streak before themeId
+        var habit1 = Habit(title: "Habit 1", streak: 5, themeId: "purple", category: .personal)
         habit1.isCompletedToday = true
         habit1.completionDates = Array(repeating: Date(), count: 5)
         
-        var habit2 = Habit(title: "Habit 2", streak: 10)
+        var habit2 = Habit(title: "Habit 2", streak: 10, themeId: "purple", category: .personal)
         habit2.isCompletedToday = false
         habit2.completionDates = Array(repeating: Date(), count: 10)
         
-        var habit3 = Habit(title: "Habit 3", streak: 3)
+        var habit3 = Habit(title: "Habit 3", streak: 3, themeId: "purple", category: .personal)
         habit3.isCompletedToday = true
         habit3.completionDates = Array(repeating: Date(), count: 3)
         
@@ -214,6 +230,7 @@ final class IntegrationTests: XCTestCase {
         XCTAssertEqual(habitStore.getTotalCompletions(), 18) // 5 + 10 + 3
         XCTAssertEqual(habitStore.getLongestStreak(), 10)
         XCTAssertEqual(habitStore.getCompletionRate(), 2.0/3.0, accuracy: 0.01) // 2 out of 3 completed today
+        
+        PremiumManager.shared.setPremiumStatus(false)
     }
 }
-

@@ -22,10 +22,17 @@ class AddHabitViewModel: ObservableObject {
     @Published var showingCustomGoalInput: Bool = false
     @Published var customGoalDays: String = ""
     
+    // MARK: - HealthKit Properties
+    @Published var isHealthKitEnabled: Bool = false
+    @Published var selectedHealthMetric: HealthKitMetric = .steps
+    @Published var healthGoal: String = ""
+    
     let goalOptions = [7, 14, 21, 30, 60, 90, -1] // -1 = custom
     
     var canSave: Bool {
-        !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let isTitleValid = !title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let isHealthValid = !isHealthKitEnabled || (Double(healthGoal) != nil && Double(healthGoal)! > 0)
+        return isTitleValid && isHealthValid
     }
     
     func createHabit() -> Habit {
@@ -37,7 +44,9 @@ class AddHabitViewModel: ObservableObject {
             goalDays: goalDays,
             category: selectedCategory,
             dailyRepetitions: dailyRepetitions,
-            repetitionLabels: repetitionLabels
+            repetitionLabels: repetitionLabels,
+            healthKitMetric: isHealthKitEnabled ? selectedHealthMetric : nil,
+            healthKitGoal: isHealthKitEnabled ? Double(healthGoal) : nil
         )
     }
     
@@ -53,6 +62,10 @@ class AddHabitViewModel: ObservableObject {
         repetitionLabels = nil
         showingCustomGoalInput = false
         customGoalDays = ""
+        
+        isHealthKitEnabled = false
+        selectedHealthMetric = .steps
+        healthGoal = ""
     }
     
     func setCustomGoalDays(_ value: String) {

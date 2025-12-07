@@ -9,6 +9,7 @@ import Testing
 @testable import Arium
 import Foundation
 
+@MainActor
 struct DataExportManagerTests {
     
     @Test func testDataExportManagerSingleton() async throws {
@@ -40,8 +41,9 @@ struct DataExportManagerTests {
         #expect(content.contains("Title"))
         #expect(content.contains("Test Habit 1"))
         #expect(content.contains("Test Habit 2"))
-        #expect(content.contains("Health"))
-        #expect(content.contains("Work"))
+        // Updated to expect rawValue (lowercase)
+        #expect(content.contains("health"))
+        #expect(content.contains("work"))
         
         // Cleanup
         try? FileManager.default.removeItem(at: url)
@@ -60,13 +62,12 @@ struct DataExportManagerTests {
         // Verify file exists
         #expect(FileManager.default.fileExists(atPath: url.path))
         
-        // Read and verify content
-        let data = try Data(contentsOf: url)
-        let decoded = try JSONDecoder().decode([Habit].self, from: data)
+        // Read and verify using manager's import
+        let restoredHabits = try manager.importFromJSON(url: url)
         
-        #expect(decoded.count == 1)
-        #expect(decoded[0].title == "Test Habit")
-        #expect(decoded[0].category == .health)
+        #expect(restoredHabits.count == 1)
+        #expect(restoredHabits[0].title == "Test Habit")
+        #expect(restoredHabits[0].category == .health)
         
         // Cleanup
         try? FileManager.default.removeItem(at: url)
@@ -76,15 +77,15 @@ struct DataExportManagerTests {
         let manager = DataExportManager.shared
         let habits: [Habit] = []
         
-        // CSV should still work with empty data
-        let csvURL = try manager.exportToCSV(habits: habits)
-        #expect(FileManager.default.fileExists(atPath: csvURL.path))
-        try? FileManager.default.removeItem(at: csvURL)
+        // CSV should throw noData error
+        await #expect(throws: DataExportError.noData) {
+            _ = try manager.exportToCSV(habits: habits)
+        }
         
-        // JSON should still work with empty data
-        let jsonURL = try manager.exportToJSON(habits: habits)
-        #expect(FileManager.default.fileExists(atPath: jsonURL.path))
-        try? FileManager.default.removeItem(at: jsonURL)
+        // JSON should throw noData error
+        await #expect(throws: DataExportError.noData) {
+            _ = try manager.exportToJSON(habits: habits)
+        }
     }
     
     @Test func testCSVFormat() async throws {
@@ -132,9 +133,8 @@ struct DataExportManagerTests {
         // Export
         let url = try manager.exportToJSON(habits: originalHabits)
         
-        // Import back
-        let data = try Data(contentsOf: url)
-        let restoredHabits = try JSONDecoder().decode([Habit].self, from: data)
+        // Import back using manager
+        let restoredHabits = try manager.importFromJSON(url: url)
         
         // Verify restoration
         #expect(restoredHabits.count == originalHabits.count)
@@ -155,8 +155,8 @@ struct DataExportManagerTests {
         habit.completionDates = [Date()]
         habit.streak = 3
         
-        // Generate PDF
-        let url = try manager.generatePDFReport(habits: [habit])
+        // Generate PDF - Fixed method name
+        let url = try manager.exportToPDF(habits: [habit])
         
         // Verify file exists and is a PDF
         #expect(FileManager.default.fileExists(atPath: url.path))

@@ -77,6 +77,8 @@ class FontManager: ObservableObject {
     }
     
     func setFont(_ font: AppFont) {
+        guard selectedFont != font else { return }
+        
         selectedFont = font
         
         // Save to both local and App Group
@@ -86,6 +88,12 @@ class FontManager: ObservableObject {
             sharedDefaults.set(font.rawValue, forKey: appGroupSaveKey)
             sharedDefaults.synchronize()
         }
+        
+        // Post notification to trigger UI updates
+        NotificationCenter.default.post(name: NSNotification.Name("FontChanged"), object: font)
+        
+        // Force objectWillChange to trigger view updates
+        objectWillChange.send()
     }
 }
 

@@ -106,6 +106,52 @@ class AnalyticsManager: ObservableObject {
         trackEvent("feedback_sent", parameters: ["type": type])
     }
     
+    // MARK: - Insights Analytics
+    
+    func trackInsightViewed(_ insightType: String, habitId: UUID? = nil) {
+        var params: [String: Any] = ["insight_type": insightType]
+        if let habitId = habitId {
+            params["habit_id"] = habitId.uuidString
+        }
+        trackEvent("insight_viewed", parameters: params)
+    }
+    
+    func trackInsightAction(_ action: String, insightType: String, habitId: UUID? = nil) {
+        var params: [String: Any] = [
+            "action": action,
+            "insight_type": insightType
+        ]
+        if let habitId = habitId {
+            params["habit_id"] = habitId.uuidString
+        }
+        trackEvent("insight_action_taken", parameters: params)
+    }
+    
+    func trackInsightGenerated(_ count: Int, duration: TimeInterval) {
+        trackEvent("insights_generated", parameters: [
+            "count": count,
+            "duration": duration
+        ])
+    }
+    
+    // MARK: - Confetti Analytics
+    
+    func trackConfettiShown(
+        type: ConfettiManager.CelebrationType,
+        particleCount: Int,
+        startTime: Date
+    ) {
+        let duration = Date().timeIntervalSince(startTime)
+        trackEvent("confetti_shown", parameters: [
+            "type": String(describing: type),
+            "particle_count": particleCount,
+            "duration": duration
+        ])
+        
+        // Track performance
+        trackPerformance(operation: "confetti_animation", duration: duration)
+    }
+    
     // MARK: - Performance
     
     func trackPerformance(operation: String, duration: TimeInterval) {
@@ -140,5 +186,6 @@ class AnalyticsManager: ObservableObject {
         logger.info("\(logMessage, privacy: .public)")
     }
 }
+
 
 

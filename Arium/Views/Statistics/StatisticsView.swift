@@ -14,59 +14,71 @@ struct StatisticsView: View {
     let title: String
     let accentColor: Color
     
+    let isPresentedAsSheet: Bool
+    
     // Single habit initializer
-    init(habit: Habit, isPremium: Bool) {
+    init(habit: Habit, isPremium: Bool, isPresentedAsSheet: Bool = true) {
         self.title = habit.title
         self.accentColor = habit.theme.accent
+        self.isPresentedAsSheet = isPresentedAsSheet
         _viewModel = StateObject(wrappedValue: StatisticsViewModel(habit: habit, isPremium: isPremium))
     }
     
     // All habits initializer
-    init(habits: [Habit], isPremium: Bool) {
+    init(habits: [Habit], isPremium: Bool, isPresentedAsSheet: Bool = true) {
         self.title = L10n.t("statistics.allHabits")
         self.accentColor = AriumTheme.accent
+        self.isPresentedAsSheet = isPresentedAsSheet
         _viewModel = StateObject(wrappedValue: StatisticsViewModel(habits: habits, isPremium: isPremium))
     }
     
     var body: some View {
-        NavigationStack {
-            ScrollView {
-                    VStack(spacing: 24) {
-                        // Header Info
-                        headerView
-                        
-                        // Summary Cards
-                        summaryCardsView
-                        
-                        // Chart Section
-                        chartSection
-                        
-                        // Premium Upsell (if free user)
-                        if !viewModel.isPremium {
-                            premiumUpsellView
+        if isPresentedAsSheet {
+            NavigationStack {
+                contentView
+                    .toolbarBackground(AriumTheme.background, for: .navigationBar)
+                    .toolbarBackground(.visible, for: .navigationBar)
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button(L10n.t("button.done")) {
+                                dismiss()
+                            }
+                            .foregroundColor(accentColor)
                         }
-                        
-                        // Additional Stats
-                        additionalStatsView
-                        
-                        Spacer(minLength: 40)
                     }
-                    .padding(20)
-                }
-            .background(AriumTheme.background)
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(AriumTheme.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button(L10n.t("button.done")) {
-                        dismiss()
-                    }
-                    .foregroundColor(accentColor)
-                }
             }
+        } else {
+            contentView
         }
+    }
+    
+    private var contentView: some View {
+        ScrollView {
+            VStack(spacing: 24) {
+                // Header Info
+                headerView
+                
+                // Summary Cards
+                summaryCardsView
+                
+                // Chart Section
+                chartSection
+                
+                // Premium Upsell (if free user)
+                if !viewModel.isPremium {
+                    premiumUpsellView
+                }
+                
+                // Additional Stats
+                additionalStatsView
+                
+                Spacer(minLength: 40)
+            }
+            .padding(20)
+        }
+        .background(AriumTheme.background)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
     }
     
     private var headerView: some View {

@@ -365,6 +365,13 @@ struct AddHabitView: View {
                         repetitionLabels: $viewModel.repetitionLabels
                     )
                     
+                    // HealthKit Integration (Premium) - Temporarily disabled
+                    // HealthKitSettingsView(
+                    //     isEnabled: $viewModel.isHealthKitEnabled,
+                    //     selectedMetric: $viewModel.selectedHealthMetric,
+                    //     goalValue: $viewModel.healthGoal
+                    // )
+                    
                     Spacer(minLength: 40)
                 }
                 .padding(20)

@@ -256,7 +256,7 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Update Today Status Tests
     
-    func testUpdateTodayStatus() throws {
+    func testUpdateTodayStatus() async throws {
         var habit = Habit(title: "Read")
         let calendar = Calendar.current
         
@@ -267,7 +267,7 @@ final class HabitStoreTests: XCTestCase {
         }
         
         try habitStore.addHabit(habit)
-        habitStore.updateTodayStatus()
+        await habitStore.updateTodayStatus()
         
         // Should be false now since last completion was yesterday
         XCTAssertFalse(habitStore.habits.first!.isCompletedToday)

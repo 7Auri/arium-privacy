@@ -313,7 +313,6 @@ class NotificationManager: NSObject, ObservableObject {
         content.userInfo = ["habitId": habit.id.uuidString, "type": "streak_warning"]
         
         // Smart timing: warn at 8 PM if not completed, or 1 hour before user's usual completion time
-        let calendar = Calendar.current
         let bestHour = analyzeBestCompletionTime(for: habit)
         let warningHour = max(20, bestHour - 1) // At least 8 PM, or 1 hour before best time
         

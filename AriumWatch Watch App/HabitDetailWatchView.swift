@@ -23,15 +23,31 @@ struct HabitDetailWatchView: View {
         return min(100, max(0, Int(percentage)))
     }
     
+    @ObservedObject private var l10nManager = L10nManager.shared
+    
     // Last 7 days completion status
     private var weeklyProgress: [(day: String, completed: Bool)] {
-        let calendar = Calendar.current
+        var calendar = Calendar.current
+        calendar.locale = Locale(identifier: l10nManager.currentLanguage)
+        
         let today = Date()
         var progress: [(day: String, completed: Bool)] = []
         
         for i in 0..<7 {
             guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            let dayName = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+            
+            // Get day name localized
+            let dateFormatter = DateFormatter()
+            dateFormatter.locale = Locale(identifier: l10nManager.currentLanguage)
+            dateFormatter.dateFormat = "EE" // Abbreviated day name (e.g. Mon, Tue / Pzt, Sal)
+            
+            var dayName = dateFormatter.string(from: date)
+            
+            // Take first letter and uppercase it for better fit
+            if let firstChar = dayName.first {
+                dayName = String(firstChar).uppercased()
+            }
+            
             let isCompleted = currentHabit.completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
             progress.append((day: dayName, completed: isCompleted))
         }
@@ -114,16 +130,17 @@ struct HabitDetailWatchView: View {
                         .foregroundStyle(.secondary)
                     
                     HStack(spacing: 4) {
-                        ForEach(weeklyProgress, id: \.day) { day in
+                        ForEach(Array(weeklyProgress.enumerated()), id: \.offset) { index, item in
                             VStack(spacing: 4) {
                                 Circle()
-                                    .fill(day.completed ? Color.green : Color.gray.opacity(0.3))
-                                    .frame(width: 20, height: 20)
+                                    .fill(item.completed ? Color.green : Color.gray.opacity(0.3))
+                                    .frame(width: 16, height: 16)
                                 
-                                Text(day.day)
-                                    .font(.caption2)
+                                Text(item.day)
+                                    .font(.system(size: 10, weight: .medium))
                                     .foregroundStyle(.secondary)
                             }
+                            .frame(maxWidth: .infinity)
                         }
                     }
                 }

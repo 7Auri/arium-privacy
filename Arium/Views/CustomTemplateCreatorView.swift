@@ -26,15 +26,15 @@ struct CustomTemplateCreatorView: View {
             if premiumManager.isPremium {
                 Form {
                     // Template Info
-                    Section("Template Details") {
-                        TextField("Template Name", text: $templateTitle)
-                        TextField("Description", text: $templateDescription, axis: .vertical)
+                    Section(L10n.t("customTemplate.details")) {
+                        TextField(L10n.t("customTemplate.name"), text: $templateTitle)
+                        TextField(L10n.t("customTemplate.description"), text: $templateDescription, axis: .vertical)
                             .lineLimit(2...4)
                     }
                     
                     // Category Selection
-                    Section("Category") {
-                        Picker("Category", selection: $selectedCategory) {
+                    Section(L10n.t("customTemplate.category")) {
+                        Picker(L10n.t("customTemplate.category"), selection: $selectedCategory) {
                             ForEach([HabitCategory.health, .personal, .learning, .work, .finance, .social], id: \.self) { category in
                                 HStack {
                                     Text(category.icon)
@@ -47,17 +47,17 @@ struct CustomTemplateCreatorView: View {
                     }
                     
                     // Goal Days
-                    Section("Goal Challenge") {
-                        Picker("Days", selection: $goalDays) {
+                    Section(L10n.t("customTemplate.goal")) {
+                        Picker(L10n.t("customTemplate.days"), selection: $goalDays) {
                             ForEach(goalOptions, id: \.self) { days in
-                                Text("\(days) days").tag(days)
+                                Text("\(days) \(L10n.t("habit.days"))").tag(days)
                             }
                         }
                         .pickerStyle(.segmented)
                     }
                     
                     // Icon Selection
-                    Section("Icon") {
+                    Section(L10n.t("customTemplate.icon")) {
                         Button(action: { showingIconPicker = true }) {
                             HStack {
                                 Image(systemName: selectedIcon)
@@ -67,7 +67,7 @@ struct CustomTemplateCreatorView: View {
                                     .background(categoryColor.opacity(0.2))
                                     .cornerRadius(8)
                                 
-                                Text("Choose Icon")
+                                Text(L10n.t("customTemplate.icon.choose"))
                                     .foregroundColor(.primary)
                                 
                                 Spacer()
@@ -80,12 +80,12 @@ struct CustomTemplateCreatorView: View {
                     }
                     
                     // Preview
-                    Section("Preview") {
+                    Section(L10n.t("customTemplate.preview")) {
                         TemplateCardCompact(
                             template: HabitTemplate(
                                 id: UUID(),
-                                title: templateTitle.isEmpty ? "Template Name" : templateTitle,
-                                description: templateDescription.isEmpty ? "Template description" : templateDescription,
+                                title: templateTitle.isEmpty ? L10n.t("customTemplate.name.placeholder") : templateTitle,
+                                description: templateDescription.isEmpty ? L10n.t("customTemplate.description.placeholder") : templateDescription,
                                 category: selectedCategory,
                                 suggestedGoalDays: goalDays,
                                 icon: selectedIcon,
@@ -100,7 +100,7 @@ struct CustomTemplateCreatorView: View {
                     
                     // Saved Templates
                     if !savedTemplates.isEmpty {
-                        Section("My Custom Templates") {
+                        Section(L10n.t("customTemplate.myTemplates")) {
                             ForEach(savedTemplates) { template in
                                 HStack {
                                     Image(systemName: template.icon)
@@ -118,17 +118,17 @@ struct CustomTemplateCreatorView: View {
                         }
                     }
                 }
-                .navigationTitle("Create Custom Template")
+                .navigationTitle(L10n.t("customTemplate.title"))
                 .navigationBarTitleDisplayMode(.inline)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button("Cancel") {
+                        Button(L10n.t("button.cancel")) {
                             dismiss()
                         }
                     }
                     
                     ToolbarItem(placement: .navigationBarTrailing) {
-                        Button("Save") {
+                        Button(L10n.t("customTemplate.save")) {
                             saveTemplate()
                         }
                         .disabled(!canSave)
@@ -148,10 +148,10 @@ struct CustomTemplateCreatorView: View {
                         .font(.system(size: 60))
                         .foregroundColor(.orange)
                     
-                    Text("Premium Feature")
+                    Text(L10n.t("customTemplate.premium.feature"))
                         .font(.title.bold())
                     
-                    Text("Create unlimited custom templates with Premium")
+                    Text(L10n.t("customTemplate.premium.message"))
                         .font(.body)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
@@ -160,7 +160,7 @@ struct CustomTemplateCreatorView: View {
                     Button(action: {
                         dismiss()
                     }) {
-                        Text("Upgrade to Premium")
+                        Text(L10n.t("premium.upgrade.button"))
                             .font(.headline)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
@@ -170,7 +170,7 @@ struct CustomTemplateCreatorView: View {
                     }
                     .padding(.horizontal)
                 }
-                .navigationTitle("Custom Templates")
+                .navigationTitle(L10n.t("customTemplate.premium.title"))
             }
         }
     }
@@ -305,11 +305,11 @@ struct IconPickerView: View {
                 }
                 .padding()
             }
-            .navigationTitle("Choose Icon")
+            .navigationTitle(L10n.t("iconPicker.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button("Done") {
+                    Button(L10n.t("iconPicker.done")) {
                         dismiss()
                     }
                     .foregroundColor(AriumTheme.accent)

@@ -31,6 +31,10 @@ struct Habit: Identifiable, Codable, Equatable {
     var todayCompletions: [Int] // Bugün tamamlanan tekrarların index'leri [0, 1] = sabah ve akşam tamamlandı
     var dailyCompletionCounts: [String: Int] // Date string : completion count (örn: "2024-11-28": 2)
     
+    // MARK: - HealthKit Integration
+    var healthKitMetric: HealthKitMetric?
+    var healthKitGoal: Double? // Value to achieve auto-completion
+    
     init(
         id: UUID = UUID(),
         title: String,
@@ -50,7 +54,9 @@ struct Habit: Identifiable, Codable, Equatable {
         dailyRepetitions: Int = 1,
         repetitionLabels: [String]? = nil,
         todayCompletions: [Int] = [],
-        dailyCompletionCounts: [String: Int] = [:]
+        dailyCompletionCounts: [String: Int] = [:],
+        healthKitMetric: HealthKitMetric? = nil,
+        healthKitGoal: Double? = nil
     ) {
         self.id = id
         self.title = title
@@ -71,6 +77,8 @@ struct Habit: Identifiable, Codable, Equatable {
         self.repetitionLabels = repetitionLabels
         self.todayCompletions = todayCompletions
         self.dailyCompletionCounts = dailyCompletionCounts
+        self.healthKitMetric = healthKitMetric
+        self.healthKitGoal = healthKitGoal
     }
     
     var theme: HabitTheme {
@@ -164,6 +172,136 @@ struct Habit: Identifiable, Codable, Equatable {
             completionNotes.removeValue(forKey: key)
         } else {
             completionNotes[key] = String(note.prefix(100))
+        }
+    }
+    
+    // MARK: - Daily Repetitions Logic
+    
+    /// Progress for today's completions (completed, total)
+    var todayCompletionProgress: (completed: Int, total: Int) {
+        (todayCompletions.count, dailyRepetitions)
+    }
+    
+    /// Check if all repetitions are completed today
+    var isFullyCompletedToday: Bool {
+        todayCompletions.count >= dailyRepetitions
+    }
+    
+    /// Completion percentage (0.0 - 1.0)
+    var completionPercentage: Double {
+        guard dailyRepetitions > 0 else { return 0 }
+        return Double(todayCompletions.count) / Double(dailyRepetitions)
+    }
+    
+    /// Default labels if custom labels not provided
+    var displayRepetitionLabels: [String] {
+        if let labels = repetitionLabels, labels.count == dailyRepetitions {
+            return labels
+        }
+        
+        switch dailyRepetitions {
+        case 1:
+            return [L10n.t("repetition.once")]
+        case 2:
+            return [L10n.t("repetition.morning"), L10n.t("repetition.evening")]
+        case 3:
+            return [L10n.t("repetition.morning"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening")]
+        case 4:
+            return [L10n.t("repetition.morning"), L10n.t("repetition.noon"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening")]
+        case 5:
+            return [L10n.t("repetition.morning"), L10n.t("repetition.noon"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening"), L10n.t("repetition.night")]
+        default:
+            return (0..<dailyRepetitions).map { "\($0 + 1). " + L10n.t("repetition.time") }
+        }
+    }
+    
+    mutating func toggleRepetitionCompletion(at index: Int) {
+        guard index >= 0 && index < dailyRepetitions else { return }
+        
+        let wasFullyCompleted = isFullyCompletedToday
+        let calendar = Calendar.current
+        
+        if todayCompletions.contains(index) {
+            todayCompletions.removeAll { $0 == index }
+            if wasFullyCompleted {
+                completionDates.removeAll { calendar.isDateInToday($0) }
+            }
+        } else {
+            todayCompletions.append(index)
+            todayCompletions.sort()
+            
+            if isFullyCompletedToday && !wasFullyCompleted {
+                if !completionDates.contains(where: { calendar.isDateInToday($0) }) {
+                    completionDates.append(Date())
+                }
+            }
+        }
+        
+        updateDailyCompletionCount()
+        isCompletedToday = isFullyCompletedToday
+        calculateStreak()
+    }
+    
+    mutating func resetDailyCompletions() {
+        todayCompletions.removeAll()
+        isCompletedToday = false
+        updateDailyCompletionCount()
+    }
+    
+    mutating func updateDailyCompletionCount(date: Date = Date(), count: Int? = nil) {
+        let key = date.dateKey
+        let finalCount = count ?? todayCompletions.count
+        
+        if finalCount > 0 {
+            dailyCompletionCounts[key] = finalCount
+        } else {
+            dailyCompletionCounts.removeValue(forKey: key)
+        }
+    }
+    
+    func isRepetitionCompleted(at index: Int) -> Bool {
+        return todayCompletions.contains(index)
+    }
+}
+
+// MARK: - HealthKit Metric Enum
+
+enum HealthKitMetric: String, Codable, CaseIterable, Identifiable {
+    case steps
+    case water
+    case sleep
+    case exercise
+    case mindfulness
+    
+    var id: String { rawValue }
+    
+    var localizedName: String {
+        switch self {
+        case .steps: return L10n.t("health.metric.steps")
+        case .water: return L10n.t("health.metric.water")
+        case .sleep: return L10n.t("health.metric.sleep")
+        case .exercise: return L10n.t("health.metric.exercise")
+        case .mindfulness: return L10n.t("health.metric.mindfulness")
+        }
+    }
+    
+    var unitName: String {
+        switch self {
+        case .steps: return L10n.t("health.unit.steps")
+        case .water: return L10n.t("health.unit.water") // Liters or mL
+        case .sleep: return L10n.t("health.unit.hours")
+        case .exercise: return L10n.t("health.unit.minutes")
+        case .mindfulness: return L10n.t("health.unit.minutes")
+        }
+    }
+    
+    var icon: String {
+        switch self {
+        case .steps: return "figure.walk"
+        case .water: return "drop.fill"
+        case .sleep: return "bed.double.fill"
+        case .exercise: return "figure.run"
+        case .mindfulness: return "brain.head.profile"
         }
     }
 }

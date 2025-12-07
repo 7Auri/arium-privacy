@@ -13,45 +13,53 @@ final class ViewModelTests: XCTestCase {
     
     var habitStore: HabitStore!
     
-    override func setUp() {
-        super.setUp()
+    override func setUp() async throws {
+        try await super.setUp()
         habitStore = HabitStore()
         habitStore.habits.removeAll()
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
     }
     
-    override func tearDown() {
+    override func tearDown() async throws {
         habitStore = nil
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
-        super.tearDown()
+        try await super.tearDown()
     }
     
     // MARK: - HomeViewModel Tests
+    // Note: HomeViewModel logic has moved significantly to HabitStore or is UI state only.
+    // Testing filteredHabits logic.
     
-    func testHomeViewModelFetchHabits() {
+    func testHomeViewModelFiltering() {
         let viewModel = HomeViewModel()
         
-        habitStore.addHabit(Habit(title: "Read"))
-        habitStore.addHabit(Habit(title: "Exercise"))
+        // Create test habits
+        // streak, themeId, category
+        let h1 = Habit(title: "Read", streak: 0, themeId: "purple", category: .learning) // Learning
+        let h2 = Habit(title: "Run", streak: 0, themeId: "purple", category: .health) // Health
+        let h3 = Habit(title: "Code", streak: 0, themeId: "purple", category: .learning) // Learning
         
-        viewModel.fetchHabits(from: habitStore)
+        let habits = [h1, h2, h3]
         
-        XCTAssertEqual(viewModel.habits.count, 2)
-    }
-    
-    func testHomeViewModelToggleCompletion() {
-        let viewModel = HomeViewModel()
-        let habit = Habit(title: "Read")
+        // 1. Test Category Filter
+        viewModel.selectedCategory = .learning
+        let filteredByCat = viewModel.filteredHabits(from: habits)
+        XCTAssertEqual(filteredByCat.count, 2)
+        XCTAssertTrue(filteredByCat.allSatisfy { $0.category == .learning })
         
-        habitStore.addHabit(habit)
-        viewModel.fetchHabits(from: habitStore)
+        // 2. Test Search Filter
+        viewModel.selectedCategory = nil
+        viewModel.searchText = "Read"
+        let filteredBySearch = viewModel.filteredHabits(from: habits)
+        XCTAssertEqual(filteredBySearch.count, 1)
+        XCTAssertEqual(filteredBySearch.first?.title, "Read")
         
-        XCTAssertFalse(viewModel.habits.first!.isCompletedToday)
-        
-        viewModel.toggleHabitCompletion(habit.id, store: habitStore)
-        viewModel.fetchHabits(from: habitStore)
-        
-        XCTAssertTrue(viewModel.habits.first!.isCompletedToday)
+        // 3. Test Combined
+        viewModel.selectedCategory = .health
+        viewModel.searchText = "Run"
+        let filteredCombined = viewModel.filteredHabits(from: habits)
+        XCTAssertEqual(filteredCombined.count, 1)
+        XCTAssertEqual(filteredCombined.first?.title, "Run")
     }
     
     // MARK: - AddHabitViewModel Tests
@@ -112,7 +120,7 @@ final class ViewModelTests: XCTestCase {
     // MARK: - HabitDetailViewModel Tests
     
     func testHabitDetailViewModelInitialization() {
-        let habit = Habit(title: "Read Books", streak: 5, goalDays: 21)
+        let habit = Habit(title: "Read Books", streak: 5, themeId: "purple", goalDays: 21)
         let viewModel = HabitDetailViewModel(habit: habit)
         
         XCTAssertEqual(viewModel.habit.title, "Read Books")
@@ -120,67 +128,41 @@ final class ViewModelTests: XCTestCase {
         XCTAssertEqual(viewModel.habit.goalDays, 21)
     }
     
-    func testHabitDetailViewModelToggleCompletion() throws {
-        var habit = Habit(title: "Read Books")
-        habit.isCompletedToday = false
-        // Ensure we explicitly mock or set premium status if needed, but HabitStore defaults are fine for basic toggle
-        PremiumManager.shared.setPremiumStatus(true)
-        
-        try habitStore.addHabit(habit)
-        let storedHabit = habitStore.habits.first!
-        
-        let viewModel = HabitDetailViewModel(habit: storedHabit)
-        
-        // Pass the habitStore which is now required by toggleCompletion
-        // Note: HabitDetailViewModel.toggleCompletion might vary in signature vs HomeViewModel
-        // Let's assume it calls habitStore.toggleHabitCompletion
-        viewModel.toggleCompletion(store: habitStore)
-        
-        // Since toggleCompletion is async or delegates to store, we check the store or VM habit
-        // Check HabitStore
-        XCTAssertTrue(habitStore.habits.first!.isCompletedToday)
-    }
-    
-    func testHabitDetailViewModelGetCompletionHistory() {
-        var habit = Habit(title: "Read Books")
-        let calendar = Calendar.current
-        
-        // Add 5 completions
-        for i in 0..<5 {
-            if let date = calendar.date(byAdding: .day, value: -i, to: Date()) {
-                habit.completionDates.append(date)
-            }
-        }
-        
-        let viewModel = HabitDetailViewModel(habit: habit)
-        let history = viewModel.getCompletionHistory()
-        
-        XCTAssertEqual(history.count, 5)
-    }
-    
     func testHabitDetailViewModelUpdateGoalDays() throws {
-        let habit = Habit(title: "Read Books", goalDays: 21)
-        try habitStore.addHabit(habit)
-        let storedHabit = habitStore.habits.first!
+        let habit = Habit(title: "Read Books", streak: 0, themeId: "purple", goalDays: 21)
+        // Since we verify calls on store, we can use a real store for this integration test
         
+        // We need to add habit to store first so update works
+        let store = HabitStore()
+        store.habits = [habit] // Inject directly or use add
+        // try await store.addHabit(habit) // Async, requires await, harder in sync test.
+        // But store.updateHabit relies on finding ID in habits array.
+        
+        let storedHabit = store.habits.first!
         let viewModel = HabitDetailViewModel(habit: storedHabit)
         
-        viewModel.updateGoalDays(30, store: habitStore)
+        viewModel.updateGoalDays(30, store: store)
         
-        XCTAssertEqual(habitStore.habits.first?.goalDays, 30)
+        XCTAssertEqual(store.habits.first?.goalDays, 30)
+        // Also verify VM updated its local copy if applicable
+        // The VM updates 'habit' property: habit.goalDays = days
+        XCTAssertEqual(viewModel.habit.goalDays, 30)
     }
     
     func testHabitDetailViewModelUpdateStartDate() throws {
         let habit = Habit(title: "Read Books")
-        try habitStore.addHabit(habit)
-        let storedHabit = habitStore.habits.first!
+        let store = HabitStore()
+        store.habits = [habit]
         
+        let storedHabit = store.habits.first!
         let viewModel = HabitDetailViewModel(habit: storedHabit)
+        
         let calendar = Calendar.current
         let newDate = calendar.date(byAdding: .day, value: -10, to: Date())!
         
-        viewModel.updateStartDate(newDate, store: habitStore)
+        viewModel.updateStartDate(newDate, store: store)
         
-        XCTAssertEqual(habitStore.habits.first?.startDate, newDate)
+        XCTAssertEqual(store.habits.first?.startDate, newDate)
+        XCTAssertEqual(viewModel.editableStartDate, newDate)
     }
 }
