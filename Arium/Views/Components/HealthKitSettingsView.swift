@@ -538,29 +538,19 @@ struct HealthKitSettingsView: View {
             metricType = HKObjectType.categoryType(forIdentifier: .mindfulSession)!
         }
         
-        // Try to get status, but handle sandbox extension errors
-        do {
-            let status = await healthKitManager.authorizationStatus(for: metricType)
-            await MainActor.run {
-                authorizationStatus = status
-                
-                // If status is denied but user says permissions are ON in Settings,
-                // this might be a sandbox extension issue
-                #if DEBUG
-                if status == .sharingDenied {
-                    print("⚠️ Status shows denied. If permissions are ON in Settings,")
-                    print("   this is likely a sandbox extension/entitlement issue.")
-                }
-                #endif
-            }
-        } catch {
+        // Get authorization status
+        let status = await healthKitManager.authorizationStatus(for: metricType)
+        await MainActor.run {
+            authorizationStatus = status
+            
+            // If status is denied but user says permissions are ON in Settings,
+            // this might be a sandbox extension issue
             #if DEBUG
-            print("❌ Error checking authorization status: \(error.localizedDescription)")
-            #endif
-            await MainActor.run {
-                // If we can't check status, assume not determined
-                authorizationStatus = .notDetermined
+            if status == .sharingDenied {
+                print("⚠️ Status shows denied. If permissions are ON in Settings,")
+                print("   this is likely a sandbox extension/entitlement issue.")
             }
+            #endif
         }
     }
     

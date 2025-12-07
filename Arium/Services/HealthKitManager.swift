@@ -261,35 +261,15 @@ class HealthKitManager: ObservableObject {
             return .notDetermined
         }
         
-        // Check if we have the entitlement by attempting to access HealthKit
-        // If there's a sandbox extension error, we'll catch it here
+        // Get authorization status (authorizationStatus doesn't throw, so no do-catch needed)
         return await MainActor.run {
-            do {
-                // Try to get authorization status
-                // This will fail with sandbox extension error if entitlement is missing
-                let status = healthStore.authorizationStatus(for: type)
-                
-                #if DEBUG
-                print("📊 HealthKit authorization status for \(type): \(status.rawValue) (\(statusDescription(status)))")
-                #endif
-                
-                return status
-            } catch {
-                #if DEBUG
-                print("❌ Error getting authorization status: \(error.localizedDescription)")
-                if let nsError = error as NSError? {
-                    print("   Error domain: \(nsError.domain), code: \(nsError.code)")
-                    if nsError.localizedDescription.contains("sandbox extension") {
-                        print("💡 Sandbox extension error detected. Make sure:")
-                        print("   1. HealthKit capability is added in Xcode (Target > Signing & Capabilities)")
-                        print("   2. Provisioning profile includes HealthKit")
-                        print("   3. Clean build folder (⇧⌘K) and rebuild")
-                    }
-                }
-                #endif
-                // Return notDetermined if we can't check (likely entitlement issue)
-                return .notDetermined
-            }
+            let status = healthStore.authorizationStatus(for: type)
+            
+            #if DEBUG
+            print("📊 HealthKit authorization status for \(type): \(status.rawValue) (\(statusDescription(status)))")
+            #endif
+            
+            return status
         }
     }
     

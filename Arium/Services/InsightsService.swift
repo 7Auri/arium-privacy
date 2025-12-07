@@ -59,14 +59,7 @@ class InsightsService {
                 self.analyzeWeekendWarrior(habits: habits)
             }
             
-            // 5. Sentiment Analysis (process all habits in one task)
-            group.addTask {
-                let sentimentInsights = await self.analyzeSentiment(habits: habits)
-                // Return first insight, we'll collect all in the loop
-                return sentimentInsights.first
-            }
-            
-            // 6. Productive Day
+            // 5. Productive Day (Sentiment analysis is handled separately below)
             group.addTask {
                 self.analyzeProductiveDay(habits: habits)
             }
@@ -124,6 +117,9 @@ class InsightsService {
             // Also add sentiment insights (they return multiple)
             let sentimentInsights = await analyzeSentiment(habits: habits)
             insights.append(contentsOf: sentimentInsights)
+            
+            // Remove duplicates (same type and same habit)
+            insights = removeDuplicates(insights)
             
             // Sort insights by priority
             insights = prioritizeInsights(insights)
@@ -679,6 +675,25 @@ class InsightsService {
         guard totalCount > 10 else { return false }
         
         return Double(weekendCount) / Double(totalCount) > 0.5
+    }
+    
+    /// Removes duplicate insights (same type and same habit)
+    private func removeDuplicates(_ insights: [Insight]) -> [Insight] {
+        var seen: Set<String> = []
+        var unique: [Insight] = []
+        
+        for insight in insights {
+            // Create a unique key: type description + habitId (or "general" if no specific habit)
+            let typeString = String(describing: insight.type)
+            let key = "\(typeString)-\(insight.relatedHabitId?.uuidString ?? "general")"
+            
+            if !seen.contains(key) {
+                seen.insert(key)
+                unique.append(insight)
+            }
+        }
+        
+        return unique
     }
     
     /// Prioritizes insights: critical/negative first, then positive, then informational
