@@ -27,7 +27,7 @@ struct OnboardingPageView: View {
             
             // Title
             Text(page.title)
-                .font(.system(size: 34, weight: .bold))
+                .applyAppFont(size: 34, weight: .bold)
                 .foregroundColor(AriumTheme.textPrimary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(2)
@@ -41,7 +41,7 @@ struct OnboardingPageView: View {
             
             // Subtitle
             Text(page.subtitle)
-                .font(.system(size: 17, weight: .regular))
+                .applyAppFont(size: 17, weight: .regular)
                 .foregroundColor(AriumTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineSpacing(6)
@@ -148,7 +148,7 @@ struct OnboardingPageView: View {
                     
                     // Icon
                     Image(systemName: page.iconName)
-                        .font(.system(size: 90, weight: .ultraLight))
+                        .applyAppFont(size: 90, weight: .ultraLight)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [
@@ -171,11 +171,11 @@ struct OnboardingPageView: View {
         VStack(spacing: 20) {
             VStack(spacing: 6) {
                 Text(L10n.t("onboarding.selectTheme"))
-                    .font(.system(size: 22, weight: .bold))
+                    .applyAppFont(size: 22, weight: .bold)
                     .foregroundColor(AriumTheme.textPrimary)
                 
                 Text(L10n.t("onboarding.selectTheme.subtitle"))
-                    .font(.system(size: 15, weight: .regular))
+                    .applyAppFont(size: 15, weight: .regular)
                     .foregroundColor(AriumTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .lineSpacing(2)
@@ -253,9 +253,14 @@ struct OnboardingThemeButton: View {
                         )
                         .scaleEffect(isSelected ? 1.08 : 1.0)
                     
+                    if let icon = theme.icon {
+                        Text(icon)
+                            .applyAppFont(size: 32)
+                    }
+                    
                     if isSelected {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.system(size: 26, weight: .bold))
+                            .applyAppFont(size: 26, weight: .bold)
                             .foregroundColor(.white)
                             .shadow(color: Color.black.opacity(0.25), radius: 3, x: 0, y: 2)
                             .transition(.scale.combined(with: .opacity))
@@ -265,7 +270,7 @@ struct OnboardingThemeButton: View {
                 
                 // Theme name
                 Text(theme.localizedName)
-                    .font(.system(size: 13, weight: isSelected ? .semibold : .medium))
+                    .applyAppFont(size: 13, weight: isSelected ? .semibold : .medium)
                     .foregroundColor(isSelected ? AriumTheme.textPrimary : AriumTheme.textSecondary)
                     .animation(.easeInOut(duration: 0.2), value: isSelected)
             }

@@ -31,9 +31,6 @@ struct Habit: Identifiable, Codable, Equatable {
     var todayCompletions: [Int] // Bugün tamamlanan tekrarların index'leri [0, 1] = sabah ve akşam tamamlandı
     var dailyCompletionCounts: [String: Int] // Date string : completion count (örn: "2024-11-28": 2)
     
-    // MARK: - HealthKit Integration
-    var healthKitMetric: HealthKitMetric?
-    var healthKitGoal: Double? // Value to achieve auto-completion
     
     init(
         id: UUID = UUID(),
@@ -54,9 +51,7 @@ struct Habit: Identifiable, Codable, Equatable {
         dailyRepetitions: Int = 1,
         repetitionLabels: [String]? = nil,
         todayCompletions: [Int] = [],
-        dailyCompletionCounts: [String: Int] = [:],
-        healthKitMetric: HealthKitMetric? = nil,
-        healthKitGoal: Double? = nil
+        dailyCompletionCounts: [String: Int] = [:]
     ) {
         self.id = id
         self.title = title
@@ -77,8 +72,6 @@ struct Habit: Identifiable, Codable, Equatable {
         self.repetitionLabels = repetitionLabels
         self.todayCompletions = todayCompletions
         self.dailyCompletionCounts = dailyCompletionCounts
-        self.healthKitMetric = healthKitMetric
-        self.healthKitGoal = healthKitGoal
     }
     
     var theme: HabitTheme {
@@ -156,9 +149,18 @@ struct Habit: Identifiable, Codable, Equatable {
     
     func checkIfCompletedToday() -> Bool {
         let calendar = Calendar.current
-        return completionDates.contains { date in
+        
+        // Check if completed via completionDates (standard completion)
+        // Bu tek gerçek kaynak - completionDates içinde bugünün tarihi varsa tamamlanmış demektir
+        let hasCompletionDate = completionDates.contains { date in
             calendar.isDateInToday(date)
         }
+        
+        // NOT: todayCompletions'a bakmıyoruz çünkü önceki günden kalıyor olabilir
+        // Sadece completionDates'e güveniyoruz - bu gerçek kayıt
+        // Eğer dailyRepetitions > 1 ise ve tüm tekrarlar tamamlandıysa,
+        // toggleRepetitionCompletion() zaten completionDates'e bugünün tarihini ekler
+        return hasCompletionDate
     }
     
     func noteForDate(_ date: Date) -> String? {
@@ -261,48 +263,6 @@ struct Habit: Identifiable, Codable, Equatable {
     
     func isRepetitionCompleted(at index: Int) -> Bool {
         return todayCompletions.contains(index)
-    }
-}
-
-// MARK: - HealthKit Metric Enum
-
-enum HealthKitMetric: String, Codable, CaseIterable, Identifiable {
-    case steps
-    case water
-    case sleep
-    case exercise
-    case mindfulness
-    
-    var id: String { rawValue }
-    
-    var localizedName: String {
-        switch self {
-        case .steps: return L10n.t("health.metric.steps")
-        case .water: return L10n.t("health.metric.water")
-        case .sleep: return L10n.t("health.metric.sleep")
-        case .exercise: return L10n.t("health.metric.exercise")
-        case .mindfulness: return L10n.t("health.metric.mindfulness")
-        }
-    }
-    
-    var unitName: String {
-        switch self {
-        case .steps: return L10n.t("health.unit.steps")
-        case .water: return L10n.t("health.unit.water") // Liters or mL
-        case .sleep: return L10n.t("health.unit.hours")
-        case .exercise: return L10n.t("health.unit.minutes")
-        case .mindfulness: return L10n.t("health.unit.minutes")
-        }
-    }
-    
-    var icon: String {
-        switch self {
-        case .steps: return "figure.walk"
-        case .water: return "drop.fill"
-        case .sleep: return "bed.double.fill"
-        case .exercise: return "figure.run"
-        case .mindfulness: return "brain.head.profile"
-        }
     }
 }
 

@@ -13,7 +13,7 @@ struct HabitDetailStatsView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.t("habit.stats"))
-                .font(.headline)
+                .applyAppFont(size: 17, weight: .semibold)
                 .foregroundStyle(.primary)
             
             HStack(spacing: 12) {

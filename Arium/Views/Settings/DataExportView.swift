@@ -21,7 +21,7 @@ struct DataExportView: View {
             List {
                 Section {
                     Text(L10n.t("export.subtitle"))
-                        .font(.subheadline)
+                        .applyAppFont(size: 15)
                         .foregroundColor(.secondary)
                         .listRowBackground(Color.clear)
                 }
@@ -36,17 +36,17 @@ struct DataExportView: View {
                                     .frame(width: 44, height: 44)
                                 
                                 Image(systemName: "tablecells")
-                                    .font(.system(size: 20))
+                                    .applyAppFont(size: 20)
                                     .foregroundColor(.green)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(L10n.t("export.csv"))
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .applyAppFont(size: 16, weight: .semibold)
                                     .foregroundColor(.primary)
                                 
                                 Text(L10n.t("export.csv.description"))
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                                     .foregroundColor(.secondary)
                             }
                             
@@ -68,17 +68,17 @@ struct DataExportView: View {
                                     .frame(width: 44, height: 44)
                                 
                                 Image(systemName: "doc.text")
-                                    .font(.system(size: 20))
+                                    .applyAppFont(size: 20)
                                     .foregroundColor(.blue)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(L10n.t("export.json"))
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .applyAppFont(size: 16, weight: .semibold)
                                     .foregroundColor(.primary)
                                 
                                 Text(L10n.t("export.json.description"))
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                                     .foregroundColor(.secondary)
                             }
                             
@@ -100,17 +100,17 @@ struct DataExportView: View {
                                     .frame(width: 44, height: 44)
                                 
                                 Image(systemName: "doc.richtext")
-                                    .font(.system(size: 20))
+                                    .applyAppFont(size: 20)
                                     .foregroundColor(.red)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(L10n.t("export.pdf"))
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .applyAppFont(size: 16, weight: .semibold)
                                     .foregroundColor(.primary)
                                 
                                 Text(L10n.t("export.pdf.description"))
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                                     .foregroundColor(.secondary)
                             }
                             
@@ -145,10 +145,26 @@ struct DataExportView: View {
             }
             .overlay {
                 if isExporting {
-                    ProgressView()
-                        .scaleEffect(1.5)
-                        .frame(maxWidth: .infinity, maxHeight: .infinity)
-                        .background(Color.black.opacity(0.3))
+                    ZStack {
+                        Color.black.opacity(0.3)
+                            .ignoresSafeArea()
+                        
+                        VStack(spacing: 20) {
+                            ProgressView()
+                                .scaleEffect(1.5)
+                                .tint(.white)
+                            
+                            Text(L10n.t("export.processing"))
+                                .applyAppFont(size: 17, weight: .semibold)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 24)
+                        }
+                        .padding(32)
+                        .background(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(.ultraThinMaterial)
+                        )
+                    }
                 }
             }
             .sheet(isPresented: $showingShareSheet) {
@@ -156,8 +172,15 @@ struct DataExportView: View {
                     ShareSheet(items: [url])
                 }
             }
-            .alert("Error", isPresented: $showingError) {
+            .alert(L10n.t("error.title"), isPresented: $showingError) {
                 Button(L10n.t("button.ok"), role: .cancel) {}
+                Button(L10n.t("error.retry")) {
+                    // Retry last export action if possible
+                    if let lastFormat = UserDefaults.standard.string(forKey: "lastExportFormat"),
+                       let format = ExportFormat(rawValue: lastFormat) {
+                        exportData(format: format)
+                    }
+                }
             } message: {
                 Text(errorMessage ?? L10n.t("export.error.failed"))
             }

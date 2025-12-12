@@ -18,7 +18,7 @@ struct InsightCard: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(alignment: .top) {
                 Image(systemName: insight.type.icon)
-                    .font(.title2)
+                    .applyAppFont(size: 22, weight: .semibold)
                     .foregroundColor(.white)
                     .padding(10)
                     .background(
@@ -30,7 +30,7 @@ struct InsightCard: View {
                 
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(L10n.t("insights.badge"))
-                        .font(.caption)
+                        .applyAppFont(size: 12)
                         .fontWeight(.bold)
                         .foregroundStyle(.secondary)
                         .padding(.horizontal, 8)
@@ -42,9 +42,9 @@ struct InsightCard: View {
                     if insight.confidence < 0.7 {
                         HStack(spacing: 2) {
                             Image(systemName: "exclamationmark.circle.fill")
-                                .font(.caption2)
+                                .applyAppFont(size: 11)
                             Text("\(Int(insight.confidence * 100))%")
-                                .font(.caption2)
+                                .applyAppFont(size: 11)
                         }
                         .foregroundColor(.orange)
                     }
@@ -53,12 +53,11 @@ struct InsightCard: View {
             
             VStack(alignment: .leading, spacing: 4) {
                 Text(insight.title)
-                    .font(.headline)
-                    .fontWeight(.bold)
+                    .applyAppFont(size: 17, weight: .bold)
                     .foregroundColor(colorScheme == .dark ? .white : .primary)
                 
                 Text(insight.message)
-                    .font(.subheadline)
+                    .applyAppFont(size: 15)
                     .foregroundColor(.secondary)
                     .fixedSize(horizontal: false, vertical: true)
             }
@@ -72,9 +71,9 @@ struct InsightCard: View {
                 } label: {
                     HStack {
                         Image(systemName: "lightbulb.fill")
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                         Text(L10n.t("insights.suggestedActions"))
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .fontWeight(.medium)
                         Spacer()
                         Image(systemName: showingActions ? "chevron.up" : "chevron.down")

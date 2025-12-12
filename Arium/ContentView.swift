@@ -15,39 +15,42 @@ struct ContentView: View {
     @StateObject private var premiumManager = PremiumManager.shared
 
     var body: some View {
-        if horizontalSizeClass == .regular {
-            // iPad / Mac Layout
-            NavigationSplitView {
-                SidebarView(selectedTab: $selectedTab)
-            } detail: {
-                if let tab = selectedTab {
-                    switch tab {
-                    case .home:
-                        HomeView()
-                            .navigationBarHidden(true) // Sidebar handles title
-                    case .insights:
-                        InsightsView(
-                            isPresented: $showingInsightsSheet,
-                            isPresentedAsSheet: false
-                        )
-                    case .statistics:
-                        StatisticsView(
-                            habits: habitStore.habits,
-                            isPremium: premiumManager.isPremium,
-                            isPresentedAsSheet: false
-                        )
-                    case .settings:
-                        SettingsView()
+        Group {
+            if horizontalSizeClass == .regular {
+                // iPad / Mac Layout
+                NavigationSplitView {
+                    SidebarView(selectedTab: $selectedTab)
+                } detail: {
+                    if let tab = selectedTab {
+                        switch tab {
+                        case .home:
+                            HomeView()
+                                .navigationBarHidden(true) // Sidebar handles title
+                        case .insights:
+                            InsightsView(
+                                isPresented: $showingInsightsSheet,
+                                isPresentedAsSheet: false
+                            )
+                        case .statistics:
+                            StatisticsView(
+                                habits: habitStore.habits,
+                                isPremium: premiumManager.isPremium,
+                                isPresentedAsSheet: false
+                            )
+                        case .settings:
+                            SettingsView()
+                        }
+                    } else {
+                        Text(L10n.t("app.name"))
+                            .font(.largeTitle)
+                            .foregroundColor(.secondary)
                     }
-                } else {
-                    Text(L10n.t("app.name"))
-                        .font(.largeTitle)
-                        .foregroundColor(.secondary)
                 }
+            } else {
+                // iPhone Layout
+                HomeView()
             }
-        } else {
-            // iPhone Layout
-            HomeView()
         }
+        .appFont()
     }
 }

@@ -65,26 +65,31 @@ struct ConfettiView: View {
             // Celebration Message
             if showMessage {
                 VStack(spacing: 12) {
-                    Image(systemName: "party.popper.fill")
-                        .font(.system(size: 60))
-                        .foregroundStyle(
-                            LinearGradient(
-                                colors: [.yellow, .orange, .pink, .purple],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
+                    if appThemeManager.accentColor == .cat {
+                        LottieAnimationView(animationName: "cat-celebration", loopMode: .loop)
+                            .frame(width: 120, height: 120) // Daha büyük animasyon
+                            .scaleEffect(messageScale)
+                    } else {
+                        Image(systemName: "party.popper.fill")
+                            .applyAppFont(size: 60)
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.yellow, .orange, .pink, .purple],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
                             )
-                        )
-                        .scaleEffect(messageScale)
-                        .rotationEffect(.degrees(messageScale == 1.0 ? 360 : 0))
+                            .scaleEffect(messageScale)
+                            .rotationEffect(.degrees(messageScale == 1.0 ? 360 : 0))
+                    }
                     
-                    Text(L10n.t("celebration.title"))
-                        .font(.title)
-                        .fontWeight(.bold)
+                    Text(appThemeManager.accentColor == .cat ? L10n.t("celebration.cat.title") : L10n.t("celebration.title"))
+                        .applyAppFont(size: 28, weight: .bold)
                         .foregroundColor(.primary)
                         .scaleEffect(messageScale)
                     
-                    Text(customMessage ?? celebrationType.message)
-                        .font(.headline)
+                    Text(customMessage ?? (appThemeManager.accentColor == .cat ? L10n.t("celebration.cat.message") : celebrationType.message))
+                        .applyAppFont(size: 17, weight: .semibold)
                         .foregroundColor(.secondary)
                         .scaleEffect(messageScale)
                 }
@@ -106,13 +111,16 @@ struct ConfettiView: View {
             }
             
             // Show message with animation (respect reduced motion)
+            // Kedi teması için daha yavaş ve belirgin animasyon
             let animation = reduceMotion ? 
                 Animation.linear(duration: 0.1) : 
-                Animation.spring(response: 0.6, dampingFraction: 0.6)
+                Animation.spring(response: 0.8, dampingFraction: 0.7) // Daha yavaş ve yumuşak
             
-            withAnimation(animation) {
-                showMessage = true
-                messageScale = 1.0
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+                withAnimation(animation) {
+                    showMessage = true
+                    messageScale = 1.0
+                }
             }
             
             // Play sound if enabled
@@ -120,12 +128,16 @@ struct ConfettiView: View {
                 SoundManager.shared.playCelebrationSound(for: celebrationType)
             }
             
-            // Hide message after duration
-            let messageDuration = min(celebrationType.duration - 1.0, 3.0)
+            // Hide message after duration - Kedi teması için daha uzun göster
+            let baseDuration = celebrationType.duration
+            let messageDuration = appThemeManager.accentColor == .cat ?
+                min(baseDuration - 1.0, 10.0) : // Kedi teması: 10 saniye (daha uzun)
+                min(baseDuration - 1.0, 6.0)   // Diğer temalar: 6 saniye
+            
             DispatchQueue.main.asyncAfter(deadline: .now() + messageDuration) {
                 let hideAnimation = reduceMotion ?
                     Animation.linear(duration: 0.1) :
-                    Animation.easeOut(duration: 0.3)
+                    Animation.easeOut(duration: 0.5)
                 
                 withAnimation(hideAnimation) {
                     messageScale = 0.8

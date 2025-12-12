@@ -29,6 +29,14 @@ struct OnboardingData {
             id: 2,
             titleKey: "onboarding.page3.title",
             subtitleKey: "onboarding.page3.subtitle",
+            iconName: "brain.head.profile",
+            accentColor: Color.blue,
+            showThemeSelector: false
+        ),
+        OnboardingPageModel(
+            id: 3,
+            titleKey: "onboarding.page4.title",
+            subtitleKey: "onboarding.page4.subtitle",
             iconName: "paintpalette.fill",
             accentColor: AriumTheme.warning,
             showThemeSelector: true

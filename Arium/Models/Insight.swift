@@ -31,12 +31,16 @@ enum InsightType {
     case socialButterfly // Social habits success
     case healthHero // Health habits excellence
     case learningLeader // Learning habits mastery
+    // New predictive insights
+    case streakRisk // Streak kaybetme riski
+    case habitChain // Alışkanlık zinciri
+    case recovery // Toparlanma pattern'i
     
     var color: Color {
         switch self {
-        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader:
+        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader, .habitChain, .recovery:
             return .green
-        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown:
+        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk:
             return .orange
         }
     }
@@ -65,6 +69,9 @@ enum InsightType {
         case .socialButterfly: return "person.2.fill"
         case .healthHero: return "heart.fill"
         case .learningLeader: return "book.fill"
+        case .streakRisk: return "exclamationmark.triangle.fill"
+        case .habitChain: return "link"
+        case .recovery: return "arrow.up.circle.fill"
         }
     }
 }

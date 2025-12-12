@@ -32,7 +32,7 @@ struct ImprovedTemplatesView: View {
                 // Templates Grid
                 ScrollViewReader { proxy in
                     ScrollView {
-                        LazyVStack(spacing: 16) {
+                        LazyVStack(spacing: 16, pinnedViews: []) {
                             // Popular section (Featured)
                             // Only show if NO filters are active (default view)
                             if !showOnlyFree && !showOnlyPopular && !showOnlyPremium && selectedCategory == nil && searchText.isEmpty {
@@ -185,7 +185,7 @@ struct ImprovedTemplatesView: View {
                 Image(systemName: "star.fill")
                     .foregroundColor(.orange)
                 Text(L10n.t("template.section.popular"))
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                 Spacer()
             }
             .padding(.horizontal, 4)
@@ -207,10 +207,10 @@ struct ImprovedTemplatesView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text(sectionTitle)
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                 Spacer()
                 Text(String(format: L10n.t("template.count"), filteredTemplates.count))
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundColor(.secondary)
             }
             .padding(.horizontal, 4)
@@ -340,14 +340,14 @@ struct TemplateFilterChip: View {
             HStack(spacing: 6) {
                 if let emoji = emoji {
                     Text(emoji)
-                        .font(.body)
+                        .applyAppFont(size: 17)
                 } else if let icon = icon {
                     Image(systemName: icon)
-                        .font(.caption.bold())
+                        .applyAppFont(size: 12, weight: .bold)
                 }
                 
                 Text(title)
-                    .font(.caption.bold())
+                    .applyAppFont(size: 12, weight: .bold)
             }
             .padding(.horizontal, 12)
             .padding(.vertical, 8)
@@ -375,44 +375,44 @@ struct TemplateCardCompact: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack {
                     Image(systemName: template.icon)
-                        .font(.title2)
+                        .applyAppFont(size: 22, weight: .bold)
                         .foregroundColor(categoryColor)
                     
                     Spacer()
                     
                     if template.isPremium {
                         Image(systemName: "crown.fill")
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundColor(.orange)
                     }
                     
                     if template.isPopular {
                         Image(systemName: "star.fill")
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundColor(.orange)
                     }
                 }
                 
                 Text(template.title)
-                    .font(.subheadline.bold())
+                    .applyAppFont(size: 15, weight: .bold)
                     .foregroundColor(.primary)
                     .multilineTextAlignment(.leading)
                     .lineLimit(2)
                 
                 Text(template.description)
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundColor(.secondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
                 
                 HStack {
                     Image(systemName: "target")
-                        .font(.caption2)
+                        .applyAppFont(size: 11)
                     Text("\(template.suggestedGoalDays) \(L10n.t("habit.days"))")
-                        .font(.caption2)
+                        .applyAppFont(size: 11)
                     Spacer()
                     Text(template.category.displayName)
-                        .font(.caption2)
+                        .applyAppFont(size: 11)
                         .padding(.horizontal, 6)
                         .padding(.vertical, 2)
                         .background(categoryColor.opacity(0.2))

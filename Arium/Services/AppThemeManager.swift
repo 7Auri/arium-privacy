@@ -33,6 +33,9 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
     // Special Occasion Themes
     case christmas = "christmas"
     
+    // Fun Themes
+    case cat = "cat"
+    
     var id: String { rawValue }
     
     var isSpecialOccasion: Bool {
@@ -124,6 +127,8 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
             return Color(hex: "#FF9A76")
         case .christmas:
             return Color(hex: "#DC143C") // Christmas Red
+        case .cat:
+            return Color(hex: "#FF8C69") // Cat Orange-Pink
         }
     }
     
@@ -171,6 +176,8 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
             return Color(hex: "#FFDAB9")
         case .christmas:
             return Color(hex: "#FFB3BA") // Light Christmas Red
+        case .cat:
+            return Color(hex: "#FFD4B3") // Light Cat Orange-Pink
         }
     }
     
@@ -218,6 +225,8 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
             return L10n.t("appTheme.peach")
         case .christmas:
             return L10n.t("appTheme.christmas")
+        case .cat:
+            return L10n.t("appTheme.cat")
         }
     }
     
@@ -225,6 +234,8 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
         switch self {
         case .christmas:
             return "🎄"
+        case .cat:
+            return "🐱"
         default:
             return ""
         }

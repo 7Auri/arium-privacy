@@ -18,6 +18,7 @@ struct AddHabitView: View {
     @State private var showingTemplates = false
     @State private var showingError = false
     @State private var currentError: AppError?
+    @State private var toast: ToastItem?
     @StateObject private var premiumManager = PremiumManager.shared
     
     var body: some View {
@@ -41,17 +42,17 @@ struct AddHabitView: View {
                                     .frame(width: 44, height: 44)
                                 
                                 Image(systemName: "sparkles")
-                                    .font(.system(size: 18, weight: .semibold))
+                                    .applyAppFont(size: 18, weight: .semibold)
                                     .foregroundStyle(AriumTheme.accent)
                             }
                             
                             VStack(alignment: .leading, spacing: 4) {
                                 Text(L10n.t("habit.templates.use"))
-                                    .font(.system(size: 16, weight: .semibold))
+                                    .applyAppFont(size: 16, weight: .semibold)
                                     .foregroundStyle(.primary)
                                 
                                 Text(L10n.t("habit.templates.description"))
-                                    .font(.system(size: 13, weight: .regular))
+                                    .applyAppFont(size: 13, weight: .regular)
                                     .foregroundStyle(.secondary)
                                     .lineLimit(1)
                             }
@@ -102,7 +103,7 @@ struct AddHabitView: View {
                     // Title Input
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.t("habit.title"))
-                            .font(.footnote)
+                            .applyAppFont(size: 13)
                             .textCase(.uppercase)
                             .foregroundStyle(.secondary)
                         
@@ -116,7 +117,7 @@ struct AddHabitView: View {
                     // Notes Input
                     VStack(alignment: .leading, spacing: 8) {
                         Text(L10n.t("habit.notes"))
-                            .font(.footnote)
+                            .applyAppFont(size: 13)
                             .textCase(.uppercase)
                             .foregroundStyle(.secondary)
                         
@@ -139,13 +140,13 @@ struct AddHabitView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(L10n.t("habit.category"))
-                                .font(.footnote)
+                                .applyAppFont(size: 13)
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
                             
                             if !premiumManager.isPremium {
                                 Image(systemName: "crown.fill")
-                                    .font(.caption2)
+                                    .applyAppFont(size: 11)
                                     .foregroundColor(.orange)
                             }
                             
@@ -186,7 +187,7 @@ struct AddHabitView: View {
                     // Theme Selector
                     VStack(alignment: .leading, spacing: 12) {
                         Text(L10n.t("habit.theme"))
-                            .font(.footnote)
+                            .applyAppFont(size: 13)
                             .textCase(.uppercase)
                             .foregroundStyle(.secondary)
                         
@@ -210,13 +211,13 @@ struct AddHabitView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(L10n.t("habit.startDate"))
-                                .font(.footnote)
+                                .applyAppFont(size: 13)
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
                             
                             if !premiumManager.isPremium {
                                 Image(systemName: "crown.fill")
-                                    .font(.caption2)
+                                    .applyAppFont(size: 11)
                                     .foregroundColor(.orange)
                             }
                             
@@ -230,7 +231,7 @@ struct AddHabitView: View {
                                 } label: {
                                     HStack(spacing: 6) {
                                         Text(viewModel.startDate.localizedDateString())
-                                            .font(.subheadline)
+                                            .applyAppFont(size: 15)
                                             .foregroundStyle(.primary)
                                         
                                         Image(systemName: "calendar")
@@ -244,7 +245,7 @@ struct AddHabitView: View {
                                 }
                             } else {
                                 Text(viewModel.startDate.localizedDateString())
-                                    .font(.subheadline)
+                                    .applyAppFont(size: 15)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -273,13 +274,13 @@ struct AddHabitView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack {
                             Text(L10n.t("habit.goalDays"))
-                                .font(.footnote)
+                                .applyAppFont(size: 13)
                                 .textCase(.uppercase)
                                 .foregroundStyle(.secondary)
                             
                             if !premiumManager.isPremium {
                                 Image(systemName: "crown.fill")
-                                    .font(.caption2)
+                                    .applyAppFont(size: 11)
                                     .foregroundColor(.orange)
                             }
                             
@@ -297,9 +298,9 @@ struct AddHabitView: View {
                                             }) {
                                                 VStack(spacing: 4) {
                                                     Text(L10n.t("goalDays.custom"))
-                                                        .font(.system(size: 14, weight: .semibold))
+                                                        .applyAppFont(size: 14, weight: .semibold)
                                                     Image(systemName: "pencil.circle")
-                                                        .font(.caption)
+                                                        .applyAppFont(size: 12)
                                                 }
                                                 .foregroundColor(viewModel.selectedTheme.accent)
                                                 .frame(width: 70, height: 60)
@@ -365,12 +366,6 @@ struct AddHabitView: View {
                         repetitionLabels: $viewModel.repetitionLabels
                     )
                     
-                    // HealthKit Integration (Premium) - Temporarily disabled
-                    // HealthKitSettingsView(
-                    //     isEnabled: $viewModel.isHealthKitEnabled,
-                    //     selectedMetric: $viewModel.selectedHealthMetric,
-                    //     goalValue: $viewModel.healthGoal
-                    // )
                     
                     Spacer(minLength: 40)
                 }
@@ -415,6 +410,7 @@ struct AddHabitView: View {
             }
             .errorAlert(error: $currentError)
             .loadingOverlay(isLoading: premiumManager.isLoading || habitStore.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
+            .toast($toast)
             .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                 Button(L10n.t("button.ok")) { }
             } message: {
@@ -445,8 +441,15 @@ struct AddHabitView: View {
             let habit = viewModel.createHabit()
             try habitStore.addHabit(habit)
             HapticManager.success()
+            let appThemeManager = AppThemeManager.shared
+            let message = appThemeManager.accentColor == .cat ? L10n.t("habit.save.success.cat") : L10n.t("habit.save.success")
+            toast = ToastItem(message: message, type: .success)
             viewModel.reset()
-            dismiss()
+            
+            // Dismiss after a short delay to show toast
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                dismiss()
+            }
         } catch let error as HabitError {
             showingError = true
             currentError = error
@@ -490,23 +493,30 @@ struct ModernThemeButton: View {
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
-                Circle()
-                    .fill(theme.accent)
-                    .frame(width: 60, height: 60)
-                    .overlay(
-                        Circle()
-                            .stroke(theme.accent.opacity(0.5), lineWidth: isSelected ? 3 : 0)
-                    )
-                    .shadow(
-                        color: isSelected ? theme.accent.opacity(0.25) : Color.clear,
-                        radius: isSelected ? 8 : 0,
-                        x: 0,
-                        y: isSelected ? 4 : 0
-                    )
-                    .scaleEffect(isSelected ? 1.05 : 1.0)
+                ZStack {
+                    Circle()
+                        .fill(theme.accent)
+                        .frame(width: 60, height: 60)
+                        .overlay(
+                            Circle()
+                                .stroke(theme.accent.opacity(0.5), lineWidth: isSelected ? 3 : 0)
+                        )
+                        .shadow(
+                            color: isSelected ? theme.accent.opacity(0.25) : Color.clear,
+                            radius: isSelected ? 8 : 0,
+                            x: 0,
+                            y: isSelected ? 4 : 0
+                        )
+                        .scaleEffect(isSelected ? 1.05 : 1.0)
+                    
+                    if let icon = theme.icon {
+                        Text(icon)
+                            .applyAppFont(size: 28)
+                    }
+                }
                 
                 Text(theme.localizedName)
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundStyle(isSelected ? .primary : .secondary)
                     .lineLimit(1)
                     .frame(width: 70)
@@ -538,14 +548,14 @@ struct CategoryButton: View {
                         .frame(width: 56, height: 56)
                     
                     Image(systemName: category.systemIcon)
-                        .font(.system(size: 24))
+                        .applyAppFont(size: 24)
                         .foregroundStyle(isSelected ? category.color : .secondary)
                         .opacity(isLocked ? 0.5 : 1.0)
                     
                     // Lock icon overlay
                     if isLocked && !isSelected {
                         Image(systemName: "lock.fill")
-                            .font(.system(size: 12))
+                            .applyAppFont(size: 12)
                             .foregroundStyle(.secondary)
                             .offset(x: 20, y: 20)
                     }
@@ -560,8 +570,7 @@ struct CategoryButton: View {
                 
                 // Category name
                 Text(category.localizedName)
-                    .font(.caption)
-                    .fontWeight(isSelected ? .semibold : .regular)
+                    .applyAppFont(size: 12, weight: isSelected ? .semibold : .regular)
                     .foregroundStyle(isSelected ? category.color : .secondary)
                     .opacity(isLocked ? 0.6 : 1.0)
                     .lineLimit(1)
@@ -599,11 +608,11 @@ struct GoalDayButton: View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Text("\(days)")
-                    .font(.system(size: 28, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 28, weight: .bold)
                     .foregroundStyle(isSelected ? .white : .primary)
                 
                 Text(L10n.t("habit.days"))
-                    .font(.system(size: 11, weight: .medium))
+                    .applyAppFont(size: 11, weight: .medium)
                     .foregroundStyle(isSelected ? .white.opacity(0.9) : .secondary)
             }
             .frame(width: 80, height: 80)

@@ -45,15 +45,15 @@ class ConfettiManager: ObservableObject {
         var duration: Double {
             switch self {
             case .allHabitsCompleted:
-                return 6.0
+                return 12.0 // Daha uzun süre görünsün
             case .streak7Days:
-                return 4.0
+                return 10.0 // Daha uzun süre görünsün
             case .streak30Days:
-                return 7.0
+                return 15.0 // Daha uzun süre görünsün
             case .streak100Days:
-                return 10.0
+                return 18.0 // Daha uzun süre görünsün
             case .milestone:
-                return 8.0
+                return 14.0 // Daha uzun süre görünsün
             }
         }
         

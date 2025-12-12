@@ -22,7 +22,7 @@ struct LoadingView: View {
             
             if let message = message {
                 Text(message)
-                    .font(.subheadline)
+                    .applyAppFont(size: 15)
                     .foregroundStyle(.secondary)
             }
         }
@@ -50,7 +50,7 @@ struct LoadingOverlay: ViewModifier {
                             
                             if let message = message {
                                 Text(message)
-                                    .font(.subheadline)
+                                    .applyAppFont(size: 15)
                                     .foregroundColor(.white)
                                     .padding(.horizontal)
                             }

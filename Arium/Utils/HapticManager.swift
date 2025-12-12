@@ -8,46 +8,55 @@
 import UIKit
 
 struct HapticManager {
+    // Shared generators for better performance
+    private static let notificationGenerator = UINotificationFeedbackGenerator()
+    private static let impactGenerator = UIImpactFeedbackGenerator(style: .medium)
+    private static let selectionGenerator = UISelectionFeedbackGenerator()
+    
+    // Prepare generators (call once for better performance)
+    static func prepare() {
+        notificationGenerator.prepare()
+        impactGenerator.prepare()
+        selectionGenerator.prepare()
+    }
     
     // MARK: - Success Feedback
     
     static func success() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.success)
+        notificationGenerator.notificationOccurred(.success)
     }
     
     // MARK: - Warning Feedback
     
     static func warning() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.warning)
+        notificationGenerator.notificationOccurred(.warning)
     }
     
     // MARK: - Error Feedback
     
     static func error() {
-        let generator = UINotificationFeedbackGenerator()
-        generator.notificationOccurred(.error)
+        notificationGenerator.notificationOccurred(.error)
     }
     
     // MARK: - Light Impact
     
     static func light() {
         let generator = UIImpactFeedbackGenerator(style: .light)
+        generator.prepare()
         generator.impactOccurred()
     }
     
     // MARK: - Medium Impact
     
     static func medium() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
+        impactGenerator.impactOccurred()
     }
     
     // MARK: - Heavy Impact
     
     static func heavy() {
         let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.prepare()
         generator.impactOccurred()
     }
     
@@ -55,6 +64,7 @@ struct HapticManager {
     
     static func soft() {
         let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.prepare()
         generator.impactOccurred()
     }
     
@@ -62,14 +72,14 @@ struct HapticManager {
     
     static func rigid() {
         let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.prepare()
         generator.impactOccurred()
     }
     
     // MARK: - Selection Feedback
     
     static func selection() {
-        let generator = UISelectionFeedbackGenerator()
-        generator.selectionChanged()
+        selectionGenerator.selectionChanged()
     }
     
     // MARK: - Custom Pattern

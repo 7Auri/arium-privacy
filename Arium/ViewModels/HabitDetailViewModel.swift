@@ -117,37 +117,5 @@ class HabitDetailViewModel: ObservableObject {
         store.updateHabit(habit)
     }
     
-    // MARK: - HealthKit Generation
-    
-    @Published var isHealthKitEnabled: Bool = false
-    @Published var healthKitMetric: HealthKitMetric = .steps
-    @Published var healthKitGoal: String = ""
-    
-    func initializeHealthKitParams() {
-        if let metric = habit.healthKitMetric {
-            isHealthKitEnabled = true
-            healthKitMetric = metric
-            if let goal = habit.healthKitGoal {
-                healthKitGoal = String(format: "%.0f", goal)
-            }
-        } else {
-            isHealthKitEnabled = false
-            healthKitMetric = .steps 
-            healthKitGoal = ""
-        }
-    }
-    
-    func updateHealthKit(store: HabitStore) {
-        if isHealthKitEnabled {
-            habit.healthKitMetric = healthKitMetric
-            if let goal = Double(healthKitGoal), goal > 0 {
-                habit.healthKitGoal = goal
-            }
-        } else {
-            habit.healthKitMetric = nil
-            habit.healthKitGoal = nil
-        }
-        store.updateHabit(habit)
-    }
 }
 

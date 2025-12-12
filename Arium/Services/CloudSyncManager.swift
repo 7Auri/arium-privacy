@@ -93,6 +93,8 @@ class CloudSyncManager: ObservableObject {
                 #if targetEnvironment(simulator)
                 print("⚠️ Note: This is common on Simulator - use a real device for testing")
                 #endif
+            case .temporarilyUnavailable:
+                print("⚠️ iCloud account is temporarily unavailable")
             @unknown default:
                 print("⚠️ Unknown iCloud account status")
             }

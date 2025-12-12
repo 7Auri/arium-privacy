@@ -33,12 +33,14 @@ struct InsightsView: View {
         ScrollView {
             VStack(alignment: .leading, spacing: 20) {
                 
-                if insights.isEmpty {
+                if isLoading {
+                    skeletonLoaderView
+                } else if insights.isEmpty {
                     emptyStateView
                 } else {
                     // Horizontal Cards
                     ScrollView(.horizontal, showsIndicators: false) {
-                        HStack(spacing: 16) {
+                        LazyHStack(spacing: 16) {
                             ForEach(insights) { insight in
                                 InsightCard(
                                     insight: insight,
@@ -62,18 +64,17 @@ struct InsightsView: View {
                     // Summary Text
                     VStack(alignment: .leading, spacing: 12) {
                         Label(L10n.t("insights.weeklySummary"), systemImage: "list.bullet.clipboard")
-                            .font(.headline)
+                            .applyAppFont(size: 17, weight: .semibold)
                         
                         Text(String(format: L10n.t("insights.weeklyTotal"), habitStore.habits.reduce(0) { $0 + $1.completionDates.filter { Calendar.current.isDate($0, equalTo: Date(), toGranularity: .weekOfYear) }.count }))
-                            .font(.body)
+                            .applyAppFont(size: 17)
                             .foregroundColor(.secondary)
                         
                         
                         // ShareLink for Detailed Report
                         ShareLink(item: generateReportText()) {
                             Label(L10n.t("insights.generateReport"), systemImage: "doc.text")
-                                .font(.subheadline)
-                                .fontWeight(.medium)
+                                .applyAppFont(size: 15, weight: .medium)
                                 .frame(maxWidth: .infinity)
                                 .padding()
                                 .background(Color.accentColor.opacity(0.1))
@@ -89,7 +90,6 @@ struct InsightsView: View {
         .background(Color(uiColor: .systemGroupedBackground))
         .navigationTitle(L10n.t("insights.title"))
         .navigationBarTitleDisplayMode(.inline)
-        .loadingOverlay(isLoading: isLoading, message: L10n.t("insights.loading"))
         .sheet(item: $selectedHabitForAction) { habit in
             HabitDetailView(habit: habit)
                 .environmentObject(habitStore)
@@ -99,30 +99,128 @@ struct InsightsView: View {
         }
         .task {
             let startTime = Date()
+            // Cache'i temizle ve yeni analiz yap
+            InsightsService.shared.clearCache()
             await generateInsights()
             let duration = Date().timeIntervalSince(startTime)
             AnalyticsManager.shared.trackInsightGenerated(insights.count, duration: duration)
         }
+        .onChange(of: habitStore.habits) { oldHabits, newHabits in
+            // Habits değiştiğinde (completion durumları ve notlar dahil) insights'ı yeniden oluştur
+            // State değişikliğini bir sonraki run loop'ta yaparak uyarıyı önle
+            DispatchQueue.main.async {
+                Task {
+                    // Cache'i temizle çünkü completion notes değişmiş olabilir
+                    InsightsService.shared.clearCache()
+                    await generateInsights()
+                }
+            }
+        }
     }
     
     private var emptyStateView: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "brain.head.profile")
-                .font(.system(size: 60))
-                .foregroundColor(.secondary)
+        VStack(spacing: 24) {
+            Spacer()
             
-            Text(L10n.t("insights.empty.title"))
-                .font(.title3)
-                .fontWeight(.bold)
+            ZStack {
+                // Outer glow
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [
+                                AriumTheme.accentLight.opacity(0.15),
+                                AriumTheme.accentLight.opacity(0.05),
+                                Color.clear
+                            ],
+                            center: .center,
+                            startRadius: 40,
+                            endRadius: 100
+                        )
+                    )
+                    .frame(width: 180, height: 180)
+                    .blur(radius: 20)
+                
+                // Background circle
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                AriumTheme.accentLight.opacity(0.2),
+                                AriumTheme.accentLight.opacity(0.1)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 120, height: 120)
+                
+                // Icon
+                Image(systemName: "brain.head.profile")
+                    .applyAppFont(size: 50, weight: .light)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.7)],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
             
-            Text(L10n.t("insights.empty.message"))
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .padding(.horizontal)
+            VStack(spacing: 12) {
+                Text(L10n.t("insights.empty.title"))
+                    .applyAppFont(size: 24, weight: .bold)
+                    .foregroundStyle(AriumTheme.textPrimary)
+                
+                Text(L10n.t("insights.empty.message"))
+                    .applyAppFont(size: 16, weight: .regular)
+                    .foregroundStyle(AriumTheme.textSecondary)
+                    .multilineTextAlignment(.center)
+                    .padding(.horizontal, 40)
+                    .lineSpacing(4)
+            }
+            
+            Spacer()
         }
         .frame(maxWidth: .infinity)
-        .padding(.top, 50)
+        .padding(.top, 60)
+    }
+    
+    private var skeletonLoaderView: some View {
+        VStack(spacing: 20) {
+            // Horizontal skeleton cards
+            ScrollView(.horizontal, showsIndicators: false) {
+                HStack(spacing: 16) {
+                    ForEach(0..<3) { _ in
+                        SkeletonInsightCard()
+                    }
+                }
+                .padding(.horizontal)
+            }
+            
+            Divider()
+                .padding(.horizontal)
+            
+            // Summary skeleton
+            VStack(alignment: .leading, spacing: 12) {
+                HStack {
+                    RoundedRectangle(cornerRadius: 8)
+                        .fill(Color.gray.opacity(0.2))
+                        .frame(width: 150, height: 20)
+                    
+                    Spacer()
+                }
+                
+                RoundedRectangle(cornerRadius: 8)
+                    .fill(Color.gray.opacity(0.15))
+                    .frame(height: 16)
+                
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(Color.gray.opacity(0.1))
+                    .frame(height: 50)
+            }
+            .padding()
+        }
+        .padding(.vertical)
     }
     
     private func generateInsights() async {

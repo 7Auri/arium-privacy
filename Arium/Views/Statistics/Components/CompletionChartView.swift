@@ -46,7 +46,7 @@ struct CompletionChartView: View {
                         AxisValueLabel {
                             VStack(spacing: 2) {
                                 Text(formatDate(date))
-                                    .font(.caption2)
+                                    .applyAppFont(size: 11)
                                     .foregroundColor(AriumTheme.textSecondary)
                             }
                         }

@@ -27,6 +27,7 @@ struct HomeView: View {
     @State private var showingConfetti = false
     @State private var currentCelebrationType: ConfettiManager.CelebrationType = .allHabitsCompleted
     @State private var celebrationStats: (habitsCount: Int, maxStreak: Int)?
+    @State private var toast: ToastItem?
     
     // Günlük kutlama ekranı kontrolü için
     @AppStorage("lastCelebrationShownDate") private var lastCelebrationShownDate: String = ""
@@ -146,6 +147,9 @@ struct HomeView: View {
                 snowAutoDisableTask?.cancel()
                 snowAutoDisableTask = nil
             }
+            .onChange(of: FontManager.shared.selectedFont) { _, _ in
+                // Force view update when font changes
+            }
     }
     
     private var scrollableContent: some View {
@@ -162,13 +166,28 @@ struct HomeView: View {
             await refreshHabits()
         }
         .onChange(of: habitStore.habits) { oldHabits, newHabits in
-            // State değişikliğini Task içinde yaparak "Modifying state during view update" hatasını önle
-            Task { @MainActor in
+            // State değişikliğini bir sonraki run loop'ta yaparak "Modifying state during view update" hatasını önle
+            DispatchQueue.main.async {
+                // Check if a habit was deleted
+                if oldHabits.count > newHabits.count {
+                    let message = appThemeManager.accentColor == .cat ? L10n.t("habit.delete.success.cat") : L10n.t("habit.delete.success")
+                    toast = ToastItem(message: message, type: .success)
+                }
+                
                 // Sadece gerçekten değişiklik varsa kontrol et
                 let currentRate = viewModel.completionRate(for: viewModel.selectedDate, habits: newHabits)
                 let currentDate = viewModel.selectedDate
                 
-                // Aynı tarih ve aynı completion rate ise tekrar kontrol etme
+                // Completion rate 1.0'a ulaştıysa her zaman celebration kontrolü yap
+                // Cache'i bypass et
+                if currentRate >= 0.99 {
+                    lastCheckedCompletionRate = currentRate
+                    lastCheckedDate = currentDate
+                    checkForConfetti(habits: newHabits)
+                    return
+                }
+                
+                // Aynı tarih ve aynı completion rate ise tekrar kontrol etme (sadece rate < 0.99 için)
                 if Calendar.current.isDate(currentDate, inSameDayAs: lastCheckedDate) && 
                    abs(currentRate - lastCheckedCompletionRate) < 0.01 {
                     return
@@ -178,6 +197,12 @@ struct HomeView: View {
                 lastCheckedDate = currentDate
                 
                 checkForConfetti(habits: newHabits)
+            }
+        }
+        .onChange(of: viewModel.selectedDate) { oldDate, newDate in
+            // Tarih değiştiğinde celebration kontrolü yap
+            DispatchQueue.main.async {
+                checkForConfetti(habits: habitStore.habits)
             }
         }
     }
@@ -260,6 +285,7 @@ struct HomeView: View {
             habitToDelete: $habitToDelete,
             showingDeleteAlert: $showingDeleteAlert
         ))
+        .toast($toast)
         .onAppear {
             // Free kullanıcılar için kategori filtresini sıfırla
             if !premiumManager.isPremium {
@@ -295,13 +321,36 @@ struct HomeView: View {
     }
     @MainActor
     private func checkForConfetti(habits: [Habit]) {
-        guard !habits.isEmpty else { return }
+        guard !habits.isEmpty else {
+            #if DEBUG
+            print("🎉 Celebration check - No habits, skipping")
+            #endif
+            return
+        }
         
         // Calculate completion rate for selected date
         let rate = viewModel.completionRate(for: viewModel.selectedDate, habits: habits)
         
+        // Debug: Completion rate'i kontrol et (her zaman göster)
+        print("🎉 Celebration check - Rate: \(rate), showingConfetti: \(showingConfetti), habits: \(habits.count)")
+        print("   Selected date: \(viewModel.selectedDate)")
+        print("   Last celebration date: \(lastCelebrationShownDate)")
+        print("   Last checked rate: \(lastCheckedCompletionRate)")
+        
         // Sadece yeni bir başarı olduğunda kutlama göster (günde bir kez)
-        if rate == 1.0 && !showingConfetti && shouldShowCelebration() {
+        // rate >= 0.99 kullan (floating point karşılaştırması için)
+        // Yeni completion kontrolü: Eğer completion rate yeni 1.0'a ulaştıysa, lastCelebrationShownDate'i sıfırla
+        let isNewCompletion = lastCheckedCompletionRate < 0.99 && rate >= 0.99
+        if isNewCompletion {
+            print("   ⚠️ Completion rate yeni 1.0'a ulaştı - lastCelebrationShownDate sıfırlanıyor")
+            // State değişikliğini view update dışında yap
+            DispatchQueue.main.async {
+                self.lastCelebrationShownDate = ""
+            }
+        }
+        
+        // shouldShowCelebration kontrolü - yeni completion durumunda true döndürmeli
+        if rate >= 0.99 && !showingConfetti && (shouldShowCelebration() || isNewCompletion) {
             // Check for streak-based celebrations first
             let maxStreak = habits.map { $0.streak }.max() ?? 0
             let celebrationType: ConfettiManager.CelebrationType
@@ -322,12 +371,13 @@ struct HomeView: View {
             // Store stats for sharing
             celebrationStats = (habits.count, maxStreak)
             
-            // State değişikliğini Task içinde yaparak "Modifying state during view update" hatasını önle
-            Task { @MainActor in
+            // State değişikliğini bir sonraki run loop'ta yaparak "Modifying state during view update" hatasını önle
+            // DispatchQueue kullan - Task yerine
+            DispatchQueue.main.async {
                 // Show confetti with spring animation
                 withAnimation(.spring(response: 0.5, dampingFraction: 0.7)) {
-                    showingConfetti = true
-                    currentCelebrationType = celebrationType
+                    self.showingConfetti = true
+                    self.currentCelebrationType = celebrationType
                 }
             }
             
@@ -352,8 +402,12 @@ struct HomeView: View {
                 startTime: startTime
             )
             
-            // Kutlama gösterildiğini işaretle
-            markCelebrationShown()
+            // Kutlama gösterildiğini işaretle (sadece gerçekten gösterildiğinde)
+            // State değişikliğini async yap - view update dışında
+            print("✅ Celebration gösteriliyor! Type: \(celebrationType)")
+            DispatchQueue.main.async {
+                self.markCelebrationShown()
+            }
         } else if rate < 1.0 && showingConfetti {
             // Hide confetti if completion rate drops - Task içinde yap
             Task { @MainActor in
@@ -372,7 +426,12 @@ struct HomeView: View {
         let todayString = dateFormatter.string(from: today)
         
         // Eğer bugün daha önce gösterilmediyse, göster
-        return lastCelebrationShownDate != todayString
+        let shouldShow = lastCelebrationShownDate != todayString
+        
+        // Debug
+        print("   shouldShowCelebration: \(shouldShow), lastCelebrationShownDate: '\(lastCelebrationShownDate)', todayString: '\(todayString)'")
+        
+        return shouldShow
     }
     
     /// Kutlama ekranının bugün gösterilip gösterilmeyeceğini kontrol eder (sheet için)
@@ -407,32 +466,102 @@ private struct HomeContentView: View {
     @Binding var showingDeleteAlert: Bool
 
     var body: some View {
-        ScrollView {
-            WeeklyCalendarView(selectedDate: $viewModel.selectedDate)
-                .padding(.horizontal, 20)
-                .padding(.top, 16)
+        VStack(spacing: 0) {
+            // Üst kısım: ScrollView içinde (sabit)
+            ScrollView {
+                VStack(spacing: 16) {
+                    WeeklyCalendarView(selectedDate: $viewModel.selectedDate)
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
 
-            ModernStatsView(
-                totalCompletions: habitStore.habits.reduce(0) { $0 + $1.completionDates.count },
-                longestStreak: habitStore.habits.map { $0.streak }.max() ?? 0,
-                completionRate: viewModel.completionRate(for: viewModel.selectedDate, habits: habitStore.habits)
-            )
-            .padding(.horizontal, 20)
+                    ModernStatsView(
+                        totalCompletions: habitStore.habits.reduce(0) { $0 + $1.completionDates.count },
+                        longestStreak: habitStore.habits.map { $0.streak }.max() ?? 0,
+                        completionRate: viewModel.completionRate(for: viewModel.selectedDate, habits: habitStore.habits)
+                    )
+                    .padding(.horizontal, 20)
 
-            if premiumManager.isPremium {
-                CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
+                    if premiumManager.isPremium {
+                        CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
+                    }
+
+                    SearchBarView(searchText: $viewModel.searchText)
+                        .padding(.horizontal, 20)
+                }
             }
-
-            SearchBarView(searchText: $viewModel.searchText)
-                .padding(.horizontal, 20)
-
-            if habitStore.habits.isEmpty {
-                ModernEmptyStateView()
-                    .padding(.top, 40)
+            .frame(maxHeight: 300) // Üst kısmın maksimum yüksekliği
+            
+            // Debug: Alışkanlık sayısını kontrol et
+            let allHabits = habitStore.habits
+            let filteredHabits = viewModel.filteredHabits(from: allHabits)
+            
+            // List'in animasyon sorunlarını önlemek için stable ID kullan
+            // ID çakışmasını önlemek için hash kullan - sadece count ve hash
+            let listId = "\(filteredHabits.count)-\(filteredHabits.map { $0.id.uuidString }.sorted().joined().hashValue)"
+            
+            #if DEBUG
+            let _ = print("🔍 Debug - Toplam alışkanlık: \(allHabits.count), Filtrelenmiş: \(filteredHabits.count)")
+            let _ = print("   Seçili kategori: \(viewModel.selectedCategory?.rawValue ?? "Tümü")")
+            let _ = print("   Arama metni: '\(viewModel.searchText)'")
+            #endif
+            
+            // Alt kısım: List (ScrollView dışında, kendi scroll'u var)
+            if allHabits.isEmpty {
+                ModernEmptyStateView(
+                    onAddHabit: {
+                        if habitStore.canAddMoreHabits {
+                            sheetCoordinator.showAddHabit()
+                        } else {
+                            viewModel.showingPremiumAlert = true
+                        }
+                    }
+                )
+                .padding(.top, 40)
+            } else if filteredHabits.isEmpty {
+                // Alışkanlık var ama filtreleme sonucu boş
+                VStack(spacing: 20) {
+                    Image(systemName: "magnifyingglass")
+                        .applyAppFont(size: 60, weight: .light)
+                        .foregroundColor(AriumTheme.textSecondary)
+                    
+                    Text(L10n.t("home.no.results"))
+                        .applyAppFont(size: 20, weight: .semibold)
+                        .foregroundColor(AriumTheme.textPrimary)
+                    
+                    Text(L10n.t("home.no.results.subtitle"))
+                        .applyAppFont(size: 16, weight: .regular)
+                        .foregroundColor(AriumTheme.textSecondary)
+                        .multilineTextAlignment(.center)
+                        .padding(.horizontal, 40)
+                    
+                    Button {
+                        viewModel.selectedCategory = nil
+                        viewModel.searchText = ""
+                    } label: {
+                        Text(L10n.t("button.clear.filters"))
+                            .applyAppFont(size: 16, weight: .semibold)
+                            .foregroundColor(.white)
+                            .padding(.horizontal, 24)
+                            .padding(.vertical, 12)
+                            .background(AriumTheme.accent)
+                            .cornerRadius(12)
+                    }
+                }
+                .padding(.top, 60)
             } else {
-                VStack(spacing: 8) {
-                    ForEach(viewModel.filteredHabits(from: habitStore.habits)) { habit in
-                        SwipeableHabitCard(
+                // Debug: List'in görünürlüğünü test et
+                #if DEBUG
+                let _ = print("✅ List render ediliyor - \(filteredHabits.count) alışkanlık")
+                #endif
+                
+                // List (ScrollView dışında, kendi scroll'u var)
+                // Animasyon sorunlarını önlemek için id modifier'ı kullan
+                List {
+                    ForEach(filteredHabits) { habit in
+                        #if DEBUG
+                        let _ = print("   📝 Alışkanlık render ediliyor: \(habit.title)")
+                        #endif
+                        ModernHabitCard(
                             habit: habit,
                             onTap: {
                                 HapticManager.selection()
@@ -459,24 +588,53 @@ private struct HomeContentView: View {
                                 HapticManager.warning()
                                 habitToDelete = habit
                                 showingDeleteAlert = true
-                            },
-                            onComplete: {
-                                HapticManager.success()
-                                if premiumManager.isPremium {
-                                    noteText = ""
-                                    sheetCoordinator.showDailyNote(for: habit)
-                                } else {
-                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
-                                }
                             }
                         )
-                        .transition(.asymmetric(
-                            insertion: .move(edge: .trailing).combined(with: .opacity),
-                            removal: .move(edge: .leading).combined(with: .opacity)
-                        ))
+                        .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+                        .listRowSeparator(.hidden)
+                        .listRowBackground(Color.clear)
+                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                            // Sağa kaydırma - Sil
+                            Button(role: .destructive) {
+                                HapticManager.warning()
+                                habitToDelete = habit
+                                showingDeleteAlert = true
+                            } label: {
+                                Label(L10n.t("button.delete"), systemImage: "trash.fill")
+                            }
+                            
+                            // Tamamlanmamışsa tamamla butonu
+                            if !habit.isCompletedToday {
+                                Button {
+                                    HapticManager.success()
+                                    if premiumManager.isPremium {
+                                        noteText = ""
+                                        sheetCoordinator.showDailyNote(for: habit)
+                                    } else {
+                                        viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                                    }
+                                } label: {
+                                    Label(L10n.t("habit.completed"), systemImage: "checkmark.circle.fill")
+                                }
+                                .tint(.green)
+                            }
+                        }
+                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                            // Sola kaydırma - Sil
+                            Button(role: .destructive) {
+                                HapticManager.warning()
+                                habitToDelete = habit
+                                showingDeleteAlert = true
+                            } label: {
+                                Label(L10n.t("button.delete"), systemImage: "trash.fill")
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, 20)
+                .id(listId) // Stable ID - sadece habits değiştiğinde List yeniden oluşturulur
+                .listStyle(.plain)
+                .scrollContentBackground(.hidden)
+                .animation(.none, value: filteredHabits.count) // Silme animasyonunu devre dışı bırak
                 .padding(.top, 8)
                 .padding(.bottom, 100)
             }
@@ -510,7 +668,7 @@ struct ModernHeaderView: View {
             HStack(alignment: .center, spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
                     Text(greeting)
-                        .font(.system(size: 28, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 28, weight: .bold)
                         .foregroundStyle(
                             LinearGradient(
                                 colors: [AriumTheme.textPrimary, AriumTheme.accent],
@@ -522,7 +680,7 @@ struct ModernHeaderView: View {
                         .minimumScaleFactor(0.5)
                     
                     Text(L10n.t("app.name"))
-                        .font(.system(size: 18, weight: .semibold, design: .rounded))
+                        .applyAppFont(size: 18, weight: .semibold)
                         .tracking(2)
                         .foregroundStyle(
                             LinearGradient(
@@ -541,15 +699,21 @@ struct ModernHeaderView: View {
                 Spacer()
                 
                 // Settings Button
-                Button(action: onSettingsTap) {
+                Button(action: {
+                    HapticManager.selection()
+                    onSettingsTap()
+                }) {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 18, weight: .medium))
+                        .applyAppFont(size: 18, weight: .medium)
                         .foregroundStyle(AriumTheme.textSecondary)
                         .frame(width: 44, height: 44)
                         .background(AriumTheme.cardBackground)
                         .clipShape(Circle())
                         .shadow(color: Color.black.opacity(0.06), radius: 8, x: 0, y: 4)
                 }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("settings.title"))
+                .accessibilityHint(L10n.t("settings.accessibility.hint"))
             }
             
             // Bottom row: Action buttons
@@ -578,11 +742,14 @@ struct ModernHeaderView: View {
                                 .frame(width: 44, height: 44)
                             
                             Text("❄")
-                                .font(.system(size: 20))
+                                .applyAppFont(size: 20)
                                 .opacity(isSnowEnabled ? 1.0 : 0.5)
                         }
                         .shadow(color: isSnowEnabled ? Color.cyan.opacity(0.2) : Color.clear, radius: 8, x: 0, y: 4)
                     }
+                    .accessibilityLabel(L10n.t("snow.toggle"))
+                    .accessibilityHint(isSnowEnabled ? L10n.t("snow.toggle.disable") : L10n.t("snow.toggle.enable"))
+                    .accessibilityValue(isSnowEnabled ? L10n.t("snow.enabled") : L10n.t("snow.disabled"))
                 }
                 
                 // Insights Button (Magic Wand) - NEW
@@ -602,11 +769,14 @@ struct ModernHeaderView: View {
                             .frame(width: 44, height: 44)
                         
                         Image(systemName: "wand.and.stars")
-                            .font(.system(size: 18, weight: .semibold))
+                            .applyAppFont(size: 18, weight: .semibold)
                             .foregroundStyle(Color.purple)
                     }
                     .shadow(color: Color.purple.opacity(0.2), radius: 8, x: 0, y: 4)
                 }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("insights.title"))
+                .accessibilityHint(L10n.t("insights.accessibility.hint"))
                 
                 // Statistics Button
                 Button(action: {
@@ -625,11 +795,14 @@ struct ModernHeaderView: View {
                             .frame(width: 44, height: 44)
                         
                         Image(systemName: "chart.bar.fill")
-                            .font(.system(size: 18, weight: .semibold))
+                            .applyAppFont(size: 18, weight: .semibold)
                             .foregroundStyle(Color.blue)
                     }
                     .shadow(color: Color.blue.opacity(0.2), radius: 8, x: 0, y: 4)
                 }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("statistics.title"))
+                .accessibilityHint(L10n.t("statistics.accessibility.hint"))
 
                 // Achievements Button
                 Button(action: {
@@ -648,12 +821,12 @@ struct ModernHeaderView: View {
                             .frame(width: 44, height: 44)
                         
                         Text(appThemeManager.accentColor == .christmas ? "🎄" : "🏆")
-                            .font(.system(size: 20))
+                            .applyAppFont(size: 20)
                         
                         // Badge for new achievements
                         if achievementManager.newAchievementsCount > 0 {
                             Text("\(achievementManager.newAchievementsCount)")
-                                .font(.system(size: 10, weight: .bold))
+                                .applyAppFont(size: 10, weight: .bold)
                                 .foregroundStyle(.white)
                                 .padding(4)
                                 .background(
@@ -665,6 +838,12 @@ struct ModernHeaderView: View {
                     }
                     .shadow(color: Color.orange.opacity(0.2), radius: 8, x: 0, y: 4)
                 }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("achievements.title"))
+                .accessibilityHint(L10n.t("achievements.accessibility.hint"))
+                .accessibilityValue(achievementManager.newAchievementsCount > 0 ? 
+                    String(format: L10n.t("achievements.newCount"), achievementManager.newAchievementsCount) : 
+                    "")
                 
                 if !isPremium {
                     // Remaining Slots Badge (Tıklanabilir)
@@ -673,9 +852,9 @@ struct ModernHeaderView: View {
                     }) {
                         HStack(spacing: 6) {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 12, weight: .semibold))
+                                .applyAppFont(size: 12, weight: .semibold)
                             Text("\(remainingSlots)")
-                                .font(.system(size: 16, weight: .bold))
+                                .applyAppFont(size: 16, weight: .bold)
                         }
                         .foregroundStyle(.white)
                         .padding(.horizontal, 14)
@@ -762,7 +941,7 @@ struct ModernStatCard: View {
     var body: some View {
         VStack(spacing: 10) {
             Image(systemName: icon)
-                .font(.system(size: 22, weight: .semibold))
+                .applyAppFont(size: 22, weight: .semibold)
                 .foregroundStyle(
                     LinearGradient(
                         colors: gradient,
@@ -772,11 +951,11 @@ struct ModernStatCard: View {
                 )
             
             Text(value)
-                .font(.system(size: 20, weight: .bold, design: .rounded))
+                .applyAppFont(size: 20, weight: .bold)
                 .foregroundStyle(AriumTheme.textPrimary)
             
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .applyAppFont(size: 11, weight: .medium)
                 .foregroundStyle(AriumTheme.textSecondary)
                 .lineLimit(1)
         }
@@ -833,7 +1012,7 @@ struct SwipeableHabitCard: View {
     @State private var isDragging = false
     
     private let swipeThreshold: CGFloat = 100
-    private let deleteThreshold: CGFloat = 80
+    private let deleteThreshold: CGFloat = 60 // 80'den 60'a düşürüldü - daha kolay silme
     
     var body: some View {
         ZStack {
@@ -856,7 +1035,7 @@ struct SwipeableHabitCard: View {
                                         .fill(Color.green)
                                         .frame(width: 50, height: 50)
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 20, weight: .bold))
+                                        .applyAppFont(size: 20, weight: .bold)
                                         .foregroundStyle(.white)
                                 }
                             }
@@ -873,10 +1052,12 @@ struct SwipeableHabitCard: View {
                                     .fill(Color.red)
                                     .frame(width: 50, height: 50)
                                 Image(systemName: "trash.fill")
-                                    .font(.system(size: 18, weight: .bold))
+                                    .applyAppFont(size: 18, weight: .bold)
                                     .foregroundStyle(.white)
                             }
                         }
+                        .accessibilityLabel(L10n.t("habit.delete"))
+                        .accessibilityHint(L10n.t("habit.delete.hint"))
                     }
                     .padding(.trailing, 20)
                     .opacity(min(dragOffset / swipeThreshold, 1.0))
@@ -898,10 +1079,12 @@ struct SwipeableHabitCard: View {
                                     .fill(Color.red)
                                     .frame(width: 50, height: 50)
                                 Image(systemName: "trash.fill")
-                                    .font(.system(size: 18, weight: .bold))
+                                    .applyAppFont(size: 18, weight: .bold)
                                     .foregroundStyle(.white)
                             }
                         }
+                        .accessibilityLabel(L10n.t("habit.delete"))
+                        .accessibilityHint(L10n.t("habit.delete.hint"))
                         
                         if !habit.isCompletedToday {
                             Button(action: {
@@ -915,7 +1098,7 @@ struct SwipeableHabitCard: View {
                                         .fill(Color.green)
                                         .frame(width: 50, height: 50)
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 20, weight: .bold))
+                                        .applyAppFont(size: 20, weight: .bold)
                                         .foregroundStyle(.white)
                                 }
                             }
@@ -928,24 +1111,38 @@ struct SwipeableHabitCard: View {
                 Spacer()
             }
             
-            // Main card
-            ModernHabitCard(
-                habit: habit,
-                onTap: onTap,
-                onToggle: onToggle,
-                onDelete: onDelete
-            )
+            // Main card - Swipeable wrapper
+            ZStack {
+                ModernHabitCard(
+                    habit: habit,
+                    onTap: onTap,
+                    onToggle: onToggle,
+                    onDelete: onDelete,
+                    isSwipeable: true // Swipeable olduğunu belirt
+                )
+            }
             .offset(x: dragOffset)
             .gesture(
-                DragGesture()
+                DragGesture(minimumDistance: 5) // Çok düşük threshold - hemen algıla
                     .onChanged { value in
                         isDragging = true
-                        dragOffset = value.translation.width
+                        // Sadece yatay kaydırmaya izin ver, dikey kaydırmayı engelle
+                        let horizontalMovement = value.translation.width
+                        let verticalMovement = abs(value.translation.height)
+                        
+                        // Yatay hareket dikey hareketten fazlaysa swipe olarak algıla
+                        if abs(horizontalMovement) > verticalMovement {
+                            dragOffset = horizontalMovement
+                        }
                     }
                     .onEnded { value in
                         isDragging = false
                         
-                        if abs(value.translation.width) > deleteThreshold {
+                        let swipeDistance = abs(value.translation.width)
+                        let swipeVelocity = abs(value.predictedEndTranslation.width - value.translation.width)
+                        
+                        // Hızlı kaydırma veya yeterli mesafe
+                        if swipeDistance > deleteThreshold || swipeVelocity > 300 {
                             // Swipe far enough - trigger action
                             if value.translation.width > deleteThreshold {
                                 // Right swipe - complete or delete
@@ -954,8 +1151,8 @@ struct SwipeableHabitCard: View {
                                 } else {
                                     onDelete()
                                 }
-                            } else {
-                                // Left swipe - delete or complete
+                            } else if value.translation.width < -deleteThreshold {
+                                // Left swipe - delete
                                 onDelete()
                             }
                             
@@ -981,45 +1178,20 @@ struct ModernHabitCard: View {
     let onTap: () -> Void
     let onToggle: () -> Void
     let onDelete: () -> Void
+    var isSwipeable: Bool = false // Swipeable modda gesture'ları devre dışı bırak
     
     @State private var isPressed = false
     
     var body: some View {
         HStack(spacing: 12) {
-            // Compact Completion Button
-            Button(action: onToggle) {
-                ZStack {
-                    Circle()
-                        .fill(
-                            habit.isCompletedToday 
-                                ? habit.theme.accent 
-                                : Color.clear
-                        )
-                        .frame(width: 44, height: 44)
-                        .overlay(
-                            Circle()
-                                .strokeBorder(
-                                    habit.isCompletedToday 
-                                        ? Color.clear 
-                                        : habit.theme.accent.opacity(0.4),
-                                    lineWidth: 2.5
-                                )
-                        )
-                    
-                    if habit.isCompletedToday {
-                        Image(systemName: "checkmark")
-                            .font(.system(size: 18, weight: .bold))
-                            .foregroundStyle(.white)
-                    }
-                }
-            }
-            .buttonStyle(PlainButtonStyle())
+            // Compact Completion Button with Animations
+            CompletionButton(habit: habit, onToggle: onToggle)
             
             // Content - Compact Layout
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 6) {
                     Text(habit.title)
-                        .font(.system(size: 16, weight: .semibold, design: .rounded))
+                        .applyAppFont(size: 16, weight: .semibold)
                         .foregroundStyle(AriumTheme.textPrimary)
                         .lineLimit(1)
                     
@@ -1029,10 +1201,10 @@ struct ModernHabitCard: View {
                     if habit.streak > 0 {
                         HStack(spacing: 3) {
                             Image(systemName: "flame.fill")
-                                .font(.system(size: 11, weight: .semibold))
+                                .applyAppFont(size: 11, weight: .semibold)
                                 .foregroundStyle(.orange)
                             Text("\(habit.streak)")
-                                .font(.system(size: 12, weight: .bold, design: .rounded))
+                                .applyAppFont(size: 12, weight: .bold)
                                 .foregroundStyle(AriumTheme.textPrimary)
                         }
                         .padding(.horizontal, 6)
@@ -1046,7 +1218,7 @@ struct ModernHabitCard: View {
                 
                 if !habit.notes.isEmpty {
                     Text(habit.notes)
-                        .font(.system(size: 13, weight: .regular))
+                        .applyAppFont(size: 13, weight: .regular)
                         .foregroundStyle(AriumTheme.textSecondary)
                         .lineLimit(1)
                 }
@@ -1055,9 +1227,9 @@ struct ModernHabitCard: View {
                 HStack(spacing: 6) {
                     HStack(spacing: 3) {
                         Text(habit.category.icon)
-                            .font(.system(size: 10))
+                            .applyAppFont(size: 10)
                         Text(habit.category.localizedName)
-                            .font(.system(size: 11, weight: .medium))
+                            .applyAppFont(size: 11, weight: .medium)
                     }
                     .foregroundStyle(habit.category.color)
                     .padding(.horizontal, 6)
@@ -1110,11 +1282,38 @@ struct ModernHabitCard: View {
             x: 0,
             y: habit.isCompletedToday ? 4 : 2
         )
-        .scaleEffect(isPressed ? 0.98 : 1.0)
+        .scaleEffect(isPressed ? 0.97 : 1.0)
+        .brightness(isPressed ? -0.05 : 0)
         .contentShape(Rectangle())
         .onTapGesture {
-            onTap()
+            if !isSwipeable { // Swipeable modda tap gesture'ı devre dışı
+                HapticManager.selection()
+                onTap()
+            }
         }
+        // Swipeable modda press gesture'ı tamamen kaldır - swipe ile çakışmasın
+        .background(
+            Group {
+                if !isSwipeable {
+                    Color.clear
+                        .simultaneousGesture(
+                            DragGesture(minimumDistance: 20)
+                                .onChanged { _ in
+                                    if !isPressed {
+                                        withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                                            isPressed = true
+                                        }
+                                    }
+                                }
+                                .onEnded { _ in
+                                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                                        isPressed = false
+                                    }
+                                }
+                        )
+                }
+            }
+        )
         .contextMenu {
             Button(role: .destructive, action: onDelete) {
                 Label(L10n.t("button.delete"), systemImage: "trash")
@@ -1169,7 +1368,7 @@ struct ModernCompletionButton: View {
                 
                 if isCompleted {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 20, weight: .bold))
+                        .applyAppFont(size: 20, weight: .bold)
                         .foregroundStyle(.white)
                         .scaleEffect(animateCompletion ? 1.3 : 1.0)
                         .opacity(animateCompletion ? 0.5 : 1.0)
@@ -1216,7 +1415,7 @@ struct ModernStreakBadge: View {
                 )
             
             Text("\(streak)")
-                .font(.system(size: 13, weight: .bold, design: .rounded))
+                .applyAppFont(size: 13, weight: .bold)
                 .foregroundStyle(AriumTheme.textPrimary)
         }
         .padding(.horizontal, 8)
@@ -1235,6 +1434,8 @@ struct ModernStreakBadge: View {
 // MARK: - Modern Empty State
 
 struct ModernEmptyStateView: View {
+    let onAddHabit: () -> Void
+    
     @ObservedObject private var l10nManager = L10nManager.shared
     @ObservedObject private var appThemeManager = AppThemeManager.shared
     @State private var isAnimating = false
@@ -1244,39 +1445,55 @@ struct ModernEmptyStateView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
-        VStack(spacing: 24) {
+        VStack(spacing: 32) {
             Spacer()
             
             ZStack {
-                // Pulsing background circle
-                Circle()
-                    .fill(
-                        LinearGradient(
-                            colors: [
-                                AriumTheme.accentLight.opacity(0.3),
-                                AriumTheme.accentLight.opacity(0.1)
-                            ],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
+                // Arka plan sadece cat theme değilse göster (cat theme için arka plan yok)
+                if appThemeManager.accentColor != .cat {
+                    // Outer glow circle
+                    Circle()
+                        .fill(
+                            RadialGradient(
+                                colors: [
+                                    AriumTheme.accentLight.opacity(0.2),
+                                    AriumTheme.accentLight.opacity(0.05),
+                                    Color.clear
+                                ],
+                                center: .center,
+                                startRadius: 40,
+                                endRadius: 100
+                            )
                         )
-                    )
-                    .frame(width: 120, height: 120)
-                    .scaleEffect(isAnimating ? 1.1 : 1.0)
-                    .opacity(isAnimating ? 0.8 : 1.0)
+                        .frame(width: 200, height: 200)
+                        .blur(radius: 20)
+                }
                 
-                // Rotating sparkles
-                Image(systemName: "sparkles")
-                    .font(.system(size: 50, weight: .light))
-                    .foregroundStyle(
-                        LinearGradient(
-                            colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.6)],
-                            startPoint: .topLeading,
-                            endPoint: .bottomTrailing
-                        )
+                // Icon - Cat theme shows Lottie animation, others show sparkles
+                if appThemeManager.accentColor == .cat {
+                    LottieAnimationView(
+                        animationName: "cat-idle",
+                        loopMode: .loop,
+                        speed: 0.5 // Daha yavaş, daha doğal görünsün
                     )
-                    .rotationEffect(.degrees(sparkleRotation))
-                    .scaleEffect(isAnimating ? 1.0 : 0.8)
-                    .opacity(isAnimating ? 1.0 : 0.5)
+                    .frame(width: 150, height: 150) // Daha küçük boyut - layout'u bozmamak için
+                    .aspectRatio(contentMode: .fit)
+                    .scaleEffect(isAnimating ? 1.0 : 0.95)
+                    .opacity(isAnimating ? 1.0 : 0.85)
+                } else {
+                    Image(systemName: "sparkles")
+                        .applyAppFont(size: 60, weight: .light)
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.6)],
+                                startPoint: .topLeading,
+                                endPoint: .bottomTrailing
+                            )
+                        )
+                        .rotationEffect(.degrees(sparkleRotation))
+                        .scaleEffect(isAnimating ? 1.0 : 0.8)
+                        .opacity(isAnimating ? 1.0 : 0.5)
+                }
             }
             .onAppear {
                 if !reduceMotion {
@@ -1294,20 +1511,62 @@ struct ModernEmptyStateView: View {
             .accessibilityLabel(L10n.t("home.empty.title"))
             .accessibilityHint(L10n.t("home.empty.subtitle"))
             
-            VStack(spacing: 12) {
-                Text(L10n.t("home.empty.title"))
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+            VStack(spacing: 16) {
+                Text(appThemeManager.accentColor == .cat ? L10n.t("home.empty.cat.title") : L10n.t("home.empty.title"))
+                    .applyAppFont(size: 28, weight: .bold)
                     .foregroundStyle(AriumTheme.textPrimary)
                     .opacity(isAnimating ? 1.0 : 0.0)
                     .offset(y: isAnimating ? 0 : 10)
                 
-                Text(L10n.t("home.empty.subtitle"))
-                    .font(.system(size: 16, weight: .regular))
+                Text(appThemeManager.accentColor == .cat ? L10n.t("home.empty.cat.subtitle") : L10n.t("home.empty.subtitle"))
+                    .applyAppFont(size: 17, weight: .regular)
                     .foregroundStyle(AriumTheme.textSecondary)
                     .multilineTextAlignment(.center)
                     .padding(.horizontal, 40)
                     .opacity(isAnimating ? 1.0 : 0.0)
                     .offset(y: isAnimating ? 0 : 10)
+                
+                // Add first habit button
+                Button {
+                    HapticManager.success()
+                    onAddHabit()
+                } label: {
+                    HStack(spacing: 10) {
+                        Image(systemName: "plus.circle.fill")
+                            .font(.system(size: 18, weight: .semibold))
+                        Text(L10n.t("home.empty.addFirst"))
+                            .font(.system(size: 17, weight: .semibold))
+                    }
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 56)
+                    .background(
+                        LinearGradient(
+                            colors: [
+                                AriumTheme.accent,
+                                AriumTheme.accent.opacity(0.85)
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .cornerRadius(16)
+                    .shadow(
+                        color: AriumTheme.accent.opacity(0.35),
+                        radius: 12,
+                        x: 0,
+                        y: 6
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 16)
+                            .stroke(Color.white.opacity(0.15), lineWidth: 1)
+                    )
+                }
+                .padding(.horizontal, 40)
+                .padding(.top, 8)
+                .opacity(isAnimating ? 1.0 : 0.0)
+                .offset(y: isAnimating ? 0 : 10)
+                .scaleEffect(isAnimating ? 1.0 : 0.9)
             }
             .onAppear {
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8).delay(0.2)) {
@@ -1315,7 +1574,6 @@ struct ModernEmptyStateView: View {
                 }
             }
             
-            Spacer()
             Spacer()
         }
     }
@@ -1401,17 +1659,17 @@ struct CategoryFilterChip: View {
                     
                     if iconType == .sfSymbol {
                         Image(systemName: icon)
-                            .font(.system(size: isSelected ? 15 : 14, weight: .semibold))
+                            .applyAppFont(size: isSelected ? 15 : 14, weight: .semibold)
                             .foregroundStyle(isSelected ? .white : color)
                     } else {
                         Text(icon)
-                            .font(.system(size: isSelected ? 15 : 14))
+                            .applyAppFont(size: isSelected ? 15 : 14)
                             .foregroundStyle(isSelected ? .white : color)
                     }
                 }
                 
                 Text(title)
-                    .font(.system(size: 15, weight: .semibold, design: .rounded))
+                    .applyAppFont(size: 15, weight: .semibold)
                     .foregroundStyle(isSelected ? .white : color)
             }
             .padding(.horizontal, isSelected ? 18 : 16)
@@ -1494,7 +1752,8 @@ struct ModernAddButton: View {
                     }
                 )
                 .shadow(color: AriumTheme.accent.opacity(0.4), radius: 16, x: 0, y: 8)
-                .scaleEffect(isPressed ? 0.92 : 1.0)
+                .scaleEffect(isPressed ? 0.90 : 1.0)
+                .brightness(isPressed ? -0.1 : 0)
         }
         .buttonStyle(PlainButtonStyle())
         .accessibilityLabel(L10n.t("button.add"))
@@ -1502,12 +1761,13 @@ struct ModernAddButton: View {
         .simultaneousGesture(
             DragGesture(minimumDistance: 0)
                 .onChanged { _ in
+                    HapticManager.light()
                     withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
                         isPressed = true
                     }
                 }
                 .onEnded { _ in
-                    withAnimation(.spring(response: 0.2, dampingFraction: 0.7)) {
+                    withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
                         isPressed = false
                     }
                 }
@@ -1525,12 +1785,12 @@ struct SearchBarView: View {
     var body: some View {
         HStack(spacing: 12) {
             Image(systemName: "magnifyingglass")
-                .font(.system(size: 16, weight: .medium))
+                .applyAppFont(size: 16, weight: .medium)
                 .foregroundStyle(AriumTheme.textSecondary)
             
             TextField(L10n.t("home.search.placeholder"), text: $searchText)
                 .focused($isSearchFocused)
-                .font(.system(size: 16, weight: .regular))
+                .applyAppFont(size: 16, weight: .regular)
                 .foregroundStyle(AriumTheme.textPrimary)
                 .submitLabel(.search)
                 .autocorrectionDisabled()
@@ -1546,7 +1806,7 @@ struct SearchBarView: View {
                     HapticManager.light()
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .font(.system(size: 16, weight: .medium))
+                        .applyAppFont(size: 16, weight: .medium)
                         .foregroundStyle(AriumTheme.textSecondary)
                 }
             }

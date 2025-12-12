@@ -24,12 +24,12 @@ struct HabitDetailHeaderView: View {
                 
                 VStack(spacing: 2) {
                     Text("\(habit.streak)")
-                        .font(.system(size: 44, weight: .heavy, design: .rounded))
+                        .applyAppFont(size: 44, weight: .heavy)
                         .foregroundStyle(.primary)
                         .contentTransition(.numericText(countsDown: false))
                     
                     Text(L10n.t("habit.streak").uppercased())
-                        .font(.system(size: 12, weight: .bold))
+                        .applyAppFont(size: 12, weight: .bold)
                         .tracking(1)
                         .foregroundStyle(.secondary)
                 }
@@ -38,10 +38,9 @@ struct HabitDetailHeaderView: View {
             // Category Badge with improved styling
             HStack(spacing: 8) {
                 Image(systemName: habit.category.systemIcon)
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                 Text(habit.category.localizedName)
-                    .font(.subheadline)
-                    .fontWeight(.semibold)
+                    .applyAppFont(size: 15, weight: .semibold)
             }
             .foregroundStyle(.white)
             .padding(.horizontal, 16)

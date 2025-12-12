@@ -54,10 +54,10 @@ struct CustomizationView: View {
                     VStack(alignment: .leading, spacing: 12) {
                         HStack(spacing: 8) {
                             Image(systemName: "sparkles")
-                                .font(.system(size: 14, weight: .semibold))
+                                .applyAppFont(size: 14, weight: .semibold)
                                 .foregroundStyle(.orange)
                             Text(L10n.t("appTheme.specialOccasions"))
-                                .font(.system(size: 14, weight: .bold, design: .rounded))
+                                .applyAppFont(size: 14, weight: .bold)
                                 .foregroundStyle(.secondary)
                         }
                         
@@ -85,7 +85,7 @@ struct CustomizationView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         Image(systemName: "paintpalette.fill")
-                            .font(.system(size: 14, weight: .semibold))
+                            .applyAppFont(size: 14, weight: .semibold)
                             .foregroundStyle(appThemeManager.accentColor.color)
                         Text(L10n.t("appTheme.regularThemes"))
                             .font(.system(size: 14, weight: .bold, design: .rounded))
@@ -118,48 +118,88 @@ struct CustomizationView: View {
     
     private var fontSection: some View {
         Section {
-            ForEach(AppFont.allCases) { font in
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.2)) {
-                        fontManager.setFont(font)
-                    }
-                    HapticManager.selection()
-                    
-                    // Reload widgets to apply font change
-                    WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
-                    WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
-                }) {
-                    HStack(spacing: 16) {
-                        Text(font.preview)
-                            .font(font.font(size: 24, weight: .bold))
-                            .foregroundColor(.primary)
-                            .frame(width: 40)
+            // Group fonts by category
+            let groupedFonts = Dictionary(grouping: AppFont.allCases) { $0.category }
+            let categories: [FontCategory] = [.system, .sansSerif, .serif, .monospaced, .display]
+            
+            ForEach(categories, id: \.self) { category in
+                if let fonts = groupedFonts[category], !fonts.isEmpty {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text(category.displayName)
+                            .applyAppFont(size: 13, weight: .semibold)
+                            .foregroundColor(.secondary)
+                            .textCase(.uppercase)
+                            .padding(.horizontal, 4)
+                            .padding(.top, 8)
                         
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(font.displayName)
-                                .font(font.font(size: 17))
-                                .foregroundColor(.primary)
-                            
-                            Text(L10n.t("font.preview.text"))
-                                .font(font.font(size: 12))
-                                .foregroundColor(.secondary)
-                        }
-                        
-                        Spacer()
-                        
-                        if fontManager.selectedFont == font {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundColor(appThemeManager.accentColor.color)
+                        LazyVGrid(columns: [
+                            GridItem(.flexible(), spacing: 12),
+                            GridItem(.flexible(), spacing: 12)
+                        ], spacing: 12) {
+                            ForEach(fonts) { font in
+                                fontCard(font: font)
+                            }
                         }
                     }
-                    .padding(.vertical, 4)
-                    .contentShape(Rectangle())
+                    .padding(.vertical, 8)
                 }
-                .buttonStyle(.plain)
             }
         } header: {
             Text(L10n.t("font.title"))
+        } footer: {
+            Text(L10n.t("font.footer"))
         }
+    }
+    
+    private func fontCard(font: AppFont) -> some View {
+        Button(action: {
+            withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+                fontManager.setFont(font)
+            }
+            HapticManager.selection()
+            
+            // Reload widgets to apply font change
+            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
+            WidgetCenter.shared.reloadTimelines(ofKind: "AriumWatchWidget")
+        }) {
+            VStack(spacing: 8) {
+                Text(font.preview)
+                    .font(font.font(size: 28, weight: .bold))
+                    .foregroundColor(.primary)
+                    .frame(height: 40)
+                
+                Text(font.displayName)
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundColor(.primary)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.8)
+                
+                if fontManager.selectedFont == font {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 16))
+                        .foregroundColor(appThemeManager.accentColor.color)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .padding(.horizontal, 8)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(fontManager.selectedFont == font ? 
+                          appThemeManager.accentColor.color.opacity(0.1) : 
+                          Color(.secondarySystemBackground))
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: 12)
+                    .stroke(
+                        fontManager.selectedFont == font ? 
+                        appThemeManager.accentColor.color.opacity(0.5) : 
+                        Color.clear,
+                        lineWidth: 2
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
     
     private var confettiSettingsSection: some View {
@@ -303,7 +343,7 @@ struct CustomizationView: View {
                         // Icon overlay
                         if !color.icon.isEmpty {
                             Text(color.icon)
-                                .font(.system(size: 20))
+                                .applyAppFont(size: 20)
                                 .opacity(0.9)
                         }
                         
@@ -324,7 +364,7 @@ struct CustomizationView: View {
                     
                     VStack(spacing: 2) {
                         Text(color.name)
-                            .font(.system(size: 10, weight: .semibold, design: .rounded))
+                            .applyAppFont(size: 10, weight: .semibold)
                             .foregroundStyle(isSelected ? .primary : .secondary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
@@ -369,9 +409,16 @@ struct CustomizationView: View {
                                 y: isSelected ? 4 : 2
                             )
                         
+                        // Icon overlay
+                        if !color.icon.isEmpty {
+                            Text(color.icon)
+                                .applyAppFont(size: 20)
+                                .opacity(0.9)
+                        }
+                        
                         if isSelected {
                             Image(systemName: "checkmark")
-                                .font(.system(size: 18, weight: .bold))
+                                .applyAppFont(size: 18, weight: .bold)
                                 .foregroundStyle(.white)
                         }
                     }

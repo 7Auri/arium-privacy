@@ -169,7 +169,7 @@ struct DailyRepetitionSettingsView: View {
                                 HStack(spacing: 10) {
                                     // Index badge
                                     Text("\(index + 1)")
-                                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                                        .applyAppFont(size: 12, weight: .bold)
                                         .foregroundStyle(.white)
                                         .frame(width: 24, height: 24)
                                         .background(

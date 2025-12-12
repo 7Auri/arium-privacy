@@ -37,7 +37,7 @@ struct OnboardingView: View {
                             viewModel.skipToEnd()
                         } label: {
                             Text(L10n.t("onboarding.skip"))
-                                .font(.system(size: 16, weight: .medium))
+                                .applyAppFont(size: 16, weight: .medium)
                                 .foregroundColor(AriumTheme.textSecondary)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 8)
@@ -103,15 +103,15 @@ struct OnboardingView: View {
                     Text(viewModel.isLastPage ? 
                          L10n.t("onboarding.start") : 
                          L10n.t("onboarding.continue"))
-                        .font(.system(size: 18, weight: .semibold))
+                        .applyAppFont(size: 18, weight: .semibold)
                     
                     if !viewModel.isLastPage {
                         Image(systemName: "arrow.right")
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .transition(.move(edge: .trailing).combined(with: .opacity))
                     } else {
                         Image(systemName: "sparkles")
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .transition(.scale.combined(with: .opacity))
                     }
                 }

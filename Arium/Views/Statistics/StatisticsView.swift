@@ -84,8 +84,7 @@ struct StatisticsView: View {
     private var headerView: some View {
         VStack(spacing: 16) {
             Text(L10n.t("statistics.title"))
-                .font(.title2)
-                .fontWeight(.bold)
+                .applyAppFont(size: 22, weight: .bold)
                 .foregroundColor(AriumTheme.textPrimary)
             
             // Period Selector (Premium only)
@@ -95,7 +94,7 @@ struct StatisticsView: View {
                 }
             } else {
                 Text(L10n.t("statistics.last7Days"))
-                    .font(.subheadline)
+                    .applyAppFont(size: 15)
                     .foregroundColor(AriumTheme.textSecondary)
             }
         }
@@ -134,7 +133,7 @@ struct StatisticsView: View {
     private var chartSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.t("statistics.completionHistory"))
-                .font(.headline)
+                .applyAppFont(size: 17, weight: .semibold)
                 .foregroundColor(AriumTheme.textPrimary)
                 .padding(.horizontal, 4)
             
@@ -150,17 +149,17 @@ struct StatisticsView: View {
         VStack(spacing: 12) {
             HStack(spacing: 12) {
                 Image(systemName: "crown.fill")
-                    .font(.title3)
+                    .applyAppFont(size: 20, weight: .semibold)
                     .foregroundColor(AriumTheme.warning)
                 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(L10n.t("statistics.premiumTitle"))
-                        .font(.subheadline)
+                        .applyAppFont(size: 15)
                         .fontWeight(.semibold)
                         .foregroundColor(AriumTheme.textPrimary)
                     
                     Text(L10n.t("statistics.premiumMessage"))
-                        .font(.caption)
+                        .applyAppFont(size: 12)
                         .foregroundColor(AriumTheme.textSecondary)
                 }
                 
@@ -185,7 +184,7 @@ struct StatisticsView: View {
     private var additionalStatsView: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text(L10n.t("statistics.details"))
-                .font(.headline)
+                .applyAppFont(size: 17, weight: .semibold)
                 .foregroundColor(AriumTheme.textPrimary)
                 .padding(.horizontal, 4)
             
@@ -288,13 +287,13 @@ struct StatRow: View {
                 .frame(width: 28)
             
             Text(title)
-                .font(.body)
+                .applyAppFont(size: 17)
                 .foregroundColor(AriumTheme.textPrimary)
             
             Spacer()
             
             Text(value)
-                .font(.body)
+                .applyAppFont(size: 17)
                 .fontWeight(.semibold)
                 .foregroundColor(AriumTheme.textSecondary)
         }
@@ -318,7 +317,7 @@ struct PeriodSelectorView: View {
                     HapticManager.selection()
                 } label: {
                     Text(period.localizedName)
-                        .font(.system(size: 14, weight: selectedPeriod == period ? .semibold : .regular))
+                        .applyAppFont(size: 14, weight: selectedPeriod == period ? .semibold : .regular)
                         .foregroundColor(selectedPeriod == period ? .white : AriumTheme.textSecondary)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)

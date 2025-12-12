@@ -15,22 +15,60 @@ class SentimentAnalyzer {
     static func analyzeSentiment(for text: String) -> Double {
         guard !text.isEmpty else { return 0.0 }
         
+        // ÖNEMLİ: Emoji'leri ve kısa negatif ifadeleri özel olarak kontrol et
+        let lowercasedText = text.lowercased()
+        
+        // Negatif emoji'ler ve ifadeler için manuel kontrol
+        let negativeEmojis = ["😠", "😡", "😔", "😭", "😩", "😢", "😞", "😟", "😤", "😰", "😨", "😱"]
+        let negativeKeywords = ["bad", "kötü", "sad", "üzücü", "zor", "difficult", "hard", "terrible", "awful", "horrible", "worst", "en kötü"]
+        
+        var hasNegativeEmoji = false
+        var hasNegativeKeyword = false
+        
+        // Emoji kontrolü
+        for emoji in negativeEmojis {
+            if text.contains(emoji) {
+                hasNegativeEmoji = true
+                break
+            }
+        }
+        
+        // Negatif kelime kontrolü
+        for keyword in negativeKeywords {
+            if lowercasedText.contains(keyword) {
+                hasNegativeKeyword = true
+                break
+            }
+        }
+        
+        // Eğer negatif emoji veya kelime varsa, NLTagger sonucunu daha negatif yap
         let tagger = NLTagger(tagSchemes: [.sentimentScore])
         tagger.string = text
         
-        // Explicitly asking NLTagger to detect language first increases reliability
-        // Arium supports: EN, TR, DE, FR, ES, IT
-        // NLTagger supports sentiment for many languages, but falling back to English model 
-        // for unsupported ones might yield neutral results.
-        // For now, we rely on automatic detection.
-        
         let (sentiment, _) = tagger.tag(at: text.startIndex, unit: .paragraph, scheme: .sentimentScore)
         
+        var baseScore: Double = 0.0
         if let score = sentiment?.rawValue, let doubleScore = Double(score) {
-            return doubleScore
+            baseScore = doubleScore
         }
         
-        return 0.0
+        // Negatif emoji veya kelime varsa, skoru daha negatif yap
+        if hasNegativeEmoji || hasNegativeKeyword {
+            // Base score'u daha negatif yap (minimum -0.5, maksimum -0.8)
+            let adjustedScore = min(-0.5, baseScore - 0.3)
+            #if DEBUG
+            print("🔍 Sentiment: '\(text)' -> Base: \(baseScore), Adjusted: \(adjustedScore) (Negative emoji/keyword detected)")
+            #endif
+            return adjustedScore
+        }
+        
+        #if DEBUG
+        if baseScore < -0.2 || baseScore > 0.2 {
+            print("🔍 Sentiment: '\(text)' -> Score: \(baseScore)")
+        }
+        #endif
+        
+        return baseScore
     }
     
     /// Analyzes an array of notes and returns the average sentiment score.

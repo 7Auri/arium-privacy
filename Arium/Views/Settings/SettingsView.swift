@@ -34,6 +34,7 @@ struct SettingsView: View {
     @State private var showingiCloudSyncError = false
     @State private var iCloudSyncError: AppError?
     @State private var iCloudLoadMessage = ""
+    @State private var isLoadingFromCloud = false
     @State private var showingLanguagePicker = false
     @StateObject private var appThemeManager = AppThemeManager.shared
 
@@ -112,7 +113,7 @@ struct SettingsView: View {
             VStack(spacing: 8) {
                 // App Name - Premium Gradient Style
                 Text("Arium")
-                    .font(.system(size: 38, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 38, weight: .bold)
                     .tracking(1) // Balanced spacing
                     .foregroundStyle(
                         LinearGradient(
@@ -130,14 +131,14 @@ struct SettingsView: View {
                 // Version Info
                 HStack(spacing: 6) {
                     Text("v\(Bundle.main.displayVersion)")
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .applyAppFont(size: 14, weight: .medium)
                         .foregroundStyle(.secondary)
                     
                     if premiumManager.isPremium {
                         Text("•")
                             .foregroundStyle(.secondary)
                         Text("Premium")
-                            .font(.system(size: 14, weight: .semibold, design: .rounded))
+                            .applyAppFont(size: 14, weight: .semibold)
                             .foregroundStyle(appThemeManager.accentColor.color)
                     }
                 }
@@ -170,12 +171,12 @@ struct SettingsView: View {
         var body: some View {
             VStack(spacing: 4) {
                 Image(systemName: icon)
-                    .font(.system(size: 18, weight: .semibold))
+                    .applyAppFont(size: 18, weight: .semibold)
                     .foregroundStyle(color)
                     .frame(width: 24, height: 24)
                 
                 Text(value)
-                    .font(.system(size: 16, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 16, weight: .bold)
                     .foregroundStyle(.primary)
             }
             .frame(minWidth: 60)
@@ -196,10 +197,10 @@ struct SettingsView: View {
         var body: some View {
             HStack(spacing: 5) {
                 Image(systemName: icon)
-                    .font(.system(size: 11, weight: .semibold))
+                    .applyAppFont(size: 11, weight: .semibold)
                     .foregroundStyle(color)
                 Text(value)
-                    .font(.system(size: 13, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 13, weight: .bold)
                     .foregroundStyle(AriumTheme.textPrimary)
             }
             .padding(.horizontal, 8)
@@ -246,11 +247,11 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
                 Image(systemName: icon)
-                    .font(.system(size: 16, weight: .semibold))
+                    .applyAppFont(size: 16, weight: .semibold)
                     .foregroundStyle(iconColor)
                 
                 Text(title)
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 18, weight: .bold)
                     .foregroundStyle(.primary)
             }
             .padding(.horizontal, 4)
@@ -336,11 +337,11 @@ struct SettingsView: View {
                     Group {
                         if premiumManager.isPremium {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
+                                .applyAppFont(size: 20, weight: .semibold)
                                 .foregroundStyle(AriumTheme.success)
                         } else {
                             Text(L10n.t("premium.button"))
-                                .font(.caption)
+                                .applyAppFont(size: 12)
                                 .fontWeight(.semibold)
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 12)
@@ -381,7 +382,7 @@ struct SettingsView: View {
                     Group {
                         if premiumManager.isPremium {
                             Image(systemName: "checkmark.circle.fill")
-                                .font(.title3)
+                                .applyAppFont(size: 20, weight: .semibold)
                                 .foregroundStyle(.green)
                         }
                     }
@@ -655,13 +656,13 @@ struct SettingsView: View {
         VStack(spacing: 16) {
             HStack {
                 Text(L10n.t("settings.version"))
-                    .font(.system(size: 15, weight: .medium))
+                    .applyAppFont(size: 15, weight: .medium)
                     .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 Text(Bundle.main.displayVersion)
-                    .font(.system(size: 15, weight: .semibold))
+                    .applyAppFont(size: 15, weight: .semibold)
                     .foregroundStyle(AriumTheme.accent)
             }
             .padding(.horizontal, 20)
@@ -673,13 +674,13 @@ struct SettingsView: View {
             
             HStack {
                 Text(L10n.t("settings.totalHabits"))
-                    .font(.system(size: 15, weight: .medium))
+                    .applyAppFont(size: 15, weight: .medium)
                     .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 Text("\(habitStore.habits.count)")
-                    .font(.system(size: 15, weight: .semibold))
+                    .applyAppFont(size: 15, weight: .semibold)
                     .foregroundStyle(AriumTheme.accent)
             }
             .padding(.horizontal, 20)
@@ -691,13 +692,13 @@ struct SettingsView: View {
             
             HStack {
                 Text(L10n.t("settings.totalCompletions"))
-                    .font(.system(size: 15, weight: .medium))
+                    .applyAppFont(size: 15, weight: .medium)
                     .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 Text("\(habitStore.getTotalCompletions())")
-                    .font(.system(size: 15, weight: .semibold))
+                    .applyAppFont(size: 15, weight: .semibold)
                     .foregroundStyle(AriumTheme.accent)
             }
             .padding(.horizontal, 20)
@@ -710,7 +711,7 @@ struct SettingsView: View {
             Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
                 HStack {
                     Text(L10n.t("settings.privacyPolicy"))
-                        .font(.system(size: 15, weight: .medium))
+                        .applyAppFont(size: 15, weight: .medium)
                         .foregroundStyle(.primary)
                     
                     Spacer()
@@ -730,7 +731,7 @@ struct SettingsView: View {
             Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
                 HStack {
                     Text(L10n.t("settings.termsOfService"))
-                        .font(.system(size: 15, weight: .medium))
+                        .applyAppFont(size: 15, weight: .medium)
                         .foregroundStyle(.primary)
                     
                     Spacer()
@@ -809,7 +810,7 @@ struct SettingsView: View {
             }
         } header: {
             Text(L10n.t("settings.language"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -839,13 +840,13 @@ struct SettingsView: View {
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(L10n.t("achievements.title"))
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .foregroundStyle(.primary)
                         
                         Text(AchievementManager.shared.newAchievementsCount > 0
                             ? "\(AchievementManager.shared.newAchievementsCount) " + L10n.t("achievement.new")
                             : L10n.t("achievements.viewAll"))
-                            .font(.system(size: 14, weight: .regular))
+                            .applyAppFont(size: 14, weight: .regular)
                             .foregroundStyle(.secondary)
                     }
                     
@@ -864,7 +865,7 @@ struct SettingsView: View {
             .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         } header: {
             Text(L10n.t("achievements.title"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -903,21 +904,21 @@ struct SettingsView: View {
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text(L10n.t("settings.premium"))
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .foregroundStyle(.primary)
                         
                         if premiumManager.isPremium {
                             Text(L10n.t("settings.active"))
-                                .font(.system(size: 14, weight: .regular))
+                                .applyAppFont(size: 14, weight: .regular)
                                 .foregroundStyle(.secondary)
                         } else {
                             if let product = premiumManager.product {
                                 Text(product.displayPrice)
-                                    .font(.system(size: 14, weight: .regular))
+                                    .applyAppFont(size: 14, weight: .regular)
                                     .foregroundStyle(.secondary)
                             } else {
                                 Text(L10n.t("settings.freePlan"))
-                                    .font(.system(size: 14, weight: .regular))
+                                    .applyAppFont(size: 14, weight: .regular)
                                     .foregroundStyle(.secondary)
                             }
                         }
@@ -927,8 +928,7 @@ struct SettingsView: View {
                     
                     if !premiumManager.isPremium {
                         Text(L10n.t("premium.button"))
-                            .font(.caption)
-                            .fontWeight(.semibold)
+                            .applyAppFont(size: 12, weight: .semibold)
                             .foregroundStyle(AriumTheme.accent)
                             .padding(.horizontal, 12)
                             .padding(.vertical, 6)
@@ -936,7 +936,7 @@ struct SettingsView: View {
                             .clipShape(Capsule())
                     } else {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
+                            .applyAppFont(size: 20, weight: .semibold)
                             .foregroundStyle(AriumTheme.success)
                     }
                 }
@@ -968,17 +968,17 @@ struct SettingsView: View {
                             .frame(width: 44, height: 44)
                         
                         Image(systemName: "checkmark.seal.fill")
-                            .font(.system(size: 20, weight: .semibold))
+                            .applyAppFont(size: 20, weight: .semibold)
                             .foregroundStyle(.green)
                     }
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("Test Premium Aktif Et")
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .foregroundStyle(.primary)
                         
                         Text("TestFlight için geçici test butonu")
-                            .font(.system(size: 14, weight: .regular))
+                            .applyAppFont(size: 14, weight: .regular)
                             .foregroundStyle(.secondary)
                     }
                     
@@ -986,7 +986,7 @@ struct SettingsView: View {
                     
                     if premiumManager.isPremium {
                         Image(systemName: "checkmark.circle.fill")
-                            .font(.title3)
+                            .applyAppFont(size: 20, weight: .semibold)
                             .foregroundStyle(.green)
                     }
                 }
@@ -1002,7 +1002,7 @@ struct SettingsView: View {
             .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         } header: {
             Text(L10n.t("settings.premium"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1063,7 +1063,7 @@ struct SettingsView: View {
             }
         } header: {
             Text(L10n.t("settings.notifications"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1134,11 +1134,11 @@ struct SettingsView: View {
                         
                         VStack(alignment: .leading, spacing: 4) {
                             Text(L10n.t("settings.icloud.syncNow"))
-                                .font(.system(size: 16, weight: .semibold))
+                                .applyAppFont(size: 16, weight: .semibold)
                                 .foregroundStyle(.primary)
                             
                             Text(L10n.t("settings.icloud.syncNow"))
-                                .font(.system(size: 14, weight: .regular))
+                                .applyAppFont(size: 14, weight: .regular)
                                 .foregroundStyle(.secondary)
                         }
                         
@@ -1154,15 +1154,21 @@ struct SettingsView: View {
                 .buttonStyle(PlainButtonStyle())
                 .listRowBackground(Color(.secondarySystemGroupedBackground))
                 .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
-                .disabled(cloudSyncManager.isSyncing)
+                .disabled(cloudSyncManager.isSyncing || isLoadingFromCloud)
 
                 SettingsRow(
-                    iconName: "arrow.down.circle.fill",
+                    iconName: isLoadingFromCloud ? "arrow.clockwise" : "arrow.down.circle.fill",
                     iconColor: .blue,
                     title: L10n.t("settings.icloud.loadFromCloud"),
-                    description: L10n.t("settings.icloud.loadFromCloud.description"),
+                    description: isLoadingFromCloud ? L10n.t("settings.icloud.loading") : L10n.t("settings.icloud.loadFromCloud.description"),
+                    rightIndicator: isLoadingFromCloud ? AnyView(
+                        ProgressView()
+                            .tint(.blue)
+                    ) : nil,
                     showChevron: false,
                     action: {
+                        guard !isLoadingFromCloud else { return }
+                        isLoadingFromCloud = true
                         Task {
                             do {
                                 let beforeCount = habitStore.habits.count
@@ -1219,7 +1225,7 @@ struct SettingsView: View {
             }
         } header: {
             Text(L10n.t("settings.icloud.title"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1241,7 +1247,7 @@ struct SettingsView: View {
             .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         } header: {
             Text(L10n.t("statistics.title"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1307,7 +1313,7 @@ struct SettingsView: View {
             .listRowInsets(EdgeInsets(top: 8, leading: 20, bottom: 8, trailing: 20))
         } header: {
             Text(L10n.t("settings.debug"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1387,7 +1393,7 @@ struct SettingsView: View {
                     .shadow(color: AriumTheme.accent.opacity(0.2), radius: 10, x: 0, y: 5)
                 
                 Text("Arium")
-                    .font(.system(size: 24, weight: .bold))
+                    .applyAppFont(size: 24, weight: .bold)
                     .foregroundStyle(AriumTheme.textPrimary)
             }
             .frame(maxWidth: .infinity)
@@ -1396,11 +1402,13 @@ struct SettingsView: View {
             
             HStack {
                 Text(L10n.t("settings.version"))
+                    .applyAppFont(size: 15, weight: .medium)
                     .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 Text(Bundle.main.displayVersion)
+                    .applyAppFont(size: 15, weight: .semibold)
                     .foregroundStyle(.secondary)
             }
             .listRowBackground(Color(.secondarySystemGroupedBackground))
@@ -1456,7 +1464,7 @@ struct SettingsView: View {
             .listRowBackground(Color(.secondarySystemGroupedBackground))
         } header: {
             Text(L10n.t("settings.about"))
-                .font(.footnote)
+                .applyAppFont(size: 13)
                 .textCase(.uppercase)
                 .foregroundStyle(.secondary)
         }
@@ -1604,8 +1612,8 @@ struct SettingsView: View {
                     Button(L10n.t("button.done")) {
                         dismiss()
                     }
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundStyle(AriumTheme.accent)
-                    .fontWeight(.semibold)
                 }
             }
     }
@@ -1955,14 +1963,14 @@ struct LanguageOptionRow: View {
                     .frame(width: 24)
                 
                 Text(title)
-                    .font(.system(size: 16, weight: .regular))
+                    .applyAppFont(size: 16, weight: .regular)
                     .foregroundStyle(.primary)
                 
                 Spacer()
                 
                 if isSelected {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 16, weight: .semibold))
+                        .applyAppFont(size: 16, weight: .semibold)
                         .foregroundStyle(AriumTheme.accent)
                 }
             }
@@ -2028,7 +2036,7 @@ struct ImportHabitSelectionSheet: View {
                             Image(systemName: "info.circle.fill")
                                 .foregroundStyle(.blue)
                             Text(String(format: L10n.t("import.limitReached"), remainingSlots))
-                                .font(.caption)
+                                .applyAppFont(size: 12)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -2184,13 +2192,13 @@ struct ImportHabitRow: View {
                         
                         if item.isDuplicate {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.caption)
+                                .applyAppFont(size: 12)
                                 .foregroundStyle(.orange)
                         }
                         
                         if item.isExisting {
                             Text("(Existing)")
-                                .font(.caption)
+                                .applyAppFont(size: 12)
                                 .foregroundStyle(.secondary)
                         }
                     }
@@ -2265,18 +2273,18 @@ struct SettingsRow: View {
                         .frame(width: 44, height: 44)
                     
                     Image(systemName: iconName)
-                        .font(.system(size: 20, weight: .semibold))
+                        .applyAppFont(size: 20, weight: .semibold)
                         .foregroundStyle(iconColor)
                 }
                 
                 // Title and Description
                 VStack(alignment: .leading, spacing: 4) {
                     Text(title)
-                        .font(.system(size: 16, weight: .semibold))
+                        .applyAppFont(size: 16, weight: .semibold)
                         .foregroundStyle(.primary)
                     
                     Text(description)
-                        .font(.system(size: 14, weight: .regular))
+                        .applyAppFont(size: 14, weight: .regular)
                         .foregroundStyle(.secondary)
                 }
                 
@@ -2293,7 +2301,7 @@ struct SettingsRow: View {
                         .tint(toggleTint ?? iconColor)
                 } else if showChevron {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 14, weight: .semibold))
+                        .applyAppFont(size: 14, weight: .semibold)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -2364,13 +2372,13 @@ struct ModernSettingsCard: View {
                         .shadow(color: iconColor.opacity(0.2), radius: 6, x: 0, y: 3)
                     
                     Image(systemName: iconName)
-                        .font(.system(size: 22, weight: .semibold))
+                        .applyAppFont(size: 22, weight: .semibold)
                         .foregroundStyle(iconColor)
-                    
+
                     // Badge
                     if let badge = badge, badge > 0 {
                         Text("\(badge)")
-                            .font(.system(size: 10, weight: .bold))
+                            .applyAppFont(size: 10, weight: .bold)
                             .foregroundStyle(.white)
                             .padding(4)
                             .background(
@@ -2380,15 +2388,15 @@ struct ModernSettingsCard: View {
                             .offset(x: 18, y: -18)
                     }
                 }
-                
+
                 // Title and Description
                 VStack(alignment: .leading, spacing: 6) {
                     Text(title)
-                        .font(.system(size: 17, weight: .semibold, design: .rounded))
+                        .applyAppFont(size: 17, weight: .semibold)
                         .foregroundStyle(.primary)
-                    
+
                     Text(description)
-                        .font(.system(size: 14, weight: .regular))
+                        .applyAppFont(size: 14, weight: .regular)
                         .foregroundStyle(.secondary)
                         .lineLimit(2)
                 }
@@ -2406,7 +2414,7 @@ struct ModernSettingsCard: View {
                         .tint(toggleTint ?? iconColor)
                 } else if showChevron {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 13, weight: .semibold))
+                        .applyAppFont(size: 13, weight: .semibold)
                         .foregroundStyle(.tertiary)
                 }
             }
@@ -2454,11 +2462,11 @@ struct QuickStatCard: View {
             }
             
             Text(value)
-                .font(.system(size: 24, weight: .bold, design: .rounded))
+                .applyAppFont(size: 24, weight: .bold)
                 .foregroundStyle(.primary)
             
             Text(label)
-                .font(.system(size: 12, weight: .medium))
+                .applyAppFont(size: 12, weight: .medium)
                 .foregroundStyle(.secondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -2544,11 +2552,11 @@ struct ExportHabitPickerSheet: View {
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(format.displayName)
-                                        .font(.system(size: 16, weight: .semibold))
+                                        .applyAppFont(size: 16, weight: .semibold)
                                         .foregroundColor(.primary)
                                     
                                     Text(format.description)
-                                        .font(.caption)
+                                        .applyAppFont(size: 12)
                                         .foregroundColor(.secondary)
                                 }
                                 

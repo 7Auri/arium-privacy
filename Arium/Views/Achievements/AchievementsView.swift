@@ -80,10 +80,10 @@ struct AchievementsView: View {
                 
                 VStack(spacing: 6) {
                     Text("LVL")
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 12, weight: .bold)
                         .foregroundColor(.white.opacity(0.9))
                     Text("\(achievementManager.userLevel)")
-                        .font(.system(size: 42, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 42, weight: .bold)
                         .foregroundColor(.white)
                 }
             }
@@ -93,14 +93,14 @@ struct AchievementsView: View {
                 HStack {
                     HStack(spacing: 6) {
                         Image(systemName: "star.fill")
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundStyle(.orange)
                         Text("\(achievementManager.userXP) XP")
-                            .font(.system(size: 16, weight: .bold, design: .rounded))
+                            .applyAppFont(size: 16, weight: .bold)
                     }
                     Spacer()
                     Text("Level \(achievementManager.userLevel + 1)")
-                        .font(.caption)
+                        .applyAppFont(size: 12)
                         .foregroundStyle(.secondary)
                 }
                 
@@ -191,12 +191,12 @@ struct AchievementsView: View {
     private func statItem(icon: String, value: String, label: String) -> some View {
         VStack(spacing: 6) {
             Text(icon)
-                .font(.system(size: 24))
+                .applyAppFont(size: 24)
             Text(value)
-                .font(.system(size: 18, weight: .bold, design: .rounded))
+                .applyAppFont(size: 18, weight: .bold)
                 .foregroundStyle(AriumTheme.textPrimary)
             Text(label)
-                .font(.system(size: 11, weight: .medium))
+                .applyAppFont(size: 11, weight: .medium)
                 .foregroundStyle(AriumTheme.textSecondary)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
@@ -284,7 +284,7 @@ struct AchievementCard: View {
             ZStack(alignment: .topTrailing) {
                 // Large emoji as the main element
                 Text(achievement.icon)
-                    .font(.system(size: 70))
+                    .applyAppFont(size: 70)
                     .opacity(isUnlocked ? 1.0 : 0.3)
                     .scaleEffect(isUnlocked ? 1.0 : 0.8)
                     .frame(width: 80, height: 80)
@@ -327,7 +327,7 @@ struct AchievementCard: View {
                         .shadow(color: achievement.tier.color.opacity(0.7), radius: 6, x: 0, y: 3)
                     
                     Text(achievement.tier.displayName.prefix(1))
-                        .font(.system(size: 12, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 12, weight: .bold)
                         .foregroundColor(.white)
                 }
                 .offset(x: 6, y: -6)
@@ -336,7 +336,7 @@ struct AchievementCard: View {
             
             // Title
             Text(achievement.title)
-                .font(.system(size: 14, weight: .semibold, design: .rounded))
+                .applyAppFont(size: 14, weight: .semibold)
                 .multilineTextAlignment(.center)
                 .lineLimit(2)
                 .foregroundStyle(isUnlocked ? AriumTheme.textPrimary : AriumTheme.textSecondary)
@@ -348,10 +348,10 @@ struct AchievementCard: View {
             if isUnlocked {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 12, weight: .semibold))
+                        .applyAppFont(size: 12, weight: .semibold)
                         .foregroundStyle(.green)
                     Text(L10n.t("achievement.unlocked"))
-                        .font(.system(size: 11, weight: .medium))
+                        .applyAppFont(size: 11, weight: .medium)
                         .foregroundStyle(.green)
                 }
                 .padding(.horizontal, 10)
@@ -364,7 +364,7 @@ struct AchievementCard: View {
                 // Progress bar for trackable achievements
                 VStack(spacing: 6) {
                     Text(String(format: L10n.t("achievement.progress"), progress.current, progress.target))
-                        .font(.system(size: 10, weight: .medium))
+                        .applyAppFont(size: 10, weight: .medium)
                         .foregroundStyle(AriumTheme.textSecondary)
                     
                     GeometryReader { geometry in
@@ -392,7 +392,7 @@ struct AchievementCard: View {
                 }
             } else {
                 Text(achievement.description)
-                    .font(.system(size: 10, weight: .regular))
+                    .applyAppFont(size: 10, weight: .regular)
                     .foregroundStyle(AriumTheme.textSecondary)
                     .lineLimit(2)
                     .multilineTextAlignment(.center)
@@ -401,10 +401,10 @@ struct AchievementCard: View {
             // XP Reward
             HStack(spacing: 5) {
                 Image(systemName: "star.fill")
-                    .font(.system(size: 11, weight: .semibold))
+                    .applyAppFont(size: 11, weight: .semibold)
                     .foregroundStyle(.orange)
                 Text(String(format: L10n.t("achievement.xp"), achievement.xpReward))
-                    .font(.system(size: 11, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 11, weight: .bold)
                     .foregroundStyle(.orange)
             }
             .padding(.horizontal, 10)
@@ -491,13 +491,13 @@ struct FilterChip: View {
             HStack(spacing: 6) {
                 if isSFSymbol {
                     Image(systemName: icon)
-                        .font(.system(size: 14, weight: .semibold))
+                        .applyAppFont(size: 14, weight: .semibold)
                 } else {
                     Text(icon)
-                        .font(.system(size: 14))
+                        .applyAppFont(size: 14)
                 }
                 Text(title)
-                    .font(.system(size: 13, weight: .semibold, design: .rounded))
+                    .applyAppFont(size: 13, weight: .semibold)
             }
             .foregroundStyle(isSelected ? .white : AriumTheme.textPrimary)
             .padding(.horizontal, 16)

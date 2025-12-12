@@ -10,6 +10,7 @@
 		6C23B0742ED4E122008036DF /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718432ED11D0900E3660F /* WidgetKit.framework */; };
 		6C23B0752ED4E122008036DF /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718452ED11D0900E3660F /* SwiftUI.framework */; };
 		6C23B0822ED4E123008036DF /* AriumWatchWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C23B0732ED4E122008036DF /* AriumWatchWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
+		6C3BDA522EECC11E00209295 /* Lottie in Frameworks */ = {isa = PBXBuildFile; productRef = 6C3BDA512EECC11E00209295 /* Lottie */; };
 		6C3F9E512ED3BF2600C352F8 /* AriumStoreKit.storekit in Resources */ = {isa = PBXBuildFile; fileRef = 6C3F9E502ED3BF2600C352F8 /* AriumStoreKit.storekit */; };
 		6C5C415D2ED39E0700332FC9 /* AriumWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 6C6718412ED11D0900E3660F /* AriumWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		6C6718442ED11D0900E3660F /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 6C6718432ED11D0900E3660F /* WidgetKit.framework */; };
@@ -271,6 +272,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				6C3BDA522EECC11E00209295 /* Lottie in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -412,6 +414,7 @@
 			);
 			name = Arium;
 			packageProductDependencies = (
+				6C3BDA512EECC11E00209295 /* Lottie */,
 			);
 			productName = Arium;
 			productReference = 6C6717B72ED0FC7800E3660F /* Arium.app */;
@@ -637,6 +640,9 @@
 			);
 			mainGroup = 6C6717AE2ED0FC7800E3660F;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				6C3BDA492EECB7D100209295 /* XCRemoteSwiftPackageReference "lottie-spm" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 6C6717B82ED0FC7800E3660F /* Products */;
 			projectDirPath = "";
@@ -842,7 +848,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = AriumWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "AriumWatchWidget Extension/Info.plist";
@@ -878,7 +884,7 @@
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
 				CODE_SIGN_ENTITLEMENTS = AriumWatchWidgetExtension.entitlements;
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = "AriumWatchWidget Extension/Info.plist";
@@ -1042,10 +1048,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
-				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIAppFonts = "DancingScript-VariableFont_wght.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1081,10 +1087,10 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
-				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Alışkanlıklarınızı Apple Health verileriyle otomatik tamamlamak için sağlık verilerine erişim gereklidir.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
+				INFOPLIST_KEY_NSUserNotificationsUsageDescription = "Alışkanlık hatırlatmaları için bildirim izni gereklidir.";
 				INFOPLIST_KEY_UIAppFonts = "DancingScript-VariableFont_wght.ttf";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -1182,7 +1188,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = AriumWidget/AriumWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AriumWidget/Info.plist;
@@ -1214,7 +1220,7 @@
 				"CODE_SIGN_ENTITLEMENTS[sdk=*]" = AriumWidget/AriumWidget.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 3;
+				CURRENT_PROJECT_VERSION = 4;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = NO;
 				INFOPLIST_FILE = AriumWidget/Info.plist;
@@ -1502,6 +1508,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		6C3BDA492EECB7D100209295 /* XCRemoteSwiftPackageReference "lottie-spm" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/airbnb/lottie-spm";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 4.5.2;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		6C3BDA512EECC11E00209295 /* Lottie */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6C3BDA492EECB7D100209295 /* XCRemoteSwiftPackageReference "lottie-spm" */;
+			productName = Lottie;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 6C6717AF2ED0FC7800E3660F /* Project object */;
 }

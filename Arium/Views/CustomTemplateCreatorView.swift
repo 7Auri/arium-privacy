@@ -61,7 +61,7 @@ struct CustomTemplateCreatorView: View {
                         Button(action: { showingIconPicker = true }) {
                             HStack {
                                 Image(systemName: selectedIcon)
-                                    .font(.title2)
+                                    .applyAppFont(size: 22, weight: .semibold)
                                     .foregroundColor(categoryColor)
                                     .frame(width: 40, height: 40)
                                     .background(categoryColor.opacity(0.2))
@@ -73,7 +73,7 @@ struct CustomTemplateCreatorView: View {
                                 Spacer()
                                 
                                 Image(systemName: "chevron.right")
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -107,9 +107,9 @@ struct CustomTemplateCreatorView: View {
                                         .foregroundColor(categoryColor)
                                     VStack(alignment: .leading) {
                                         Text(template.title)
-                                            .font(.subheadline.bold())
+                                            .applyAppFont(size: 15, weight: .bold)
                                         Text(template.description)
-                                            .font(.caption)
+                                            .applyAppFont(size: 12)
                                             .foregroundColor(.secondary)
                                     }
                                 }
@@ -145,14 +145,14 @@ struct CustomTemplateCreatorView: View {
                 // Premium required view
                 VStack(spacing: 24) {
                     Image(systemName: "crown.fill")
-                        .font(.system(size: 60))
+                        .applyAppFont(size: 60)
                         .foregroundColor(.orange)
                     
                     Text(L10n.t("customTemplate.premium.feature"))
-                        .font(.title.bold())
+                        .applyAppFont(size: 28, weight: .bold)
                     
                     Text(L10n.t("customTemplate.premium.message"))
-                        .font(.body)
+                        .applyAppFont(size: 17)
                         .foregroundColor(.secondary)
                         .multilineTextAlignment(.center)
                         .padding(.horizontal)
@@ -161,7 +161,7 @@ struct CustomTemplateCreatorView: View {
                         dismiss()
                     }) {
                         Text(L10n.t("premium.upgrade.button"))
-                            .font(.headline)
+                            .applyAppFont(size: 17, weight: .semibold)
                             .foregroundColor(.white)
                             .frame(maxWidth: .infinity)
                             .padding()
@@ -282,7 +282,7 @@ struct IconPickerView: View {
                         }) {
                             VStack(spacing: 8) {
                                 Image(systemName: icon)
-                                    .font(.title)
+                                    .applyAppFont(size: 28, weight: .semibold)
                                     .foregroundColor(selectedIcon == icon ? AriumTheme.accent : .primary)
                                     .frame(width: 60, height: 60)
                                     .background(

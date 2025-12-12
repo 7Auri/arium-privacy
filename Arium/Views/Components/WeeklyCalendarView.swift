@@ -49,13 +49,12 @@ struct WeeklyCalendarView: View {
                 
                 VStack(spacing: 6) {
                     Text(getDayName(for: date))
-                        .font(.caption2)
-                        .fontWeight(.medium)
+                        .applyAppFont(size: 11, weight: .medium)
                         // Fixed: Ensure sufficient contrast based on selection
                         .foregroundStyle(isSelected ? .white : .secondary)
                     
                     Text(date.formatted(.dateTime.day()))
-                        .font(.system(size: 16, weight: .bold))
+                        .applyAppFont(size: 16, weight: .bold)
                         .foregroundStyle(isSelected ? .white : .primary)
                     
                     if isToday {

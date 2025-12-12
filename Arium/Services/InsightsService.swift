@@ -28,7 +28,30 @@ class InsightsService {
     /// Analyzes habits asynchronously and returns insights. Results are cached for performance.
     func analyze(habits: [Habit]) async -> [Insight] {
         // Quick check: if habits haven't changed and cache is recent, return cached
-        let habitsHash = habits.map { $0.id }.hashValue
+        // Hash'e completion durumlarını da dahil et (sadece ID'ler yeterli değil)
+        let habitsHash = habits.map { habit in
+            // Her habit için ID, completion durumu, streak ve completion dates'i hash'e dahil et
+            var hasher = Hasher()
+            hasher.combine(habit.id)
+            hasher.combine(habit.isCompletedToday)
+            hasher.combine(habit.streak)
+            hasher.combine(habit.completionDates.count)
+            // Son 7 günün completion durumlarını da dahil et
+            let calendar = Calendar.current
+            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+            let recentCompletions = habit.completionDates.filter { $0 >= sevenDaysAgo }.count
+            hasher.combine(recentCompletions)
+            // Completion notes'u da hash'e dahil et (yeni notlar eklendiğinde cache invalidate olsun)
+            hasher.combine(habit.completionNotes.count)
+            // Son 7 günün notlarını da dahil et
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            let limitKey = dateFormatter.string(from: sevenDaysAgo)
+            let recentNotesCount = habit.completionNotes.filter { $0.key >= limitKey }.count
+            hasher.combine(recentNotesCount)
+            return hasher.finalize()
+        }.reduce(0) { $0 ^ $1 }
+        
         if let lastDate = lastAnalysisDate,
            habitsHash == lastHabitsHash,
            Date().timeIntervalSince(lastDate) < cacheDuration {
@@ -84,10 +107,6 @@ class InsightsService {
             }
             
             group.addTask {
-                self.analyzeTimeOptimizer(habits: habits)
-            }
-            
-            group.addTask {
                 self.analyzeCategoryMaster(habits: habits)
             }
             
@@ -105,6 +124,23 @@ class InsightsService {
             
             group.addTask {
                 self.analyzeLearningLeader(habits: habits)
+            }
+            
+            // New predictive insights
+            group.addTask {
+                await self.analyzeStreakRisk(habits: habits)
+            }
+            
+            group.addTask {
+                await self.analyzeTimeOptimizer(habits: habits)
+            }
+            
+            group.addTask {
+                await self.analyzeHabitChains(habits: habits)
+            }
+            
+            group.addTask {
+                await self.analyzeRecoveryPattern(habits: habits)
             }
             
             // Collect results
@@ -236,8 +272,10 @@ class InsightsService {
             let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
             let limitKey = dateFormatter.string(from: sevenDaysAgo)
             
+            // Son 7 günün notlarını al ve tarihe göre sırala (en yeni önce)
             let recentNotes = habit.completionNotes
                 .filter { $0.key >= limitKey && !$0.value.isEmpty }
+                .sorted { $0.key > $1.key } // En yeni önce
                 .map { $0.value }
             
             allNotes.append(contentsOf: recentNotes)
@@ -253,6 +291,44 @@ class InsightsService {
                 sentimentScore = (mainScore * 0.3) + (recentScore * 0.7)
             }
             
+            // ÖNEMLİ: Son 1-2 notun sentiment'ine özel bak
+            // Eğer son notlar çok negatifse, genel ortalama iyi olsa bile insight oluştur
+            var shouldShowChallengingInsight = false
+            var lastNoteScore: Double = 0.0
+            var lastTwoAverage: Double = 0.0
+            
+            if recentNotes.count >= 1 {
+                // Son 1-2 notun sentiment'ini kontrol et
+                lastNoteScore = SentimentAnalyzer.analyzeSentiment(for: recentNotes[0])
+                if recentNotes.count >= 2 {
+                    let secondLastScore = SentimentAnalyzer.analyzeSentiment(for: recentNotes[1])
+                    lastTwoAverage = (lastNoteScore + secondLastScore) / 2.0
+                    // Son 2 not ortalaması -0.3'ten düşükse, zorluk çekiyor demektir
+                    if lastTwoAverage < -0.3 {
+                        shouldShowChallengingInsight = true
+                    }
+                } else {
+                    // Son not -0.4'ten düşükse (daha hassas eşik)
+                    if lastNoteScore < -0.4 {
+                        shouldShowChallengingInsight = true
+                    }
+                }
+            }
+            
+            #if DEBUG
+            print("📊 Sentiment Analysis for '\(habit.title)':")
+            print("   - Recent notes count: \(recentNotes.count)")
+            print("   - Overall sentiment score: \(sentimentScore)")
+            print("   - Last note score: \(lastNoteScore)")
+            if recentNotes.count >= 2 {
+                print("   - Last 2 notes average: \(lastTwoAverage)")
+            }
+            print("   - Should show challenging insight: \(shouldShowChallengingInsight)")
+            if !recentNotes.isEmpty {
+                print("   - Recent notes: \(recentNotes.prefix(3).joined(separator: ", "))")
+            }
+            #endif
+            
             let mlConfidence = await getMLConfidence(for: sentimentScore > 0.6 ? .moodBooster : .challengingHabit, habit: habit)
             
             if sentimentScore > 0.6 {
@@ -264,7 +340,11 @@ class InsightsService {
                     suggestedActions: [.celebrateAchievement, .reviewProgress(habit.id)],
                     confidence: mlConfidence
                 ))
-            } else if sentimentScore < -0.6 {
+            } else if sentimentScore < -0.3 || shouldShowChallengingInsight {
+                // Eşiği -0.6'dan -0.3'e düşürdük ve son notlara özel kontrol ekledik
+                #if DEBUG
+                print("✅ Creating challenging habit insight for '\(habit.title)'")
+                #endif
                 insights.append(Insight(
                     type: .challengingHabit,
                     title: L10n.t("insights.challenging.title"),
@@ -464,34 +544,6 @@ class InsightsService {
         }
         
         return nil
-    }
-    
-    private func analyzeTimeOptimizer(habits: [Habit]) -> Insight? {
-        var hourCounts: [Int: Int] = [:]
-        let calendar = Calendar.current
-        
-        for habit in habits {
-            let recentCompletions = habit.completionDates.sorted(by: >).prefix(50)
-            for date in recentCompletions {
-                let hour = calendar.component(.hour, from: date)
-                hourCounts[hour, default: 0] += 1
-            }
-        }
-        
-        guard let (bestHour, count) = hourCounts.max(by: { $0.value < $1.value }), count > 10 else {
-            return nil
-        }
-        
-        let hourString = String(format: "%02d:00", bestHour)
-        
-        return Insight(
-            type: .timeOptimizer,
-            title: L10n.t("insights.timeOptimizer.title"),
-            message: String(format: L10n.t("insights.timeOptimizer.message"), hourString),
-            relatedHabitId: nil,
-            suggestedActions: [.adjustSchedule(UUID())],
-            confidence: 0.7
-        )
     }
     
     private func analyzeCategoryMaster(habits: [Habit]) -> Insight? {
@@ -699,11 +751,12 @@ class InsightsService {
     /// Prioritizes insights: critical/negative first, then positive, then informational
     private func prioritizeInsights(_ insights: [Insight]) -> [Insight] {
         let priorityOrder: [InsightType] = [
-            .needsFocus, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown,
-            .streakMaster, .moodBooster, .monthlyTrendUp, .sentimentTrendUp, .productiveDay,
+            .needsFocus, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk,
+            .streakMaster, .moodBooster, .monthlyTrendUp, .sentimentTrendUp, .productiveDay, .recovery,
             .consistencyChampion, .comebackKid, .goalAchiever,
             .earlyBird, .nightOwl, .weekendWarrior,
-            .timeOptimizer, .categoryMaster, .socialButterfly, .healthHero, .learningLeader
+            .timeOptimizer, .categoryMaster, .socialButterfly, .healthHero, .learningLeader,
+            .habitChain
         ]
         
         return insights.sorted { insight1, insight2 in
@@ -722,6 +775,153 @@ class InsightsService {
         cachedInsights = []
         lastAnalysisDate = nil
         lastHabitsHash = 0
+        #if DEBUG
+        print("🗑️ Insights cache cleared")
+        #endif
+    }
+    
+    /// Force refresh insights (clears cache and forces new analysis)
+    func forceRefresh() {
+        clearCache()
+    }
+    
+    // MARK: - New Predictive Insights
+    
+    /// Analyzes streak risk for habits
+    private func analyzeStreakRisk(habits: [Habit]) async -> Insight? {
+        let calendar = Calendar.current
+        
+        for habit in habits {
+            guard habit.streak > 5 else { continue }
+            
+            // Son 7 günün completion oranını hesapla
+            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
+            let recentCompletions = habit.completionDates.filter { $0 >= sevenDaysAgo }.count
+            let completionRate = Double(recentCompletions) / 7.0
+            
+            // Son 3 günü kontrol et
+            let threeDaysAgo = calendar.date(byAdding: .day, value: -3, to: Date())!
+            let last3DaysCompletions = habit.completionDates.filter { $0 >= threeDaysAgo }.count
+            
+            // Eğer son 3 gün hiç tamamlanmamışsa ve completion rate düşükse risk var
+            if last3DaysCompletions == 0 && completionRate < 0.5 {
+                return Insight(
+                    type: .streakRisk,
+                    title: L10n.t("insights.streakRisk.title"),
+                    message: String(format: L10n.t("insights.streakRisk.message"), habit.streak, habit.title),
+                    relatedHabitId: habit.id,
+                    suggestedActions: [.focusOnHabit(habit.id), .setReminder(habit.id)],
+                    confidence: 0.85
+                )
+            }
+        }
+        return nil
+    }
+    
+    /// Analyzes optimal completion timing (improved version with percentage)
+    private func analyzeTimeOptimizer(habits: [Habit]) async -> Insight? {
+        var hourCompletionMap: [Int: Int] = [:]
+        let calendar = Calendar.current
+        
+        for habit in habits {
+            for completionDate in habit.completionDates {
+                let hour = calendar.component(.hour, from: completionDate)
+                hourCompletionMap[hour, default: 0] += 1
+            }
+        }
+        
+        guard let bestHour = hourCompletionMap.max(by: { $0.value < $1.value }),
+              bestHour.value > 5 else {
+            return nil
+        }
+        
+        let totalCompletions = hourCompletionMap.values.reduce(0, +)
+        let bestHourPercentage = Double(bestHour.value) / Double(totalCompletions)
+        
+        // Eğer belirli bir saatte %30'tan fazla tamamlama varsa
+        if bestHourPercentage > 0.3 {
+            let hourString = String(format: "%02d:00", bestHour.key)
+            return Insight(
+                type: .timeOptimizer,
+                title: L10n.t("insights.timeOptimizer.title"),
+                message: String(format: L10n.t("insights.timeOptimizer.message"), hourString),
+                relatedHabitId: nil,
+                suggestedActions: [.adjustSchedule(UUID())],
+                confidence: 0.75
+            )
+        }
+        return nil
+    }
+    
+    /// Analyzes habit chains (habits completed together)
+    private func analyzeHabitChains(habits: [Habit]) async -> Insight? {
+        guard habits.count >= 2 else { return nil }
+        
+        let calendar = Calendar.current
+        var bestCorrelation: (habit1: Habit, habit2: Habit, count: Int)?
+        var maxCount = 0
+        
+        for i in 0..<habits.count {
+            for j in (i+1)..<habits.count {
+                let habit1 = habits[i]
+                let habit2 = habits[j]
+                
+                // Aynı gün tamamlanma sayısını hesapla
+                let sameDayCompletions = habit1.completionDates.filter { date1 in
+                    habit2.completionDates.contains { date2 in
+                        calendar.isDate(date1, inSameDayAs: date2)
+                    }
+                }.count
+                
+                if sameDayCompletions > maxCount && sameDayCompletions > 5 {
+                    maxCount = sameDayCompletions
+                    bestCorrelation = (habit1, habit2, sameDayCompletions)
+                }
+            }
+        }
+        
+        if let correlation = bestCorrelation, correlation.count > 7 {
+            return Insight(
+                type: .habitChain,
+                title: L10n.t("insights.habitChain.title"),
+                message: String(format: L10n.t("insights.habitChain.message"), correlation.habit1.title, correlation.habit2.title, correlation.count),
+                relatedHabitId: correlation.habit1.id,
+                suggestedActions: [.focusOnHabit(correlation.habit1.id)],
+                confidence: 0.8
+            )
+        }
+        return nil
+    }
+    
+    /// Analyzes recovery patterns (improvement after decline)
+    private func analyzeRecoveryPattern(habits: [Habit]) async -> Insight? {
+        let calendar = Calendar.current
+        
+        for habit in habits {
+            guard habit.completionDates.count > 14 else { continue }
+            
+            let twoWeeksAgo = calendar.date(byAdding: .day, value: -14, to: Date())!
+            let last7Days = calendar.date(byAdding: .day, value: -7, to: Date())!
+            
+            let recentCompletions = habit.completionDates.filter { $0 >= last7Days }.count
+            let previousCompletions = habit.completionDates.filter {
+                $0 >= twoWeeksAgo && $0 < last7Days
+            }.count
+            
+            // Eğer son 7 gün önceki 7 günden %50 daha iyiyse
+            if previousCompletions > 0 && recentCompletions > previousCompletions *  2 {
+                let improvement = ((Double(recentCompletions) / Double(previousCompletions)) - 1.0) * 100
+                return Insight(
+                    type: .recovery,
+                    title: L10n.t("insights.recovery.title"),
+                    message: String(format: L10n.t("insights.recovery.message"), habit.title, Int(improvement)),
+                    relatedHabitId: habit.id,
+                    suggestedActions: [.celebrateAchievement, .reviewProgress(habit.id)],
+                    confidence: 0.85
+                )
+            }
+        }
+        return nil
     }
     
     // MARK: - ML Integration

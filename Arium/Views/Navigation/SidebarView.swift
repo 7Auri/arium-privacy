@@ -25,7 +25,7 @@ struct SidebarView: View {
                 }
             } header: {
                 Text(L10n.t("app.name"))
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundStyle(appThemeManager.accentColor.color)
             }
         }

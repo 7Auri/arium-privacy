@@ -25,6 +25,9 @@ struct AriumApp: App {
                     .environmentObject(appThemeManager)
                     .environmentObject(FontManager.shared)
                     .task {
+                        // Prepare haptic generators for better performance
+                        HapticManager.prepare()
+                        
                         // Track app launch
                         AnalyticsManager.shared.trackAppLaunch()
                         

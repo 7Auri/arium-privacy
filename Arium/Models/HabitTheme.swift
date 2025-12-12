@@ -30,6 +30,17 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         L10n.t("theme.\(id)")
     }
     
+    var icon: String? {
+        switch id {
+        case "christmas":
+            return "🎄"
+        case "cat":
+            return "🐱"
+        default:
+            return nil
+        }
+    }
+    
     static let purple = HabitTheme(
         id: "purple",
         name: "Purple Dream",
@@ -199,6 +210,14 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         accentColor: "#DC143C"
     )
     
+    static let cat = HabitTheme(
+        id: "cat",
+        name: "Kitty",
+        primaryColor: "#FFD4B3",
+        secondaryColor: "#FFF0E6",
+        accentColor: "#FF8C69"
+    )
+    
     static let allThemes: [HabitTheme] = [
         // Original
         .purple, .blue, .green, .pink, .orange,
@@ -207,7 +226,9 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         .lavender, .gold, .rose, .navy, .lime,
         .violet, .turquoise, .crimson, .sage, .peach,
         // Special Occasions
-        .christmas
+        .christmas,
+        // Fun Themes
+        .cat
     ]
 }
 

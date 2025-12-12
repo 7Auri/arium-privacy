@@ -22,7 +22,7 @@ struct ShareCelebrationView: View {
             // Celebration Content
             VStack(spacing: 16) {
                 Image(systemName: "party.popper.fill")
-                    .font(.system(size: 60))
+                    .applyAppFont(size: 60)
                     .foregroundStyle(
                         LinearGradient(
                             colors: [.yellow, .orange, .pink, .purple],
@@ -32,11 +32,10 @@ struct ShareCelebrationView: View {
                     )
                 
                 Text(L10n.t("celebration.title"))
-                    .font(.title)
-                    .fontWeight(.bold)
+                    .applyAppFont(size: 28, weight: .bold)
                 
                 Text(celebrationType.message)
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
                 
@@ -44,10 +43,9 @@ struct ShareCelebrationView: View {
                 HStack(spacing: 20) {
                     VStack {
                         Text("\(habitsCount)")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .applyAppFont(size: 22, weight: .bold)
                         Text(L10n.t("home.stats.total"))
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundColor(.secondary)
                     }
                     
@@ -57,7 +55,7 @@ struct ShareCelebrationView: View {
                                 .font(.title2)
                                 .fontWeight(.bold)
                             Text(L10n.t("home.stats.streak"))
-                                .font(.caption)
+                                .applyAppFont(size: 12)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -125,7 +123,7 @@ struct ShareCelebrationView: View {
                 dismiss()
             } label: {
                 Text(L10n.t("button.done"))
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundColor(.secondary)
             }
         }
@@ -219,10 +217,9 @@ struct ShareCelebrationView: View {
                 if maxStreak > 0 {
                     VStack {
                         Text("\(maxStreak)")
-                            .font(.title2)
-                            .fontWeight(.bold)
+                            .applyAppFont(size: 22, weight: .bold)
                         Text(L10n.t("home.stats.streak"))
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundColor(.secondary)
                     }
                 }

@@ -23,8 +23,7 @@ struct HabitTemplatesView: View {
                     // Free Templates Section
                     VStack(alignment: .leading, spacing: 12) {
                         Text(L10n.t("templates.free"))
-                            .font(.title3)
-                            .fontWeight(.bold)
+                            .applyAppFont(size: 20, weight: .bold)
                             .foregroundColor(AriumTheme.textPrimary)
                             .padding(.horizontal)
                         
@@ -56,7 +55,7 @@ struct HabitTemplatesView: View {
                                 
                                 Image(systemName: "crown.fill")
                                     .foregroundColor(AriumTheme.warning)
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                             }
                             .padding(.horizontal)
                             
@@ -81,16 +80,16 @@ struct HabitTemplatesView: View {
                         VStack(spacing: 16) {
                             HStack {
                                 Image(systemName: "crown.fill")
-                                    .font(.title2)
+                                    .applyAppFont(size: 22, weight: .semibold)
                                     .foregroundColor(AriumTheme.warning)
                                 
                                 VStack(alignment: .leading, spacing: 4) {
                                     Text(L10n.t("templates.premium.unlock"))
-                                        .font(.headline)
+                                        .applyAppFont(size: 17, weight: .semibold)
                                         .foregroundColor(AriumTheme.textPrimary)
                                     
                                     Text(L10n.t("templates.premium.message"))
-                                        .font(.caption)
+                                        .applyAppFont(size: 12)
                                         .foregroundColor(AriumTheme.textSecondary)
                                 }
                                 
@@ -101,7 +100,7 @@ struct HabitTemplatesView: View {
                                 showingPremiumAlert = true
                             } label: {
                                 Text(L10n.t("premium.button"))
-                                    .font(.headline)
+                                    .applyAppFont(size: 17, weight: .semibold)
                                     .foregroundColor(.white)
                                     .frame(maxWidth: .infinity)
                                     .padding()
@@ -162,19 +161,19 @@ struct TemplateCard: View {
             ZStack(alignment: .topTrailing) {
                 VStack(spacing: 12) {
                     Image(systemName: template.icon)
-                        .font(.system(size: 32))
+                        .applyAppFont(size: 32)
                         .foregroundStyle(template.category.color)
                         .frame(height: 32)
                     
                     VStack(spacing: 4) {
                         Text(template.title)
-                            .font(.headline)
+                            .applyAppFont(size: 17, weight: .semibold)
                             .foregroundStyle(.primary)
                             .lineLimit(1)
                             .minimumScaleFactor(0.8)
                         
                         Text(template.description)
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundStyle(.secondary)
                             .multilineTextAlignment(.center)
                             .lineLimit(2)
@@ -184,10 +183,10 @@ struct TemplateCard: View {
                     
                     HStack(spacing: 4) {
                         Image(systemName: "flame.fill")
-                            .font(.caption2)
+                            .applyAppFont(size: 11)
                             .foregroundStyle(.orange)
                         Text("\(template.suggestedGoalDays) \(L10n.t("habit.days"))")
-                            .font(.caption)
+                            .applyAppFont(size: 12)
                             .foregroundStyle(.secondary)
                     }
                 }
@@ -200,9 +199,9 @@ struct TemplateCard: View {
                 if template.isPremium && !isPremiumUser {
                     HStack(spacing: 4) {
                         Image(systemName: "crown.fill")
-                            .font(.caption2)
+                            .applyAppFont(size: 11)
                         Text("PRO")
-                            .font(.caption2)
+                            .applyAppFont(size: 11)
                             .fontWeight(.bold)
                     }
                     .foregroundColor(.white)

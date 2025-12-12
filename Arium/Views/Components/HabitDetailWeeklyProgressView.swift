@@ -14,12 +14,11 @@ struct HabitDetailWeeklyProgressView: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
                 Image(systemName: "calendar")
-                    .font(.system(size: 16, weight: .semibold))
+                    .applyAppFont(size: 16, weight: .semibold)
                     .foregroundStyle(habit.theme.accent)
                 
                 Text(L10n.t("habit.weeklyProgress"))
-                    .font(.headline)
-                    .fontWeight(.semibold)
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundStyle(.primary)
             }
             
@@ -37,21 +36,21 @@ struct HabitDetailWeeklyProgressView: View {
             HStack(spacing: 16) {
                 HStack(spacing: 6) {
                     Image(systemName: "checkmark.circle.fill")
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundStyle(.green)
                     Text("\(weeklyCompletedCount)/7")
-                    .font(.subheadline)
+                    .applyAppFont(size: 15)
                     .fontWeight(.semibold)
                     .foregroundStyle(.primary)
                     Text(L10n.t("habit.days"))
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundStyle(.secondary)
                 }
                 
                 Spacer()
                 
                 Text("\(Int(weeklyCompletionRate * 100))%")
-                    .font(.subheadline)
+                    .applyAppFont(size: 15)
                     .fontWeight(.bold)
                     .foregroundStyle(habit.theme.accent)
             }

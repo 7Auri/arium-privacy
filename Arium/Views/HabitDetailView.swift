@@ -18,6 +18,7 @@ struct HabitDetailView: View {
     @State private var noteText = ""
     @State private var showingShareSheet = false
     @State private var shareImage: UIImage?
+    @State private var toast: ToastItem?
     
     init(habit: Habit) {
         _viewModel = StateObject(wrappedValue: HabitDetailViewModel(habit: habit))
@@ -71,12 +72,24 @@ struct HabitDetailView: View {
             } message: {
                 Text(L10n.t("habit.delete.message"))
             }
+            .toast($toast)
         }
         .onAppear {
             handleAppear()
         }
-        .onChange(of: habitStore.habits) { _, _ in
+        .onChange(of: habitStore.habits) { oldHabits, newHabits in
             handleHabitsChange()
+            
+            // Check if habit was updated (not deleted)
+            let habitId = viewModel.habit.id
+            if let oldHabit = oldHabits.first(where: { $0.id == habitId }),
+               let newHabit = newHabits.first(where: { $0.id == habitId }),
+               oldHabit != newHabit {
+                // Habit was updated
+                let appThemeManager = AppThemeManager.shared
+                let message = appThemeManager.accentColor == .cat ? L10n.t("habit.update.success.cat") : L10n.t("habit.update.success")
+                toast = ToastItem(message: message, type: .success)
+            }
         }
         .onReceive(NotificationCenter.default.publisher(for: UIApplication.willEnterForegroundNotification)) { _ in
             // Refresh habit when app comes to foreground
@@ -95,7 +108,7 @@ struct HabitDetailView: View {
                 VStack(alignment: .leading, spacing: 12) {
                     HStack(spacing: 8) {
                         Image(systemName: "note.text")
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .foregroundStyle(viewModel.habit.theme.accent)
                         
                         Text(L10n.t("habit.notes"))
@@ -140,7 +153,7 @@ struct HabitDetailView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     HStack(spacing: 8) {
                         Image(systemName: "note.text.badge.plus")
-                            .font(.system(size: 16, weight: .semibold))
+                            .applyAppFont(size: 16, weight: .semibold)
                             .foregroundStyle(viewModel.habit.theme.accent)
                         
                         Text(L10n.t("habit.notesHistory"))
@@ -214,7 +227,7 @@ struct HabitDetailView: View {
                 } label: {
                     HStack(spacing: 6) {
                         Text(viewModel.habit.effectiveStartDate.localizedDateString())
-                            .font(.subheadline)
+                            .applyAppFont(size: 15)
                             .foregroundStyle(.primary)
                         
                         Image(systemName: premiumManager.isPremium ? "calendar" : "lock.fill")
@@ -471,17 +484,51 @@ struct HabitDetailView: View {
                 .foregroundStyle(.primary)
             
             if viewModel.getCompletionHistory().isEmpty {
-                Text(L10n.t("habit.history.empty"))
-                    .font(.body)
-                    .foregroundStyle(.secondary)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 40)
-                    .background(Color(.secondarySystemBackground))
-                    .cornerRadius(16)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(Color(.separator), lineWidth: 0.5)
-                    )
+                VStack(spacing: 16) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [
+                                        AriumTheme.accentLight.opacity(0.2),
+                                        AriumTheme.accentLight.opacity(0.1)
+                                    ],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 80, height: 80)
+                        
+                        Image(systemName: "calendar")
+                            .font(.system(size: 32, weight: .light))
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                    }
+                    
+                    Text(L10n.t("habit.history.empty"))
+                        .font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(AriumTheme.textSecondary)
+                    
+                    Text(L10n.t("habit.history.empty.subtitle"))
+                        .font(.system(size: 14, weight: .regular))
+                        .foregroundStyle(AriumTheme.textTertiary)
+                        .multilineTextAlignment(.center)
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 50)
+                .background(
+                    RoundedRectangle(cornerRadius: 16)
+                        .fill(Color(.secondarySystemBackground))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
             } else {
                 VStack(spacing: 8) {
                     ForEach(viewModel.getCompletionHistory().prefix(10), id: \.self) { date in
@@ -491,13 +538,13 @@ struct HabitDetailView: View {
                                     .foregroundColor(viewModel.habit.theme.accent)
                                 
                                 Text(date.localizedDateString())
-                                    .font(.body)
+                                    .applyAppFont(size: 17)
                                     .foregroundStyle(.primary)
                                 
                                 Spacer()
                                 
                                 Text(date.localizedTimeString())
-                                    .font(.caption)
+                                    .applyAppFont(size: 12)
                                     .foregroundStyle(.secondary)
                             }
                             
@@ -564,8 +611,6 @@ struct HabitDetailView: View {
                     repetitionsView
                 }
                 
-                // HealthKit Integration - Temporarily disabled
-                // healthKitView
                 
                 startDateView
                 goalDaysView
@@ -576,6 +621,11 @@ struct HabitDetailView: View {
                 
                 // Enhanced Notes History View
                 notesHistoryView
+                
+                // Calendar Heatmap (Premium)
+                if premiumManager.isPremium {
+                    CalendarHeatmapView(habit: viewModel.habit, monthsToShow: 12)
+                }
                 
                 historyView
                 deleteButton
@@ -616,6 +666,9 @@ struct HabitDetailView: View {
                             habitStore.updateHabit(updatedHabit)
                             viewModel.habit = updatedHabit
                             HapticManager.success()
+                            let appThemeManager = AppThemeManager.shared
+                            let message = appThemeManager.accentColor == .cat ? L10n.t("habit.update.success.cat") : L10n.t("habit.update.success")
+                            toast = ToastItem(message: message, type: .success)
                             
                             // If all repetitions are now completed, show note pop-up
                             if allCompleted && premiumManager.isPremium {
@@ -662,25 +715,7 @@ struct HabitDetailView: View {
         }
         viewModel.refreshCompletionForNewDay()
         refreshHabit()
-        // HealthKit Integration - Temporarily disabled
-        // viewModel.initializeHealthKitParams()
     }
-    
-    // MARK: - HealthKit View (Temporarily disabled)
-    
-    // private var healthKitView: some View {
-    //     HealthKitSettingsView(
-    //         isEnabled: $viewModel.isHealthKitEnabled,
-    //         selectedMetric: $viewModel.healthKitMetric,
-    //         goalValue: $viewModel.healthKitGoal
-    //     )
-    //     .padding(.horizontal, 20)
-    //     .onChange(of: viewModel.isHealthKitEnabled) { _, _ in viewModel.updateHealthKit(store: habitStore) }
-    //     .onChange(of: viewModel.healthKitMetric) { _, _ in viewModel.updateHealthKit(store: habitStore) }
-    //     .onChange(of: viewModel.healthKitGoal) { _, _ in 
-    //          viewModel.updateHealthKit(store: habitStore) 
-    //     }
-    // }
     
     private func handleHabitsChange() {
         let habitId = viewModel.habit.id
@@ -978,7 +1013,7 @@ struct HabitShareView: View {
                 
                 // Habit title - prominent
                 Text(habit.title)
-                    .font(.system(size: 48, weight: .bold, design: .rounded))
+                    .applyAppFont(size: 48, weight: .bold)
                     .foregroundColor(.black)
                     .multilineTextAlignment(.center)
                     .lineLimit(3)
@@ -1014,11 +1049,11 @@ struct HabitShareView: View {
                     
                     VStack(alignment: .leading, spacing: 4) {
                         Text("\(habit.streak)")
-                            .font(.system(size: 56, weight: .bold, design: .rounded))
+                            .applyAppFont(size: 56, weight: .bold)
                             .foregroundColor(.black)
                         
                         Text(L10n.t("habit.streak"))
-                            .font(.system(size: 18, weight: .medium, design: .rounded))
+                            .applyAppFont(size: 18, weight: .medium)
                             .foregroundColor(.gray)
                     }
                 }
@@ -1039,11 +1074,11 @@ struct HabitShareView: View {
                 // Total completions card
                 VStack(spacing: 10) {
                     Text("\(habit.completionDates.count)")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 36, weight: .bold)
                         .foregroundColor(accentColor)
                     
                     Text(L10n.t("statistics.totalCompletions"))
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .applyAppFont(size: 14, weight: .medium)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
@@ -1059,11 +1094,11 @@ struct HabitShareView: View {
                 // Completion rate card
                 VStack(spacing: 10) {
                     Text("\(completionRate)%")
-                        .font(.system(size: 36, weight: .bold, design: .rounded))
+                        .applyAppFont(size: 36, weight: .bold)
                         .foregroundColor(accentColor)
                     
                     Text(L10n.t("statistics.completionRate"))
-                        .font(.system(size: 14, weight: .medium, design: .rounded))
+                        .applyAppFont(size: 14, weight: .medium)
                         .foregroundColor(.gray)
                         .multilineTextAlignment(.center)
                         .lineLimit(2)
@@ -1163,8 +1198,7 @@ struct WeeklyDayView: View {
     var body: some View {
         VStack(spacing: 6) {
             Text(dayName)
-                .font(.caption2)
-                .fontWeight(.semibold)
+                .applyAppFont(size: 11, weight: .semibold)
                 .foregroundStyle(isToday ? accentColor : .secondary)
             
             ZStack {
@@ -1178,11 +1212,11 @@ struct WeeklyDayView: View {
                 
                 if dayInfo.isCompleted {
                     Image(systemName: "checkmark")
-                        .font(.system(size: 14, weight: .bold))
+                        .applyAppFont(size: 14, weight: .bold)
                         .foregroundStyle(.white)
                 } else {
                     Text(dayNumber)
-                        .font(.system(size: 14, weight: .semibold))
+                        .applyAppFont(size: 14, weight: .semibold)
                         .foregroundStyle(.secondary)
                 }
                 
@@ -1211,8 +1245,7 @@ struct NoteHistoryItem: View {
             // Date indicator
             VStack(spacing: 4) {
                 Text(date.localizedDateString(format: "MMM"))
-                    .font(.caption2)
-                    .fontWeight(.semibold)
+                    .applyAppFont(size: 11, weight: .semibold)
                     .foregroundStyle(accentColor)
                 
                 Text("\(Calendar.current.component(.day, from: date))")

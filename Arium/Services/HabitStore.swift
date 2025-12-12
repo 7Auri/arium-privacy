@@ -141,27 +141,32 @@ class HabitStore: NSObject, ObservableObject {
     
     func toggleHabitCompletion(_ habitId: UUID, note: String? = nil, date: Date = Date()) {
         if let index = habits.firstIndex(where: { $0.id == habitId }) {
-            let wasCompleted = habits[index].checkIfCompletedToday() // Check actual completion for that day?
-            // Actually, we need to know if it *was* completed on that date to know if we are toggle ON or OFF.
-            // But we can check after toggling if the count increased? Or just check before.
-            // Let's rely on the toggled state.
+            let calendar = Calendar.current
             
+            // ÖNEMLİ: Gerçekten bugün tamamlanmış mı kontrol et (completionDates'e bakarak)
+            // checkIfCompletedToday() yerine direkt completionDates'e bak
+            let wasCompletedBefore = habits[index].completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+            
+            // Toggle completion
             habits[index].toggleCompletion(on: date)
             habits[index].updatedAt = Date()
             
             // Check if completed on that specific date after toggle
-            // We need a helper or just check completionDates
-            let calendar = Calendar.current
             let isCompletedOnDate = habits[index].completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
             
             // If completing and note is provided, save it
             if isCompletedOnDate, let note = note, !note.isEmpty {
                 habits[index].setNote(note, for: date)
+            } else if !isCompletedOnDate && wasCompletedBefore {
+                // Eğer completion kaldırıldıysa (was completed before, now not completed), o gün için notu da temizle
+                habits[index].setNote("", for: date)
             }
             
-            // Notifications only if today
+            // Notifications only if today AND we just completed it (was not completed before, now is completed)
             if calendar.isDateInToday(date) {
-                if isCompletedOnDate && !wasCompleted { // If we just completed it today
+                // Sadece gerçekten yeni tamamlandıysa bildirim gönder
+                // wasCompletedBefore = false ve isCompletedOnDate = true ise yeni tamamlandı demektir
+                if !wasCompletedBefore && isCompletedOnDate {
                     let streak = habits[index].streak
                     if [7, 21, 30, 100].contains(streak) {
                         let currentHabit = habits[index]
@@ -189,50 +194,63 @@ class HabitStore: NSObject, ObservableObject {
     
     @MainActor
     func updateTodayStatus() async {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let todayStart = today
+        let todayEnd = calendar.date(byAdding: .day, value: 1, to: todayStart)!
         var hasChanges = false
+        
         for index in habits.indices {
+            // ÖNEMLİ: completionDates içindeki bugünün tarihlerini kontrol et
+            // Bugünün tarihlerini filtrele (sadece gerçekten bugün olanlar)
+            var todayCompletions = habits[index].completionDates.filter { date in
+                date >= todayStart && date < todayEnd
+            }
+            
+            // ÖNEMLİ: Eğer bugünün tarihi var ama updatedAt bugünden önceyse,
+            // bu yanlış bir tamamlama demektir (örneğin dün bugünün tarihi eklenmiş)
+            // Bu durumda bugünün tamamlamalarını temizle
+            if let lastUpdated = habits[index].updatedAt {
+                let lastUpdatedDay = calendar.startOfDay(for: lastUpdated)
+                if lastUpdatedDay < today && !todayCompletions.isEmpty {
+                    // Bugünün tamamlamaları var ama son güncelleme bugünden önce
+                    // Bu yanlış bir tamamlama, temizle
+                    habits[index].completionDates.removeAll { date in
+                        date >= todayStart && date < todayEnd
+                    }
+                    todayCompletions = []
+                    hasChanges = true
+                    #if DEBUG
+                    print("⚠️ Removed invalid today completion for '\(habits[index].title)' (last updated: \(lastUpdatedDay), today: \(today))")
+                    #endif
+                }
+            }
+            
+            // Eğer completionDates içinde bugünün tarihi yoksa ama todayCompletions doluysa,
+            // bu önceki günden kalmış demektir, resetle
+            if todayCompletions.isEmpty && !habits[index].todayCompletions.isEmpty {
+                habits[index].todayCompletions.removeAll()
+                hasChanges = true
+            }
+            
+            // ÖNEMLİ: Sadece gerçekten bugün tamamlanmış olanları kontrol et
             let wasCompleted = habits[index].isCompletedToday
-            habits[index].isCompletedToday = habits[index].checkIfCompletedToday()
+            habits[index].isCompletedToday = !todayCompletions.isEmpty
             let oldStreak = habits[index].streak
             habits[index].calculateStreak()
             
             if wasCompleted != habits[index].isCompletedToday || oldStreak != habits[index].streak {
-                habits[index].updatedAt = Date()
+                // updatedAt'i sadece gerçekten bir değişiklik olduğunda güncelle
+                // Ama eğer bugünün tamamlaması kaldırıldıysa, updatedAt'i güncelleme
+                if !todayCompletions.isEmpty || wasCompleted {
+                    habits[index].updatedAt = Date()
+                }
                 hasChanges = true
             }
         }
         
-        // Check HealthKit completions
-        if isPremium {
-            await checkHealthKitCompletions()
-        }
-        
         if hasChanges {
             saveHabits(immediate: false)
-        }
-    }
-    
-    // MARK: - HealthKit Sync
-    
-    func checkHealthKitCompletions() async {
-        let healthHabits = habits.filter { $0.healthKitMetric != nil && $0.healthKitGoal != nil }
-        guard !healthHabits.isEmpty else { return }
-        
-        for index in habits.indices {
-            let habit = habits[index]
-            guard let metric = habit.healthKitMetric,
-                  let goal = habit.healthKitGoal,
-                  !habit.isCompletedToday else { continue }
-            
-            // Check value
-            let value = await HealthKitManager.shared.getMetricValue(for: metric, date: Date())
-            
-            if value >= goal {
-                // Mark as completed
-                // Use toggleHabitCompletion to handle streaks etc.
-                toggleHabitCompletion(habit.id)
-                print("✅ HealthKit auto-complete: \(habit.title) (Value: \(value) >= Goal: \(goal))")
-            }
         }
     }
     

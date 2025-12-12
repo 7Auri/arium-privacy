@@ -16,7 +16,7 @@ struct StatisticCard: View {
     var body: some View {
         VStack(spacing: 12) {
             Image(systemName: icon)
-                .font(.system(size: 28))
+                .applyAppFont(size: 28)
                 .foregroundStyle(
                     LinearGradient(
                         colors: [color, color.opacity(0.7)],
@@ -27,11 +27,11 @@ struct StatisticCard: View {
             
             VStack(spacing: 4) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold))
+                    .applyAppFont(size: 24, weight: .bold)
                     .foregroundColor(AriumTheme.textPrimary)
                 
                 Text(title)
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundColor(AriumTheme.textSecondary)
                     .multilineTextAlignment(.center)
             }

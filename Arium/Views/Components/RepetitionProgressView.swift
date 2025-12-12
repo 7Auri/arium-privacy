@@ -46,13 +46,13 @@ struct RepetitionProgressView: View {
             // Header
             HStack {
                 Text(L10n.t("repetition.title"))
-                    .font(.subheadline.bold())
+                    .applyAppFont(size: 15, weight: .bold)
                     .foregroundColor(.secondary)
                 
                 Spacer()
                 
                 Text(String(format: L10n.t("repetition.progress"), habit.todayCompletions.count, habit.dailyRepetitions))
-                    .font(.caption)
+                    .applyAppFont(size: 12)
                     .foregroundColor(.secondary)
             }
             
@@ -102,14 +102,14 @@ struct RepetitionCheckboxView: View {
                     
                     if isCompleted {
                         Image(systemName: "checkmark")
-                            .font(.caption.bold())
+                            .applyAppFont(size: 12, weight: .bold)
                             .foregroundColor(habit.theme.accent)
                     }
                 }
                 
                 // Label
                 Text(label)
-                    .font(.body)
+                    .applyAppFont(size: 17)
                     .foregroundColor(isCompleted ? .primary : .secondary)
                 
                 Spacer()
@@ -117,7 +117,7 @@ struct RepetitionCheckboxView: View {
                 // Time (optional)
                 if isCompleted, let completionTime = getCompletionTime() {
                     Text(completionTime, style: .time)
-                        .font(.caption)
+                        .applyAppFont(size: 12)
                         .foregroundColor(.secondary)
                 }
             }

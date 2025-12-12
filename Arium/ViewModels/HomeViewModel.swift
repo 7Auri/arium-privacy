@@ -94,7 +94,11 @@ class HomeViewModel: ObservableObject {
     }
     
     func deleteHabit(_ habit: Habit, store: HabitStore) {
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
+        // List'in animasyon sorunlarını önlemek için silme işlemini async yap
+        // withAnimation kaldırıldı - List'in kendi animasyonu var ve çakışma yapıyordu
+        Task { @MainActor in
+            // Kısa bir gecikme ekle - view update tamamlanana kadar bekle
+            try? await Task.sleep(nanoseconds: 50_000_000) // 0.05 saniye
             store.deleteHabit(habit)
         }
     }

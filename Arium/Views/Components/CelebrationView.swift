@@ -9,6 +9,7 @@ import SwiftUI
 
 struct CelebrationView: View {
     @Environment(\.dismiss) var dismiss
+    @StateObject private var appThemeManager = AppThemeManager.shared
     @State private var scale: CGFloat = 0.5
     @State private var rotation: Double = 0
     @State private var showConfetti = false
@@ -17,35 +18,48 @@ struct CelebrationView: View {
         VStack(spacing: 30) {
             Spacer()
             
-            // Celebration Icon
-            Image(systemName: "party.popper.fill")
-                .font(.system(size: 80))
-                .foregroundStyle(
-                    LinearGradient(
-                        colors: [.yellow, .orange, .pink, .purple],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
+            // Celebration Icon - Cat theme shows Lottie animation
+            if appThemeManager.accentColor == .cat {
+                LottieAnimationView(animationName: "cat-celebration", loopMode: .loop)
+                    .frame(width: 80, height: 80)
+                    .scaleEffect(scale)
+                    .onAppear {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                            scale = 1.0
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showConfetti = true
+                        }
+                    }
+            } else {
+                Image(systemName: "party.popper.fill")
+                    .applyAppFont(size: 80)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [.yellow, .orange, .pink, .purple],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
                     )
-                )
-                .scaleEffect(scale)
-                .rotationEffect(.degrees(rotation))
-                .onAppear {
-                    withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
-                        scale = 1.0
-                        rotation = 360
+                    .scaleEffect(scale)
+                    .rotationEffect(.degrees(rotation))
+                    .onAppear {
+                        withAnimation(.spring(response: 0.6, dampingFraction: 0.6)) {
+                            scale = 1.0
+                            rotation = 360
+                        }
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                            showConfetti = true
+                        }
                     }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
-                        showConfetti = true
-                    }
-                }
+            }
             
-            Text(L10n.t("insight.action.celebrate"))
-                .font(.title)
-                .fontWeight(.bold)
+            Text(appThemeManager.accentColor == .cat ? L10n.t("celebration.cat.title") : L10n.t("insight.action.celebrate"))
+                .applyAppFont(size: 28, weight: .bold)
                 .multilineTextAlignment(.center)
             
-            Text(L10n.t("celebration.encouragement"))
-                .font(.body)
+            Text(appThemeManager.accentColor == .cat ? L10n.t("celebration.cat.encouragement") : L10n.t("celebration.encouragement"))
+                .applyAppFont(size: 17)
                 .foregroundColor(.secondary)
                 .multilineTextAlignment(.center)
                 .padding(.horizontal)
@@ -55,7 +69,7 @@ struct CelebrationView: View {
                 dismiss()
             } label: {
                 Text(L10n.t("button.done"))
-                    .font(.headline)
+                    .applyAppFont(size: 17, weight: .semibold)
                     .foregroundColor(.white)
                     .frame(maxWidth: .infinity)
                     .padding()
