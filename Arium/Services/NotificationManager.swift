@@ -60,15 +60,34 @@ class NotificationManager: NSObject, ObservableObject {
     
     // MARK: - Schedule Habit Reminder
     
-    func scheduleHabitReminder(for habit: Habit, at time: Date) async {
+    // MARK: - Schedule Habit Reminder
+    
+    func scheduleHabitReminder(for habit: Habit, at time: Date? = nil) async {
         guard isAuthorized else {
             print("⚠️ Notifications not authorized")
             return
         }
         
-        // Cancel existing notifications for this habit first to avoid duplicates
-        // Note: This cleans up both old "repeating" and new "individual" types
+        // Cancel existing notifications first
         cancelHabitReminder(for: habit.id)
+        
+        // Determine times to schedule
+        var timesToSchedule: [Date] = []
+        
+        if let specificTime = time {
+            // Manual override (legacy support or single schedule)
+            timesToSchedule = [specificTime]
+        } else if let multiTimes = habit.reminderTimes, !multiTimes.isEmpty {
+            // Use multiple configured times
+            // Ensure we only schedule up to dailyRepetitions count
+            let limit = min(multiTimes.count, habit.dailyRepetitions)
+            timesToSchedule = Array(multiTimes.prefix(limit))
+        } else if let singleTime = habit.reminderTime {
+            // Fallback to legacy single time
+            timesToSchedule = Array(repeating: singleTime, count: habit.dailyRepetitions)
+        } else {
+            return
+        }
         
         let content = UNMutableNotificationContent()
         content.title = L10n.t("notification.reminder.title")
@@ -78,36 +97,42 @@ class NotificationManager: NSObject, ObservableObject {
         content.userInfo = ["habitId": habit.id.uuidString]
         
         let calendar = Calendar.current
-        let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
         
         // Schedule for next 14 days
         for dayOffset in 0..<14 {
-            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: Date()),
-                  let fireDate = calendar.date(bySettingHour: timeComponents.hour ?? 9, minute: timeComponents.minute ?? 0, second: 0, of: date) else { continue }
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: Date()) else { continue }
             
-            // Skip if time has already passed today
-            if fireDate < Date() { continue }
-            
-            let dateString = dateFormatter.string(from: fireDate)
-            
-            // Create trigger for specific time
-            let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
-            let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
-            
-            let request = UNNotificationRequest(
-                identifier: "habit-reminder-\(habit.id.uuidString)-\(dateString)",
-                content: content,
-                trigger: trigger
-            )
-            
-            do {
-                try await notificationCenter.add(request)
-            } catch {
-                print("❌ Failed to schedule notification for \(dateString): \(error)")
+            // For each repetition time
+            for (index, time) in timesToSchedule.enumerated() {
+                let timeComponents = calendar.dateComponents([.hour, .minute], from: time)
+                
+                guard let fireDate = calendar.date(bySettingHour: timeComponents.hour ?? 9, minute: timeComponents.minute ?? 0, second: 0, of: date) else { continue }
+                
+                // Skip if time has already passed today
+                if fireDate < Date() { continue }
+                
+                let dateString = dateFormatter.string(from: fireDate)
+                
+                // Create trigger for specific time
+                let triggerComponents = calendar.dateComponents([.year, .month, .day, .hour, .minute], from: fireDate)
+                let trigger = UNCalendarNotificationTrigger(dateMatching: triggerComponents, repeats: false)
+                
+                // Unique ID includes index now: habit-reminder-UUID-DATE-INDEX
+                let request = UNNotificationRequest(
+                    identifier: "habit-reminder-\(habit.id.uuidString)-\(dateString)-\(index)",
+                    content: content,
+                    trigger: trigger
+                )
+                
+                do {
+                    try await notificationCenter.add(request)
+                } catch {
+                    print("❌ Failed to schedule notification for \(dateString) index \(index): \(error)")
+                }
             }
         }
         
-        print("✅ Scheduled reminders for \(habit.title) for next 14 days")
+        print("✅ Scheduled \(timesToSchedule.count) reminders for \(habit.title) for next 14 days")
     }
     
     // MARK: - Smart Reminder (Best Time Analysis)
@@ -260,6 +285,50 @@ class NotificationManager: NSObject, ObservableObject {
                 // Smart reminder
                 await scheduleSmartReminder(for: habit)
             }
+        }
+    }
+    
+    // MARK: - Orphaned Notification Cleanup
+    
+    func removeOrphanedNotifications(existingHabitIds: Set<UUID>) async {
+        let pending = await notificationCenter.pendingNotificationRequests()
+        var identifiersToRemove: [String] = []
+        
+        for request in pending {
+            let id = request.identifier
+            let parts = id.components(separatedBy: "-")
+            
+            // Format check: must have enough parts to contain a UUID
+            // habit-reminder-{UUID}-{Date} -> UUID is at index 2 (parts[2])
+            // smart-reminder-{UUID}-{Date} -> UUID is at index 2 (parts[2])
+            // streak-warning-{UUID}        -> UUID is at index 2 (parts[2])
+            // milestone-{UUID}-{Val}       -> UUID is at index 1 (parts[1])
+            
+            var uuidString: String?
+            
+            if id.hasPrefix("habit-reminder-") || id.hasPrefix("smart-reminder-") || id.hasPrefix("streak-warning-") {
+                if parts.count >= 3 {
+                    uuidString = parts[2]
+                }
+            } else if id.hasPrefix("milestone-") {
+                if parts.count >= 2 {
+                    uuidString = parts[1]
+                }
+            }
+            
+            if let uuidString = uuidString, let uuid = UUID(uuidString: uuidString) {
+                // If the extracted UUID is NOT in our existing habits, it's an orphan
+                if !existingHabitIds.contains(uuid) {
+                    identifiersToRemove.append(id)
+                }
+            }
+        }
+        
+        if !identifiersToRemove.isEmpty {
+            notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
+            print("🧹 Removed \(identifiersToRemove.count) orphaned notifications")
+        } else {
+            print("✨ No orphaned notifications found")
         }
     }
     

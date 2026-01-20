@@ -10,12 +10,15 @@ import SwiftUI
 import WatchConnectivity
 import ActivityKit
 import WidgetKit
+import OSLog
 
 @MainActor
 class HabitStore: NSObject, ObservableObject {
     @Published var habits: [Habit] = []
     @Published var isLoading: Bool = false
     @Published var error: AppError?
+    
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "HabitStore")
     
     // Premium status from PremiumManager
     var isPremium: Bool {
@@ -50,6 +53,11 @@ class HabitStore: NSObject, ObservableObject {
         // Update status and request notifications asynchronously (non-blocking)
         Task {
             await updateTodayStatus()
+            
+            // Cleanup orphaned notifications from deleted habits (Ghost Notifications fix)
+            let currentHabitIds = Set(habits.map { $0.id })
+            await notificationManager.removeOrphanedNotifications(existingHabitIds: currentHabitIds)
+            
             let granted = await notificationManager.requestAuthorization()
             if granted {
                 await notificationManager.rescheduleAllRequests(habits: habits)
@@ -181,6 +189,9 @@ class HabitStore: NSObject, ObservableObject {
                         await notificationManager.cancelTodayReminder(for: currentHabit.id)
                         await notificationManager.sendCompletionCelebration(for: currentHabit)
                     }
+                    
+                    // Award water for Garden
+                    GardenStore.shared.addWater(amount: 1)
                 }
             }
             
@@ -221,16 +232,30 @@ class HabitStore: NSObject, ObservableObject {
                     todayCompletions = []
                     hasChanges = true
                     #if DEBUG
-                    print("⚠️ Removed invalid today completion for '\(habits[index].title)' (last updated: \(lastUpdatedDay), today: \(today))")
+                    logger.warning("⚠️ Removed invalid today completion for '\(self.habits[index].title)' (last updated: \(lastUpdatedDay), today: \(today))")
                     #endif
                 }
             }
             
             // Eğer completionDates içinde bugünün tarihi yoksa ama todayCompletions doluysa,
-            // bu önceki günden kalmış demektir, resetle
+            // bu önceki günden kalmış olabilir.
+            // ÖNEMLİ DÜZELTME: Eğer son güncelleme BUGÜN ise, bu geçerli bir kısmi ilerlemedir.
+            // Sadece son güncelleme dünden (veya daha eskiden) kalmaysa temizle.
             if todayCompletions.isEmpty && !habits[index].todayCompletions.isEmpty {
-                habits[index].todayCompletions.removeAll()
-                hasChanges = true
+                var shouldReset = true
+                
+                if let lastUpdated = habits[index].updatedAt {
+                    let lastUpdatedDay = calendar.startOfDay(for: lastUpdated)
+                    if lastUpdatedDay >= today {
+                        // Bugün güncellenmiş, silme!
+                        shouldReset = false
+                    }
+                }
+                
+                if shouldReset {
+                    habits[index].todayCompletions.removeAll()
+                    hasChanges = true
+                }
             }
             
             // ÖNEMLİ: Sadece gerçekten bugün tamamlanmış olanları kontrol et
@@ -285,9 +310,7 @@ class HabitStore: NSObject, ObservableObject {
             
             // Save to SharedDefaults (for App and Extensions)
             SharedDefaults.store.set(encoded, forKey: saveKey)
-            #if DEBUG
-            print("✅ Saved \(optimizedHabits.count) habits to SharedDefaults")
-            #endif
+            logger.debug("✅ Saved \(optimizedHabits.count) habits to SharedDefaults")
             
             // Sync to iCloud (Delta Sync)
             if iCloudSyncEnabled, let cloudSync = cloudSync {
@@ -309,7 +332,7 @@ class HabitStore: NSObject, ObservableObject {
             }
         } catch {
             self.error = HabitError.saveFailed
-            print("❌ Failed to save habits: \(error)")
+            logger.error("❌ Failed to save habits: \(error.localizedDescription)")
         }
     }
     
@@ -320,12 +343,20 @@ class HabitStore: NSObject, ObservableObject {
         // Load from SharedDefaults (prioritize shared storage)
         if let data = SharedDefaults.store.data(forKey: saveKey) {
             do {
-                let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
+                var decoded = try CodingCache.decoder.decode([Habit].self, from: data)
+                
+                // Sanitize for today immediately
+                // This prevents "flicker" of old state on new day
+                let today = Date()
+                for i in decoded.indices {
+                    decoded[i].sanitizeForNewDay(date: today)
+                }
+                
                 habits = decoded
-                print("✅ Loaded \(decoded.count) habits from SharedDefaults")
+                logger.info("✅ Loaded \(decoded.count) habits from SharedDefaults")
             } catch {
-                print("❌ Failed to load habits from SharedDefaults: \(error)")
-                self.error = nil
+                logger.error("❌ Failed to load habits from SharedDefaults: \(error.localizedDescription)")
+                self.error = nil // Don't show error to user, just log it. Maybe empty state is better than error alert on launch.
             }
         } 
         // Fallback: Check standard UserDefaults (migration scenario)
@@ -333,13 +364,13 @@ class HabitStore: NSObject, ObservableObject {
             do {
                 let decoded = try CodingCache.decoder.decode([Habit].self, from: data)
                 habits = decoded
-                print("✅ Loaded \(decoded.count) habits from standard UserDefaults (Migration)")
+                logger.info("✅ Loaded \(decoded.count) habits from standard UserDefaults (Migration)")
                 // Migrate to SharedDefaults immediately
                 saveHabits(immediate: true)
                 // Remove from old location
                 UserDefaults.standard.removeObject(forKey: saveKey)
             } catch {
-                print("❌ Failed to load habits from standard UserDefaults: \(error)")
+                logger.error("❌ Failed to load habits from standard UserDefaults: \(error.localizedDescription)")
             }
         }
         
@@ -353,7 +384,7 @@ class HabitStore: NSObject, ObservableObject {
                     habits = syncedHabits
                 } catch {
                     self.error = HabitError.loadFailed
-                    print("❌ Failed to sync with iCloud: \(error)")
+                    logger.error("❌ Failed to sync with iCloud: \(error.localizedDescription)")
                 }
             }
         }
@@ -364,7 +395,7 @@ class HabitStore: NSObject, ObservableObject {
         
         // Check if session is activated
         guard session.activationState == .activated else {
-            print("⚠️ iPhone: Watch session is not activated (state: \(session.activationState.rawValue))")
+            logger.warning("⚠️ iPhone: Watch session is not activated (state: \(session.activationState.rawValue))")
             return
         }
         
@@ -383,7 +414,7 @@ class HabitStore: NSObject, ObservableObject {
                 "habits": encoded
             ]
             try session.updateApplicationContext(context)
-            print("✅ iPhone: Sent \(habits.count) habits to Watch via application context")
+            logger.info("✅ iPhone: Sent \(self.habits.count) habits to Watch via application context")
             
             // Also try sendMessage if reachable (works better on real devices)
             if session.isReachable {
@@ -393,21 +424,21 @@ class HabitStore: NSObject, ObservableObject {
                 ]
                 session.sendMessage(message, replyHandler: nil) { error in
                     // error is non-optional Error type, closure only called on error
-                    print("⚠️ iPhone: Failed to send message to Watch: \(error.localizedDescription)")
+                    self.logger.error("⚠️ iPhone: Failed to send message to Watch: \(error.localizedDescription)")
                 }
             } else {
-                print("ℹ️ iPhone: Watch is not reachable, but application context was sent")
+                logger.info("ℹ️ iPhone: Watch is not reachable, but application context was sent")
             }
         } catch {
             // Check if error is due to Watch app not being installed
             let nsError = error as NSError
             if nsError.domain == "WCErrorDomain" && nsError.code == 7006 {
-                print("⚠️ iPhone: Watch app is not installed. Please:")
-                print("   1. Select 'AriumWatch Watch App' scheme in Xcode")
-                print("   2. Select Watch simulator as device")
-                print("   3. Press Cmd + R to install Watch app")
+                logger.warning("⚠️ iPhone: Watch app is not installed. Please:")
+                logger.warning("   1. Select 'AriumWatch Watch App' scheme in Xcode")
+                logger.warning("   2. Select Watch simulator as device")
+                logger.warning("   3. Press Cmd + R to install Watch app")
             } else {
-                print("❌ iPhone: Failed to send habits to Watch: \(error.localizedDescription)")
+                logger.error("❌ iPhone: Failed to send habits to Watch: \(error.localizedDescription)")
             }
         }
     }
@@ -436,7 +467,8 @@ class HabitStore: NSObject, ObservableObject {
             let oldCount = habits.count
             habits = syncedHabits
             let newCount = habits.count
-            print("📊 Sync result: \(oldCount) → \(newCount) habits")
+            logger.info("📊 Sync result: \(oldCount) → \(newCount) habits")
+            saveHabits()
             saveHabits()
         }
     }
@@ -457,13 +489,13 @@ class HabitStore: NSObject, ObservableObject {
             throw NetworkError.noConnection
         }
         
-        print("📥 Starting download from iCloud...")
+        logger.info("📥 Starting download from iCloud...")
         let cloudHabits = try await cloudSync.downloadHabits()
-        print("📥 Downloaded \(cloudHabits.count) habits from iCloud")
+        logger.info("📥 Downloaded \(cloudHabits.count) habits from iCloud")
         
         await MainActor.run {
             if cloudHabits.isEmpty {
-                print("ℹ️ No habits found in iCloud")
+                logger.info("ℹ️ No habits found in iCloud")
             } else {
                 // Cloud'dan gelen verileri local ile birleştir (cloud öncelikli)
                 var mergedHabits: [UUID: Habit] = [:]
@@ -478,20 +510,21 @@ class HabitStore: NSObject, ObservableObject {
                     if let localHabit = mergedHabits[cloudHabit.id] {
                         // Aynı ID varsa, daha yeni olanı tut
                         if cloudHabit.createdAt > localHabit.createdAt {
+
                             mergedHabits[cloudHabit.id] = cloudHabit
-                            print("🔄 Replaced local habit '\(localHabit.title)' with cloud version")
+                            logger.info("🔄 Replaced local habit '\(localHabit.title)' with cloud version")
                         } else {
-                            print("ℹ️ Keeping local habit '\(localHabit.title)' (newer than cloud)")
+                            logger.info("ℹ️ Keeping local habit '\(localHabit.title)' (newer than cloud)")
                         }
                     } else {
                         // Yeni habit cloud'dan
                         mergedHabits[cloudHabit.id] = cloudHabit
-                        print("➕ Added new habit from cloud: '\(cloudHabit.title)'")
+                        logger.info("➕ Added new habit from cloud: '\(cloudHabit.title)'")
                     }
                 }
                 
                 habits = Array(mergedHabits.values)
-                print("✅ Loaded \(habits.count) habits from iCloud (merged with local)")
+                logger.info("✅ Loaded \(self.habits.count) habits from iCloud (merged with local)")
                 saveHabits()
             }
         }
@@ -553,9 +586,11 @@ class HabitStore: NSObject, ObservableObject {
 extension HabitStore: WCSessionDelegate {
     nonisolated func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error {
-            print("❌ iPhone session activation failed: \(error)")
+            // Cannot use self.logger here easily as it's nonisolated and logger is main actor isolated or just instance member
+            // Use local logger
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "HabitStore").error("❌ iPhone session activation failed: \(error.localizedDescription)")
         } else {
-            print("✅ iPhone session activated (state: \(activationState.rawValue))")
+            Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "HabitStore").info("✅ iPhone session activated (state: \(activationState.rawValue))")
             
             // Send habits to Watch when session is activated
             Task { @MainActor in
@@ -569,11 +604,11 @@ extension HabitStore: WCSessionDelegate {
     }
     
     nonisolated func sessionDidBecomeInactive(_ session: WCSession) {
-        print("⚠️ Session became inactive")
+        Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "HabitStore").warning("⚠️ Session became inactive")
     }
     
     nonisolated func sessionDidDeactivate(_ session: WCSession) {
-        print("⚠️ Session deactivated")
+        Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "HabitStore").warning("⚠️ Session deactivated")
         session.activate()
     }
     
@@ -582,8 +617,8 @@ extension HabitStore: WCSessionDelegate {
             if message["action"] as? String == "toggleHabit",
                let habitIdString = message["habitId"] as? String,
                let habitId = UUID(uuidString: habitIdString) {
-                print("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
-                toggleHabitCompletion(habitId)
+                self.logger.info("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
+                self.toggleHabitCompletion(habitId)
             }
         }
     }
@@ -593,22 +628,22 @@ extension HabitStore: WCSessionDelegate {
             if message["action"] as? String == "toggleHabit",
                let habitIdString = message["habitId"] as? String,
                let habitId = UUID(uuidString: habitIdString) {
-                print("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
-                toggleHabitCompletion(habitId)
+                self.logger.info("📱 iPhone: Received toggleHabit message from Watch for habit: \(habitIdString)")
+                self.toggleHabitCompletion(habitId)
                 replyHandler(["status": "success"])
             } else if message["action"] as? String == "requestHabits" {
                 // Watch is requesting habits
-                print("📱 iPhone: Watch requested habits")
+                self.logger.info("📱 iPhone: Watch requested habits")
                 do {
                     // Use the same encoder as App Groups (CodingCache.compactEncoder)
-                    let encoded = try CodingCache.compactEncoder.encode(habits)
+                    let encoded = try CodingCache.compactEncoder.encode(self.habits)
                     replyHandler([
                         "action": "habitsUpdated",
                         "habits": encoded
                     ])
-                    print("✅ iPhone: Sent \(habits.count) habits to Watch on request")
+                    self.logger.info("✅ iPhone: Sent \(self.habits.count) habits to Watch on request")
                 } catch {
-                    print("❌ iPhone: Failed to encode habits for Watch: \(error)")
+                    self.logger.error("❌ iPhone: Failed to encode habits for Watch: \(error.localizedDescription)")
                     replyHandler(["status": "error"])
                 }
             } else {
@@ -619,13 +654,13 @@ extension HabitStore: WCSessionDelegate {
     
     nonisolated func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
         Task { @MainActor in
-            print("📱 iPhone: Received application context from Watch")
+            self.logger.info("📱 iPhone: Received application context from Watch")
             
             if applicationContext["action"] as? String == "toggleHabit",
                let habitIdString = applicationContext["habitId"] as? String,
                let habitId = UUID(uuidString: habitIdString) {
-                print("📱 iPhone: Received toggleHabit from Watch via application context for habit: \(habitIdString)")
-                toggleHabitCompletion(habitId)
+                self.logger.info("📱 iPhone: Received toggleHabit from Watch via application context for habit: \(habitIdString)")
+                self.toggleHabitCompletion(habitId)
             }
         }
     }

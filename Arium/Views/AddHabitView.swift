@@ -122,7 +122,7 @@ struct AddHabitView: View {
                             .foregroundStyle(.secondary)
                         
                         TextEditor(text: $viewModel.notes)
-                            .frame(height: 110)
+                            .frame(minHeight: 110, maxHeight: 180) // Flexible height for responsiveness
                             .padding(10)
                             .scrollContentBackground(.hidden)
                             .background(Color(.secondarySystemBackground))
@@ -193,7 +193,7 @@ struct AddHabitView: View {
                         
                         ScrollView(.horizontal, showsIndicators: false) {
                             HStack(spacing: 16) {
-                                ForEach(HabitTheme.allThemes) { theme in
+                                ForEach(HabitTheme.availableThemes) { theme in
                                     ModernThemeButton(
                                         theme: theme,
                                         isSelected: viewModel.selectedTheme.id == theme.id
@@ -360,6 +360,97 @@ struct AddHabitView: View {
                     )
                     .opacity(premiumManager.isPremium ? 1.0 : 0.7)
                     
+                    // Reminders Section
+                    VStack(alignment: .leading, spacing: 12) {
+                        HStack {
+                            Text(L10n.t("settings.notifications"))
+                                .applyAppFont(size: 13)
+                                .textCase(.uppercase)
+                                .foregroundStyle(.secondary)
+                            
+                            Spacer()
+                            
+                            Toggle("", isOn: $viewModel.isReminderEnabled)
+                                .labelsHidden()
+                                .tint(viewModel.selectedTheme.accent)
+                        }
+                        
+                        if viewModel.isReminderEnabled {
+                            if viewModel.dailyRepetitions > 1 {
+                                // Multiple Reminders (Premium)
+                                VStack(spacing: 12) {
+                                    ForEach(0..<viewModel.dailyRepetitions, id: \.self) { index in
+                                        let label = viewModel.repetitionLabels?.indices.contains(index) == true 
+                                            ? viewModel.repetitionLabels![index]
+                                            : ((viewModel.dailyRepetitions <= 5) ? getDefaultLabel(for: index) : String(format: L10n.t("repetition.number"), index + 1))
+                                        
+                                        HStack {
+                                            Text(label)
+                                                .applyAppFont(size: 15)
+                                                .foregroundStyle(.primary)
+                                            
+                                            Spacer()
+                                            
+                                            DatePicker(
+                                                "",
+                                                selection: Binding(
+                                                    get: { 
+                                                        if viewModel.reminderTimes.indices.contains(index) {
+                                                            return viewModel.reminderTimes[index]
+                                                        }
+                                                        return Date()
+                                                    },
+                                                    set: { newDate in
+                                                        if viewModel.reminderTimes.indices.contains(index) {
+                                                            viewModel.reminderTimes[index] = newDate
+                                                        } else {
+                                                            // Should vary rarely happen due to sync
+                                                            while viewModel.reminderTimes.count <= index {
+                                                                viewModel.reminderTimes.append(newDate)
+                                                            }
+                                                            viewModel.reminderTimes[index] = newDate
+                                                        }
+                                                    }
+                                                ),
+                                                displayedComponents: .hourAndMinute
+                                            )
+                                            .labelsHidden()
+                                        }
+                                        .padding()
+                                        .background(Color(.tertiarySystemBackground))
+                                        .cornerRadius(12)
+                                    }
+                                }
+                            } else {
+                                // Single Reminder
+                                HStack {
+                                    Text(L10n.t("notification.reminder.time"))
+                                        .applyAppFont(size: 15)
+                                        .foregroundStyle(.primary)
+                                    
+                                    Spacer()
+                                    
+                                    DatePicker(
+                                        "",
+                                        selection: $viewModel.reminderTime,
+                                        displayedComponents: .hourAndMinute
+                                    )
+                                    .labelsHidden()
+                                }
+                                .padding()
+                                .background(Color(.tertiarySystemBackground))
+                                .cornerRadius(12)
+                            }
+                        }
+                    }
+                    .padding(16)
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color(.separator), lineWidth: 1)
+                    )
+                    
                     // Daily Repetitions Section (Premium)
                     DailyRepetitionSettingsView(
                         dailyRepetitions: $viewModel.dailyRepetitions,
@@ -371,7 +462,15 @@ struct AddHabitView: View {
                 }
                 .padding(20)
             }
-            .background(Color(.systemBackground))
+            .background(
+                ZStack {
+                    Color(.systemBackground)
+                    if appThemeManager.accentColor == .cat {
+                        CatThemeBackground()
+                            .opacity(0.5)
+                    }
+                }
+            )
             .navigationTitle(L10n.t("habit.new"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(Color(.systemBackground), for: .navigationBar)
@@ -464,6 +563,24 @@ struct AddHabitView: View {
     private func currentLocaleIdentifier() -> String {
         let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
         return lang == "tr" ? "tr_TR" : "en_US"
+    }
+    
+    private func getDefaultLabel(for index: Int) -> String {
+        switch viewModel.dailyRepetitions {
+        case 2:
+            return index == 0 ? L10n.t("repetition.morning") : L10n.t("repetition.evening")
+        case 3:
+            let labels = [L10n.t("repetition.morning"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening")]
+            return labels[index]
+        case 4:
+            let labels = [L10n.t("repetition.morning"), L10n.t("repetition.noon"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening")]
+            return labels[index]
+        case 5:
+            let labels = [L10n.t("repetition.morning"), L10n.t("repetition.noon"), L10n.t("repetition.afternoon"), L10n.t("repetition.evening"), L10n.t("repetition.night")]
+            return labels[index]
+        default:
+            return String(format: L10n.t("repetition.number"), index + 1)
+        }
     }
 }
 

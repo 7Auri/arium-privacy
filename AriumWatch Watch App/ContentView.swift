@@ -292,9 +292,37 @@ struct HabitRowWatchView: View {
                 
                 // Quick Toggle Button
                 Button(action: onToggle) {
-                    Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                        .font(.title3)
-                        .foregroundStyle(habit.isCompletedToday ? .green : .gray)
+                    if habit.dailyRepetitions > 1 {
+                        // Multi-Repetition Indicator
+                        ZStack {
+                            Circle()
+                                .stroke(lineWidth: 3)
+                                .foregroundStyle(Color.gray.opacity(0.3))
+                                .frame(width: 24, height: 24)
+                            
+                            Circle()
+                                .trim(from: 0.0, to: habit.completionPercentage)
+                                .stroke(style: StrokeStyle(lineWidth: 3, lineCap: .round))
+                                .foregroundStyle(habit.isFullyCompletedToday ? .green : .orange)
+                                .frame(width: 24, height: 24)
+                                .rotationEffect(.degrees(-90))
+                            
+                            if !habit.isFullyCompletedToday {
+                                Text("\(habit.todayCompletions.count)/\(habit.dailyRepetitions)")
+                                    .font(.system(size: 8, weight: .bold))
+                                    .foregroundStyle(.primary)
+                            } else {
+                                Image(systemName: "checkmark")
+                                    .font(.system(size: 10, weight: .bold))
+                                    .foregroundStyle(.green)
+                            }
+                        }
+                    } else {
+                        // Single Repetition (Original)
+                        Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                            .font(.title3)
+                            .foregroundStyle(habit.isCompletedToday ? .green : .gray)
+                    }
                 }
                 .buttonStyle(.plain)
             }

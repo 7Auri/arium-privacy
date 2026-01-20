@@ -21,7 +21,8 @@ struct Habit: Identifiable, Codable, Equatable {
     var completionNotes: [String: String] // Date string (yyyy-MM-dd) : note
     var startDate: Date? // Kullanıcının seçtiği takip başlangıç tarihi
     var goalDays: Int // Hedef gün sayısı (örn: 21 günlük challenge)
-    var reminderTime: Date? // Hatırlatıcı zamanı
+    var reminderTime: Date? // Legacy support & Primary reminder
+    var reminderTimes: [Date]? // Multiple reminders for repetitions
     var isReminderEnabled: Bool // Hatırlatıcı açık mı
     var category: HabitCategory // Alışkanlık kategorisi
     
@@ -46,6 +47,7 @@ struct Habit: Identifiable, Codable, Equatable {
         startDate: Date? = nil,
         goalDays: Int = 21,
         reminderTime: Date? = nil,
+        reminderTimes: [Date]? = nil,
         isReminderEnabled: Bool = false,
         category: HabitCategory = .personal,
         dailyRepetitions: Int = 1,
@@ -57,7 +59,7 @@ struct Habit: Identifiable, Codable, Equatable {
         self.title = title
         self.notes = notes
         self.createdAt = createdAt
-        self.updatedAt = updatedAt ?? createdAt // Eğer nil gelirse oluşturulma tarihini kullan
+        self.updatedAt = updatedAt ?? createdAt
         self.streak = streak
         self.themeId = themeId
         self.isCompletedToday = isCompletedToday
@@ -72,6 +74,18 @@ struct Habit: Identifiable, Codable, Equatable {
         self.repetitionLabels = repetitionLabels
         self.todayCompletions = todayCompletions
         self.dailyCompletionCounts = dailyCompletionCounts
+        
+        // Initialize reminderTimes
+        if let providedTimes = reminderTimes {
+            self.reminderTimes = providedTimes
+        } else if let singleTime = reminderTime {
+            // Migration: Create array from single time
+            // If repetitions > 1, replicate the time or just set first?
+            // Let's iterate to fill all slots with the same time initially for better UX than no time
+            self.reminderTimes = Array(repeating: singleTime, count: max(1, dailyRepetitions))
+        } else {
+            self.reminderTimes = nil
+        }
     }
     
     var theme: HabitTheme {
@@ -124,7 +138,8 @@ struct Habit: Identifiable, Codable, Equatable {
         
         // Check if most recent is today or yesterday
         let today = calendar.startOfDay(for: Date())
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today)!
+        // Safe fallback if calendar calculation fails (unlikely)
+        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? Date(timeInterval: -86400, since: today)
         
         guard mostRecent == today || mostRecent == yesterday else {
             streak = 0
@@ -263,6 +278,38 @@ struct Habit: Identifiable, Codable, Equatable {
     
     func isRepetitionCompleted(at index: Int) -> Bool {
         return todayCompletions.contains(index)
+    }
+    
+    // MARK: - Sanitize (Fix for New Day)
+    
+    /// Synchronously corrects the habit state for a given date (usually now).
+    /// Used when loading habits to ensure UI shows correct state immediately.
+    mutating func sanitizeForNewDay(date: Date = Date()) {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: date)
+        
+        // 1. Truth of source for completion is completionDates
+        // If completionDates contains today, then it IS completed.
+        // If not, it is NOT completed.
+        isCompletedToday = completionDates.contains { calendar.isDate($0, inSameDayAs: date) }
+        
+        // 2. Check partial completions (stale check)
+        // If we have partial completions but no full completion for today
+        if !isCompletedToday && !todayCompletions.isEmpty {
+            var shouldReset = true
+            
+            if let lastModified = updatedAt {
+               let lastModifiedDay = calendar.startOfDay(for: lastModified)
+               if lastModifiedDay >= today {
+                   // Modified today, keep partial progress
+                   shouldReset = false
+               }
+            }
+            
+            if shouldReset {
+                todayCompletions.removeAll()
+            }
+        }
     }
 }
 

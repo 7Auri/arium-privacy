@@ -256,6 +256,35 @@ final class HabitStoreTests: XCTestCase {
     
     // MARK: - Update Today Status Tests
     
+    func testPartialCompletionPersistence() async throws {
+        var habit = Habit(title: "Multi-step Habit", dailyRepetitions: 2)
+        habit.id = UUID()
+        let calendar = Calendar.current
+        
+        // 1. Setup: Habit created today, one repetition completed today
+        habit.todayCompletions = [0] // First repetition done
+        habit.updatedAt = Date() // Updated just now
+        
+        try habitStore.addHabit(habit)
+        
+        // Verify initial state
+        guard let savedHabit = habitStore.habits.first else {
+            XCTFail("Habit not saved")
+            return
+        }
+        XCTAssertEqual(savedHabit.todayCompletions, [0], "Initial state should have 1 completion")
+        
+        // 2. Simulate App Foregrounding (calls updateTodayStatus)
+        await habitStore.updateTodayStatus()
+        
+        // 3. Verify persistence
+        // Expected: [0] should remain because it was updated today
+        // Actual (Bug): Cleared because completionDates (full completion) is empty
+        if let updatedHabit = habitStore.habits.first {
+            XCTAssertEqual(updatedHabit.todayCompletions, [0], "Partial completion should be persisted if updated today")
+        }
+    }
+
     func testUpdateTodayStatus() async throws {
         var habit = Habit(title: "Read")
         let calendar = Calendar.current

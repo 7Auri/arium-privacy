@@ -93,8 +93,28 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     func toggleHabit(_ habit: Habit) {
         guard let index = habits.firstIndex(where: { $0.id == habit.id }) else { return }
         
-        // Use Habit's built-in toggleCompletion method
-        habits[index].toggleCompletion()
+        // Multi-repetition logic
+        if habits[index].dailyRepetitions > 1 {
+            if habits[index].isFullyCompletedToday {
+                // If fully completed, undo the LAST repetition
+                // Find the highest index that is completed
+                if let lastCompletedIndex = habits[index].todayCompletions.max() {
+                    habits[index].toggleRepetitionCompletion(at: lastCompletedIndex)
+                }
+            } else {
+                // If not fully completed, complete the NEXT available repetition
+                // Find first index that is NOT in todayCompletions
+                for i in 0..<habits[index].dailyRepetitions {
+                    if !habits[index].todayCompletions.contains(i) {
+                        habits[index].toggleRepetitionCompletion(at: i)
+                        break
+                    }
+                }
+            }
+        } else {
+            // Standard single toggle
+            habits[index].toggleCompletion()
+        }
         
         saveHabits()
         
@@ -127,7 +147,8 @@ class WatchHabitViewModel: NSObject, ObservableObject {
         let message: [String: Any] = [
             "action": "toggleHabit",
             "habitId": habit.id.uuidString,
-            "isCompleted": habit.isCompletedToday
+            "isCompleted": habit.isCompletedToday,
+            "todayCompletions": habit.todayCompletions // Sync repetitions
         ]
         
         // Always send via application context (works even when not reachable)

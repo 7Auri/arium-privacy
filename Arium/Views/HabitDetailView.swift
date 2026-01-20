@@ -137,6 +137,67 @@ struct HabitDetailView: View {
         }
     }
     
+    // MARK: - Success Scope (ML Feature)
+    
+    private var successScopeView: some View {
+        Group {
+            if let probability = viewModel.successProbability, !viewModel.habit.isCompletedToday {
+                HStack(spacing: 16) {
+                    // Gauge / Circle
+                    ZStack {
+                        Circle()
+                            .stroke(Color(.tertiarySystemFill), lineWidth: 6)
+                            .frame(width: 50, height: 50)
+                        
+                        Circle()
+                            .trim(from: 0, to: probability)
+                            .stroke(
+                                LinearGradient(
+                                    colors: [viewModel.habit.theme.accent, viewModel.habit.theme.accent.opacity(0.7)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                ),
+                                style: StrokeStyle(lineWidth: 6, lineCap: .round)
+                            )
+                            .frame(width: 50, height: 50)
+                            .rotationEffect(.degrees(-90))
+                        
+                        Text("\(Int(probability * 100))%")
+                            .font(.system(size: 13, weight: .bold))
+                            .foregroundStyle(viewModel.habit.theme.accent)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 4) {
+                        Text(L10n.t("insight.successScope.title"))
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.primary)
+                        
+                        Text(probability > 0.7 ? L10n.t("insight.successScope.high") :
+                             probability > 0.4 ? L10n.t("insight.successScope.medium") : L10n.t("insight.successScope.low"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    if probability > 0.8 {
+                        Text("🚀")
+                            .font(.title2)
+                    }
+                }
+                .padding(16)
+                .background(Color(.secondarySystemBackground))
+                .cornerRadius(16)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16)
+                        .stroke(Color(.separator), lineWidth: 0.5)
+                )
+                .transition(.opacity.combined(with: .move(edge: .top)))
+            }
+        }
+    }
+
     // MARK: - Weekly Progress View
     
     private var weeklyProgressView: some View {
@@ -343,7 +404,7 @@ struct HabitDetailView: View {
             
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
-                    ForEach(HabitTheme.allThemes) { theme in
+                    ForEach(HabitTheme.availableThemes) { theme in
                         ModernThemeButton(
                             theme: theme,
                             isSelected: viewModel.habit.theme.id == theme.id
@@ -384,18 +445,113 @@ struct HabitDetailView: View {
                     }
             }
             
-            if viewModel.habit.isReminderEnabled {
-                DatePicker(
-                    L10n.t("notification.reminder.title"),
-                    selection: $viewModel.editableReminderTime,
-                    displayedComponents: .hourAndMinute
-                )
-                .datePickerStyle(.compact)
-                .tint(viewModel.habit.theme.accent)
-                .onChange(of: viewModel.editableReminderTime) { _, newValue in
-                    viewModel.updateReminderTime(newValue, store: habitStore)
+            // Smart Reminder Suggestion (ML Feature)
+            if let suggestedTime = viewModel.smartReminderTime {
+                HStack(spacing: 12) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [AriumTheme.accent, AriumTheme.accent.opacity(0.8)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 36, height: 36)
+                        
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 16, weight: .semibold))
+                            .foregroundStyle(.white)
+                    }
+                    
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(L10n.t("insight.smartReminder.title") + " " + suggestedTime.localizedTimeString())
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundStyle(.primary)
+                        
+                        Text(L10n.t("insight.smartReminder.subtitle"))
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    }
+                    
+                    Spacer()
+                    
+                    Button {
+                        withAnimation {
+                            viewModel.updateReminderTime(suggestedTime, store: habitStore)
+                            if !viewModel.habit.isReminderEnabled {
+                                viewModel.toggleReminder(true, store: habitStore)
+                            }
+                            viewModel.smartReminderTime = nil // Hide after using
+                        }
+                    } label: {
+                        Text(L10n.t("button.use"))
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(viewModel.habit.theme.accent)
+                            .cornerRadius(12)
+                    }
                 }
-                .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                .padding(12)
+                .background(Color(.tertiarySystemBackground))
+                .cornerRadius(12)
+                .transition(.scale.combined(with: .opacity))
+            }
+            
+            if viewModel.habit.isReminderEnabled {
+                if viewModel.habit.dailyRepetitions > 1 {
+                    VStack(spacing: 12) {
+                        ForEach(0..<viewModel.habit.dailyRepetitions, id: \.self) { index in
+                            let label = viewModel.habit.displayRepetitionLabels.indices.contains(index)
+                                ? viewModel.habit.displayRepetitionLabels[index]
+                                : L10n.t("notification.reminder.title")
+                            
+                            HStack {
+                                Text(label)
+                                    .font(.subheadline)
+                                    .foregroundStyle(.primary)
+                                
+                                Spacer()
+                                
+                                DatePicker(
+                                    "",
+                                    selection: Binding(
+                                        get: {
+                                            if index < viewModel.editableReminderTimes.count {
+                                                return viewModel.editableReminderTimes[index]
+                                            }
+                                            return Date()
+                                        },
+                                        set: { newValue in
+                                            viewModel.updateReminderTime(at: index, time: newValue, store: habitStore)
+                                        }
+                                    ),
+                                    displayedComponents: .hourAndMinute
+                                )
+                                .datePickerStyle(.compact)
+                                .labelsHidden()
+                                .tint(viewModel.habit.theme.accent)
+                            }
+                        }
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                } else {
+                    DatePicker(
+                        L10n.t("notification.reminder.title"),
+                        selection: $viewModel.editableReminderTime,
+                        displayedComponents: .hourAndMinute
+                    )
+                    .datePickerStyle(.compact)
+                    .tint(viewModel.habit.theme.accent)
+                    .onChange(of: viewModel.editableReminderTime) { _, newValue in
+                        viewModel.updateReminderTime(newValue, store: habitStore)
+                    }
+                    .transition(.opacity.combined(with: .scale(scale: 0.95)))
+                }
             }
         }
         .padding(16)
@@ -600,6 +756,9 @@ struct HabitDetailView: View {
             VStack(spacing: 24) {
                 headerView
                 
+                // Success Scope (ML)
+                successScopeView
+                
                 // Weekly Progress View (New)
                 weeklyProgressView
                 
@@ -633,7 +792,15 @@ struct HabitDetailView: View {
             }
             .padding(20)
         }
-        .background(Color(.systemBackground))
+        .background(
+            ZStack {
+                Color(.systemBackground)
+                if appThemeManager.accentColor == .cat {
+                    CatThemeBackground()
+                        .opacity(0.5)
+                }
+            }
+        )
     }
     
     // MARK: - Repetitions View (Premium)
@@ -714,6 +881,8 @@ struct HabitDetailView: View {
             return
         }
         viewModel.refreshCompletionForNewDay()
+        viewModel.checkForSmartReminder()
+        viewModel.fetchSuccessProbability()
         refreshHabit()
     }
     

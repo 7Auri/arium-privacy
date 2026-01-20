@@ -35,13 +35,42 @@ struct ToggleHabitIntent: AppIntent {
         }
         
         let habit = habits[index]
-        let wasCompleted = habit.isCompletedToday
+        var responseText = ""
         
-        // Toggle completion
-        habits[index].toggleCompletion()
+        if habit.dailyRepetitions > 1 {
+            // Multi-repetition logic
+            if habit.isFullyCompletedToday {
+                // Undo last repetition
+                if let lastIndex = habit.todayCompletions.max() {
+                    habits[index].toggleRepetitionCompletion(at: lastIndex)
+                    responseText = "\(habit.title) progress updated"
+                }
+            } else {
+                // Complete next available repetition
+                for i in 0..<habit.dailyRepetitions {
+                    if !habit.todayCompletions.contains(i) {
+                        habits[index].toggleRepetitionCompletion(at: i)
+                        let newCount = habits[index].todayCompletions.count
+                        responseText = "\(habit.title) (\(newCount)/\(habit.dailyRepetitions))"
+                        break
+                    }
+                }
+            }
+        } else {
+            // Single repetition logic
+            let wasCompleted = habit.isCompletedToday
+            habits[index].toggleCompletion()
+            
+            if wasCompleted {
+                responseText = "\(habit.title) marked as incomplete"
+            } else {
+                responseText = "\(habit.title) completed! 🔥"
+            }
+        }
+        
+        // Recalculate streaks and save
         habits[index].calculateStreak()
         
-        // Save back to App Groups
         if let encoded = try? CodingCache.compactEncoder.encode(habits) {
             sharedDefaults.set(encoded, forKey: "SavedHabits")
         }
@@ -49,12 +78,7 @@ struct ToggleHabitIntent: AppIntent {
         // Reload widget timeline
         WidgetCenter.shared.reloadTimelines(ofKind: "AriumWidget")
         
-        // Return dialog
-        if wasCompleted {
-            return .result(dialog: "\(habit.title) marked as incomplete")
-        } else {
-            return .result(dialog: "\(habit.title) completed! 🔥")
-        }
+        return .result(dialog: IntentDialog(stringLiteral: responseText))
     }
 }
 

@@ -8,6 +8,11 @@
 import SwiftUI
 
 struct CalendarHeatmapView: View {
+    private struct CalendarDay: Identifiable {
+        let id = UUID()
+        let date: Date?
+    }
+    
     let habit: Habit
     let monthsToShow: Int
     
@@ -44,13 +49,28 @@ struct CalendarHeatmapView: View {
             .padding(.bottom, 8)
             
             // Calendar grid
-            ScrollView(.horizontal, showsIndicators: false) {
-                HStack(alignment: .top, spacing: 16) {
-                    ForEach(monthRanges, id: \.start) { monthRange in
-                        monthView(for: monthRange)
+            // Calendar grid
+            ScrollViewReader { proxy in
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(alignment: .top, spacing: 16) {
+                        ForEach(monthRanges, id: \.start) { monthRange in
+                            monthView(for: monthRange)
+                                .id(monthRange.start)
+                        }
+                    }
+                    .padding(.horizontal, 4)
+                }
+                .onAppear {
+                    // Scroll to the latest month (last one in the array)
+                    if let lastMonth = monthRanges.last {
+                        Task { @MainActor in
+                            try? await Task.sleep(nanoseconds: 100_000_000) // 0.1s delay for layout
+                            withAnimation {
+                                proxy.scrollTo(lastMonth.start, anchor: .trailing)
+                            }
+                        }
                     }
                 }
-                .padding(.horizontal, 4)
             }
         }
         .padding(20)
@@ -77,6 +97,19 @@ struct CalendarHeatmapView: View {
         return ranges.reversed()
     }
     
+    private var currentLocale: Locale {
+        let lang = UserDefaults.standard.string(forKey: "appLanguage") ?? "en"
+        return Locale(identifier: lang)
+    }
+    
+    private var weekdaySymbols: [String] {
+        let formatter = DateFormatter()
+        formatter.locale = currentLocale
+        // Adjust returned array to start from Sunday if necessary.
+        // veryShortWeekdaySymbols usually starts with Sunday.
+        return formatter.veryShortWeekdaySymbols
+    }
+    
     private func monthView(for range: (start: Date, end: Date, month: Int, year: Int)) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             // Month label
@@ -86,7 +119,7 @@ struct CalendarHeatmapView: View {
             
             // Weekday labels
             HStack(spacing: 2) {
-                ForEach(["S", "M", "T", "W", "T", "F", "S"], id: \.self) { day in
+                ForEach(weekdaySymbols, id: \.self) { day in
                     Text(day)
                         .applyAppFont(size: 10, weight: .medium)
                         .foregroundStyle(AriumTheme.textTertiary)
@@ -96,29 +129,29 @@ struct CalendarHeatmapView: View {
             
             // Calendar grid
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 2), count: 7), spacing: 2) {
-                ForEach(daysInMonth(range.start, end: range.end), id: \.self) { date in
-                    dayCell(for: date)
+                ForEach(daysInMonth(range.start, end: range.end)) { day in
+                    dayCell(for: day)
                 }
             }
         }
         .frame(width: 140)
     }
     
-    private func daysInMonth(_ start: Date, end: Date) -> [Date?] {
+    private func daysInMonth(_ start: Date, end: Date) -> [CalendarDay] {
         let calendar = Calendar.current
         let firstDayOfWeek = calendar.component(.weekday, from: start) - 1 // 0 = Sunday
         
-        var days: [Date?] = []
+        var days: [CalendarDay] = []
         
         // Add empty cells for days before month starts
         for _ in 0..<firstDayOfWeek {
-            days.append(nil)
+            days.append(CalendarDay(date: nil))
         }
         
         // Add days in month
         var currentDate = start
         while currentDate <= end {
-            days.append(currentDate)
+            days.append(CalendarDay(date: currentDate))
             if let nextDay = calendar.date(byAdding: .day, value: 1, to: currentDate) {
                 currentDate = nextDay
             } else {
@@ -129,9 +162,9 @@ struct CalendarHeatmapView: View {
         return days
     }
     
-    private func dayCell(for date: Date?) -> some View {
+    private func dayCell(for day: CalendarDay) -> some View {
         Group {
-            if let date = date {
+            if let date = day.date {
                 let intensity = completionIntensity(for: date)
                 let isSelected = selectedDate != nil && Calendar.current.isDate(date, inSameDayAs: selectedDate!)
                 let isHovered = hoveredDate != nil && Calendar.current.isDate(date, inSameDayAs: hoveredDate!)
@@ -206,6 +239,7 @@ struct CalendarHeatmapView: View {
     
     private func monthName(_ month: Int, year: Int) -> String {
         let dateFormatter = DateFormatter()
+        dateFormatter.locale = currentLocale
         dateFormatter.dateFormat = "MMM yyyy"
         let calendar = Calendar.current
         if let date = calendar.date(from: DateComponents(year: year, month: month, day: 1)) {

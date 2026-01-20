@@ -204,7 +204,7 @@ struct RectangularWidgetView: View {
                         Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
                             .font(.caption2)
                             .foregroundStyle(habit.isCompletedToday ? .green : .secondary)
-                        Text(habit.title)
+                        Text(habit.dailyRepetitions > 1 ? "\(habit.title) (\(habit.todayCompletions.count)/\(habit.dailyRepetitions))" : habit.title)
                             .font(.caption)
                             .lineLimit(1)
                     }

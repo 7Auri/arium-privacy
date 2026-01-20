@@ -20,6 +20,7 @@ class SheetCoordinator: ObservableObject {
         case achievements
         case insights
         case statistics
+        case garden
         case dailyNote(Habit)
         case shareCelebration(celebrationType: ConfettiManager.CelebrationType, habitsCount: Int, maxStreak: Int, date: Date)
         
@@ -50,6 +51,8 @@ class SheetCoordinator: ObservableObject {
                 return "insights"
             case .statistics:
                 return "statistics"
+            case .garden:
+                return "garden"
             case .dailyNote(let habit):
                 return "dailyNote_\(habit.id.uuidString)"
             case .shareCelebration:
@@ -142,6 +145,11 @@ class SheetCoordinator: ObservableObject {
     /// Presents statistics sheet
     func showStatistics() {
         present(.statistics)
+    }
+    
+    /// Presents garden sheet
+    func showGarden() {
+        present(.garden)
     }
     
     /// Presents daily note sheet
@@ -274,6 +282,10 @@ extension SheetCoordinator {
             case .statistics:
                 StatisticsView(habits: habitStore.habits, isPremium: premiumManager.isPremium)
                     .environmentObject(habitStore)
+                    
+            case .garden:
+                GardenView()
+                    .environmentObject(premiumManager)
                     
             case .dailyNote(let habit):
                 DailyNoteSheet(

@@ -40,8 +40,8 @@ struct InsightsView: View {
                 } else {
                     // Horizontal Cards
                     ScrollView(.horizontal, showsIndicators: false) {
-                        LazyHStack(spacing: 16) {
-                            ForEach(insights) { insight in
+                        HStack(alignment: .top, spacing: 16) {
+                            ForEach(insights.prefix(10)) { insight in
                                 InsightCard(
                                     insight: insight,
                                     onAction: handleInsightAction
@@ -56,6 +56,7 @@ struct InsightsView: View {
                             }
                         }
                         .padding(.horizontal)
+                        .padding(.vertical, 16) // Add room for shadows/top elements
                     }
                     
                     Divider()

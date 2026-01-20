@@ -26,6 +26,11 @@ struct OnboardingView: View {
             )
             .ignoresSafeArea()
             
+            if viewModel.selectedTheme == .cat {
+                CatThemeBackground()
+                    .opacity(0.3)
+            }
+            
             VStack(spacing: 0) {
                 // Skip Button
                 HStack {

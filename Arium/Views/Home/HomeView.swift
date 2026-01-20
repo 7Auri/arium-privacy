@@ -69,7 +69,8 @@ struct HomeView: View {
             onSettingsTap: { sheetCoordinator.showSettings() },
             onAchievementsTap: { sheetCoordinator.showAchievements() },
             onInsightsTap: { sheetCoordinator.showInsights() },
-            onStatisticsTap: { sheetCoordinator.showStatistics() }
+            onStatisticsTap: { sheetCoordinator.showStatistics() },
+            onGardenTap: { sheetCoordinator.showGarden() }
         )
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -200,8 +201,11 @@ struct HomeView: View {
             }
         }
         .onChange(of: viewModel.selectedDate) { oldDate, newDate in
-            // Tarih değiştiğinde celebration kontrolü yap
+            // Tarih değiştiğinde completion rate tracking'i sıfırla
+            // Böylece gece yarısı geçişinde yanlış confetti gösterilmez
             DispatchQueue.main.async {
+                lastCheckedCompletionRate = 0.0
+                lastCelebrationShownDate = ""
                 checkForConfetti(habits: habitStore.habits)
             }
         }
@@ -212,6 +216,11 @@ struct HomeView: View {
             // Modern gradient background
             backgroundGradient
                 .ignoresSafeArea()
+            
+            if appThemeManager.accentColor == .cat {
+                CatThemeBackground()
+                    .opacity(0.3)
+            }
             
             VStack(spacing: 0) {
                 // Modern Header - Fixed at top
@@ -466,46 +475,39 @@ private struct HomeContentView: View {
     @Binding var showingDeleteAlert: Bool
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Üst kısım: ScrollView içinde (sabit)
-            ScrollView {
-                VStack(spacing: 16) {
-                    WeeklyCalendarView(selectedDate: $viewModel.selectedDate)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
-
-                    ModernStatsView(
-                        totalCompletions: habitStore.habits.reduce(0) { $0 + $1.completionDates.count },
-                        longestStreak: habitStore.habits.map { $0.streak }.max() ?? 0,
-                        completionRate: viewModel.completionRate(for: viewModel.selectedDate, habits: habitStore.habits)
-                    )
-                    .padding(.horizontal, 20)
-
-                    if premiumManager.isPremium {
-                        CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
-                    }
-
-                    SearchBarView(searchText: $viewModel.searchText)
-                        .padding(.horizontal, 20)
+        // Debug: Alışkanlık sayısını kontrol et
+        let allHabits = habitStore.habits
+        let filteredHabits = viewModel.filteredHabits(from: allHabits)
+        
+        // List'in animasyon sorunlarını önlemek için stable ID kullan
+        let listId = "\(filteredHabits.count)-\(filteredHabits.map { $0.id.uuidString }.sorted().joined().hashValue)"
+        
+        List {
+            // Section 1: Header Content (Scrolls with list)
+            VStack(spacing: 16) {
+                WeeklyCalendarView(selectedDate: $viewModel.selectedDate)
+                    .padding(.top, 16)
+                
+                ModernStatsView(
+                    totalCompletions: habitStore.habits.reduce(0) { $0 + $1.completionDates.count },
+                    longestStreak: habitStore.habits.map { $0.streak }.max() ?? 0,
+                    completionRate: viewModel.completionRate(for: viewModel.selectedDate, habits: habitStore.habits)
+                )
+                
+                // Kategori Filtresi (Premium)
+                if premiumManager.isPremium {
+                    CategoryFilterView(selectedCategory: $viewModel.selectedCategory)
                 }
+                
+                SearchBarView(searchText: $viewModel.searchText)
             }
-            .frame(maxHeight: 300) // Üst kısmın maksimum yüksekliği
+            .padding(.horizontal, 20)
+            .padding(.bottom, 8)
+            .listRowInsets(EdgeInsets())
+            .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
             
-            // Debug: Alışkanlık sayısını kontrol et
-            let allHabits = habitStore.habits
-            let filteredHabits = viewModel.filteredHabits(from: allHabits)
-            
-            // List'in animasyon sorunlarını önlemek için stable ID kullan
-            // ID çakışmasını önlemek için hash kullan - sadece count ve hash
-            let listId = "\(filteredHabits.count)-\(filteredHabits.map { $0.id.uuidString }.sorted().joined().hashValue)"
-            
-            #if DEBUG
-            let _ = print("🔍 Debug - Toplam alışkanlık: \(allHabits.count), Filtrelenmiş: \(filteredHabits.count)")
-            let _ = print("   Seçili kategori: \(viewModel.selectedCategory?.rawValue ?? "Tümü")")
-            let _ = print("   Arama metni: '\(viewModel.searchText)'")
-            #endif
-            
-            // Alt kısım: List (ScrollView dışında, kendi scroll'u var)
+            // Section 2: Habits or Empty Views
             if allHabits.isEmpty {
                 ModernEmptyStateView(
                     onAddHabit: {
@@ -517,6 +519,9 @@ private struct HomeContentView: View {
                     }
                 )
                 .padding(.top, 40)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             } else if filteredHabits.isEmpty {
                 // Alışkanlık var ama filtreleme sonucu boş
                 VStack(spacing: 20) {
@@ -547,98 +552,88 @@ private struct HomeContentView: View {
                             .cornerRadius(12)
                     }
                 }
+                .frame(maxWidth: .infinity)
                 .padding(.top, 60)
+                .listRowInsets(EdgeInsets())
+                .listRowSeparator(.hidden)
+                .listRowBackground(Color.clear)
             } else {
-                // Debug: List'in görünürlüğünü test et
-                #if DEBUG
-                let _ = print("✅ List render ediliyor - \(filteredHabits.count) alışkanlık")
-                #endif
-                
-                // List (ScrollView dışında, kendi scroll'u var)
-                // Animasyon sorunlarını önlemek için id modifier'ı kullan
-                List {
-                    ForEach(filteredHabits) { habit in
-                        #if DEBUG
-                        let _ = print("   📝 Alışkanlık render ediliyor: \(habit.title)")
-                        #endif
-                        ModernHabitCard(
-                            habit: habit,
-                            onTap: {
+                // List of Habits
+                ForEach(filteredHabits) { habit in
+                    ModernHabitCard(
+                        habit: habit,
+                        onTap: {
+                            HapticManager.selection()
+                            sheetCoordinator.showHabitDetail(habit)
+                        },
+                        onToggle: {
+                            if habit.dailyRepetitions > 1 {
                                 HapticManager.selection()
                                 sheetCoordinator.showHabitDetail(habit)
-                            },
-                            onToggle: {
-                                if habit.dailyRepetitions > 1 {
-                                    HapticManager.selection()
-                                    sheetCoordinator.showHabitDetail(habit)
-                                } else if viewModel.isCompleted(habit, on: viewModel.selectedDate) {
-                                    HapticManager.light()
-                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                            } else if viewModel.isCompleted(habit, on: viewModel.selectedDate) {
+                                HapticManager.light()
+                                viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                            } else {
+                                HapticManager.success()
+                                if premiumManager.isPremium {
+                                    noteText = ""
+                                    sheetCoordinator.showDailyNote(for: habit)
                                 } else {
-                                    HapticManager.success()
-                                    if premiumManager.isPremium {
-                                        noteText = ""
-                                        sheetCoordinator.showDailyNote(for: habit)
-                                    } else {
-                                        viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
-                                    }
+                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
                                 }
-                            },
-                            onDelete: {
-                                HapticManager.warning()
-                                habitToDelete = habit
-                                showingDeleteAlert = true
                             }
-                        )
-                        .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
-                        .listRowSeparator(.hidden)
-                        .listRowBackground(Color.clear)
-                        .swipeActions(edge: .trailing, allowsFullSwipe: false) {
-                            // Sağa kaydırma - Sil
-                            Button(role: .destructive) {
-                                HapticManager.warning()
-                                habitToDelete = habit
-                                showingDeleteAlert = true
-                            } label: {
-                                Label(L10n.t("button.delete"), systemImage: "trash.fill")
-                            }
-                            
-                            // Tamamlanmamışsa tamamla butonu
-                            if !habit.isCompletedToday {
-                                Button {
-                                    HapticManager.success()
-                                    if premiumManager.isPremium {
-                                        noteText = ""
-                                        sheetCoordinator.showDailyNote(for: habit)
-                                    } else {
-                                        viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
-                                    }
-                                } label: {
-                                    Label(L10n.t("habit.completed"), systemImage: "checkmark.circle.fill")
-                                }
-                                .tint(.green)
-                            }
+                        },
+                        onDelete: {
+                            HapticManager.warning()
+                            habitToDelete = habit
+                            showingDeleteAlert = true
                         }
-                        .swipeActions(edge: .leading, allowsFullSwipe: false) {
-                            // Sola kaydırma - Sil
-                            Button(role: .destructive) {
-                                HapticManager.warning()
-                                habitToDelete = habit
-                                showingDeleteAlert = true
+                    )
+                    .listRowInsets(EdgeInsets(top: 4, leading: 20, bottom: 4, trailing: 20))
+                    .listRowSeparator(.hidden)
+                    .listRowBackground(Color.clear)
+                    .swipeActions(edge: .trailing, allowsFullSwipe: false) {
+                        // Sağa kaydırma - Sil
+                        Button(role: .destructive) {
+                            HapticManager.warning()
+                            habitToDelete = habit
+                            showingDeleteAlert = true
+                        } label: {
+                            Label(L10n.t("button.delete"), systemImage: "trash.fill")
+                        }
+                        
+                        // Tamamlanmamışsa tamamla butonu
+                        if !habit.isCompletedToday {
+                            Button {
+                                HapticManager.success()
+                                if premiumManager.isPremium {
+                                    noteText = ""
+                                    sheetCoordinator.showDailyNote(for: habit)
+                                } else {
+                                    viewModel.toggleCompletion(habit, date: viewModel.selectedDate, store: habitStore)
+                                }
                             } label: {
-                                Label(L10n.t("button.delete"), systemImage: "trash.fill")
+                                Label(L10n.t("habit.completed"), systemImage: "checkmark.circle.fill")
                             }
+                            .tint(.green)
+                        }
+                    }
+                    .swipeActions(edge: .leading, allowsFullSwipe: false) {
+                        // Sola kaydırma - Sil
+                        Button(role: .destructive) {
+                            HapticManager.warning()
+                            habitToDelete = habit
+                            showingDeleteAlert = true
+                        } label: {
+                            Label(L10n.t("button.delete"), systemImage: "trash.fill")
                         }
                     }
                 }
-                .id(listId) // Stable ID - sadece habits değiştiğinde List yeniden oluşturulur
-                .listStyle(.plain)
-                .scrollContentBackground(.hidden)
-                .animation(.none, value: filteredHabits.count) // Silme animasyonunu devre dışı bırak
-                .padding(.top, 8)
-                .padding(.bottom, 100)
             }
         }
+        .id(listId) // Stable ID for habits
+        .listStyle(.plain)
+        .scrollContentBackground(.hidden)
     }
 }
 
@@ -657,6 +652,7 @@ struct ModernHeaderView: View {
     let onAchievementsTap: () -> Void
     let onInsightsTap: () -> Void
     let onStatisticsTap: () -> Void
+    let onGardenTap: () -> Void
     
     @State private var showingSlotsInfo = false
     @State private var showingPremiumError = false
@@ -777,6 +773,31 @@ struct ModernHeaderView: View {
                 .interactiveButton(haptic: .selection)
                 .accessibilityLabel(L10n.t("insights.title"))
                 .accessibilityHint(L10n.t("insights.accessibility.hint"))
+                
+                // Garden Button (NEW)
+                Button(action: {
+                    HapticManager.selection()
+                    onGardenTap()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.green.opacity(0.2), Color.mint.opacity(0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Text("🌿")
+                            .applyAppFont(size: 20)
+                    }
+                    .shadow(color: Color.green.opacity(0.2), radius: 8, x: 0, y: 4)
+                }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("garden.title"))
+                .accessibilityHint("View your Arium Garden")
                 
                 // Statistics Button
                 Button(action: {

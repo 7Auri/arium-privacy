@@ -105,10 +105,10 @@ struct HabitDetailWatchView: View {
                     }
                 }) {
                     HStack(spacing: 6) {
-                        Image(systemName: currentHabit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                        Image(systemName: getCompletionIcon(for: currentHabit))
                             .font(.headline)
                         
-                        Text(currentHabit.isCompletedToday ? L10n.t("habit.completed") : L10n.t("habit.complete"))
+                        Text(getCompletionText(for: currentHabit))
                             .fontWeight(.semibold)
                     }
                     .frame(maxWidth: .infinity)
@@ -186,5 +186,22 @@ struct HabitDetailWatchView: View {
         }
         .navigationTitle(currentHabit.title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+    private func getCompletionText(for habit: Habit) -> String {
+        if habit.dailyRepetitions > 1 {
+            if habit.isFullyCompletedToday {
+                return L10n.t("habit.completed")
+            } else {
+                return "\(L10n.t("habit.complete")) (\(habit.todayCompletions.count)/\(habit.dailyRepetitions))"
+            }
+        }
+        return habit.isCompletedToday ? L10n.t("habit.completed") : L10n.t("habit.complete")
+    }
+    
+    private func getCompletionIcon(for habit: Habit) -> String {
+        if habit.dailyRepetitions > 1 {
+            return habit.isFullyCompletedToday ? "checkmark.circle.fill" : "circle.dotted"
+        }
+        return habit.isCompletedToday ? "checkmark.circle.fill" : "circle"
     }
 }

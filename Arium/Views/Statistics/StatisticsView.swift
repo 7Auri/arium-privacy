@@ -136,11 +136,11 @@ struct StatisticsView: View {
                 .applyAppFont(size: 17, weight: .semibold)
                 .foregroundColor(AriumTheme.textPrimary)
                 .padding(.horizontal, 4)
-            
-            CompletionChartView(
+                        CompletionChartView(
                 dailyStats: viewModel.dailyStats,
                 accentColor: accentColor,
-                isPremium: viewModel.isPremium
+                isPremium: viewModel.isPremium,
+                target: viewModel.habit?.dailyRepetitions ?? 1
             )
         }
     }
@@ -182,80 +182,57 @@ struct StatisticsView: View {
     }
     
     private var additionalStatsView: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 16) {
             Text(L10n.t("statistics.details"))
                 .applyAppFont(size: 17, weight: .semibold)
                 .foregroundColor(AriumTheme.textPrimary)
                 .padding(.horizontal, 4)
             
-            VStack(spacing: 4) {
-                StatRow(
+            LazyVGrid(columns: [GridItem(.flexible()), GridItem(.flexible())], spacing: 16) {
+                StatCardItem(
                     icon: "percent",
                     title: L10n.t("statistics.completionRate"),
                     value: "\(Int(viewModel.completionRate * 100))%",
                     color: accentColor
                 )
-                .padding(.vertical, 4)
                 
-                Divider()
-                    .padding(.leading, 44)
-                
-                StatRow(
+                StatCardItem(
                     icon: "calendar",
                     title: L10n.t("statistics.daysTracked"),
                     value: "\(viewModel.dailyStats.count)",
                     color: AriumTheme.accent
                 )
-                .padding(.vertical, 4)
                 
-                Divider()
-                    .padding(.leading, 44)
-                
-                StatRow(
+                StatCardItem(
                     icon: "chart.line.uptrend.xyaxis",
                     title: L10n.t("statistics.consistency"),
                     value: getConsistencyText(),
                     color: AriumTheme.success
                 )
-                .padding(.vertical, 4)
                 
                 if viewModel.isPremium {
-                    Divider()
-                        .padding(.leading, 44)
-                    
-                    StatRow(
+                    StatCardItem(
                         icon: "flame.fill",
                         title: L10n.t("statistics.averageStreak"),
                         value: String(format: "%.1f", viewModel.averageStreak),
                         color: AriumTheme.warning
                     )
-                    .padding(.vertical, 4)
                     
-                    Divider()
-                        .padding(.leading, 44)
-                    
-                    StatRow(
+                    StatCardItem(
                         icon: "calendar.badge.clock",
                         title: L10n.t("statistics.weeklyCompletions"),
                         value: "\(viewModel.weeklyCompletions)",
                         color: accentColor
                     )
-                    .padding(.vertical, 4)
                     
-                    Divider()
-                        .padding(.leading, 44)
-                    
-                    StatRow(
+                    StatCardItem(
                         icon: "calendar",
                         title: L10n.t("statistics.monthlyCompletions"),
                         value: "\(viewModel.monthlyCompletions)",
                         color: AriumTheme.accent
                     )
-                    .padding(.vertical, 4)
                 }
             }
-            .padding(16)
-            .cardStyle()
         }
     }
     
@@ -273,30 +250,38 @@ struct StatisticsView: View {
     }
 }
 
-struct StatRow: View {
+struct StatCardItem: View {
     let icon: String
     let title: String
     let value: String
     let color: Color
     
     var body: some View {
-        HStack(spacing: 16) {
-            Image(systemName: icon)
-                .font(.title3)
-                .foregroundColor(color)
-                .frame(width: 28)
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Image(systemName: icon)
+                    .font(.system(size: 18))
+                    .foregroundColor(color)
+                    .frame(width: 32, height: 32)
+                    .background(color.opacity(0.1))
+                    .clipShape(Circle())
+                
+                Spacer()
+                
+                Text(value)
+                    .applyAppFont(size: 18, weight: .bold)
+                    .foregroundColor(AriumTheme.textPrimary)
+            }
             
             Text(title)
-                .applyAppFont(size: 17)
-                .foregroundColor(AriumTheme.textPrimary)
-            
-            Spacer()
-            
-            Text(value)
-                .applyAppFont(size: 17)
-                .fontWeight(.semibold)
+                .applyAppFont(size: 13)
                 .foregroundColor(AriumTheme.textSecondary)
+                .lineLimit(1)
         }
+        .padding(16)
+        .background(AriumTheme.cardBackground)
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.05), radius: 5, x: 0, y: 2)
     }
 }
 

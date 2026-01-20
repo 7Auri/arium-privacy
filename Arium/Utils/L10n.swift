@@ -139,6 +139,24 @@ enum L10n {
             "filter.week": "This Week",
             "habit.undo": "Undo",
             
+            // Garden
+            "garden.title": "Arium Garden",
+            "garden.water": "Water Drops",
+            "garden.water.action": "Water",
+            "garden.earn.water": "Complete habits to earn water!",
+            "garden.unlock": "Unlock",
+            "garden.locked": "Premium Plant",
+            "garden.locked.message": "Upgrade to Premium to grow this exotic plant!",
+            "garden.stage.seed": "Seed",
+            "garden.stage.sprout": "Sprout",
+            "garden.stage.growing": "Growing",
+            "garden.stage.mature": "Mature",
+            "plant.succulent": "Succulent",
+            "plant.monstera": "Monstera",
+            "plant.cactus": "Cactus",
+            "plant.fern": "Fern",
+            "plant.sunflower": "Sunflower",
+            
             // Greetings
             "greeting.night": "Good Night",
             "greeting.morning": "Good Morning",
@@ -654,7 +672,18 @@ enum L10n {
             "insights.recovery.title": "📈 Recovery",
             "insights.recovery.message": "'%@' has improved by %d%% in the last week! You're doing great! 🎉",
             
+            // ML Insights (New)
+            "insight.smartReminder.title": "✨ Best Time",
+            "insight.smartReminder.subtitle": "You often complete this habit around this time.",
+            "insight.successScope.title": "Success Scope",
+            "insight.successScope.high": "Looks great! You're likely to complete this.",
+            "insight.successScope.medium": "You can do it! Keep the momentum.",
+            "insight.successScope.low": "A bit risky. Try to do it soon!",
+            "button.use": "Use",
+
             // Insight Actions
+
+
             "insight.action.focus": "Focus on This Habit",
             "insight.action.updateGoal": "Update Goal",
             "insight.action.setReminder": "Set Reminder",
@@ -1469,7 +1498,18 @@ enum L10n {
             "insights.recovery.title": "📈 Toparlanma",
             "insights.recovery.message": "'%@' için son haftada %d%% iyileşme var! Harika gidiyorsunuz! 🎉",
             
+            // ML Insights (TR)
+            "insight.smartReminder.title": "✨ En İyi Zaman",
+            "insight.smartReminder.subtitle": "Bu alışkanlığı genelde bu saatlerde tamamlıyorsun.",
+            "insight.successScope.title": "Başarı Göstergesi",
+            "insight.successScope.high": "Harika görünüyor! Tamamlama ihtimalin yüksek.",
+            "insight.successScope.medium": "Yapabilirsin! Momentumunu koru.",
+            "insight.successScope.low": "Biraz riskli. Yakında tamamlamaya çalış!",
+            "button.use": "Kullan",
+            
             // Insight Actions (TR)
+
+
             "insight.action.focus": "Bu Alışkanlığa Odaklan",
             "insight.action.updateGoal": "Hedefi Güncelle",
             "insight.action.setReminder": "Hatırlatıcı Kur",
@@ -1481,9 +1521,9 @@ enum L10n {
             "insights.productiveDay.title": "%@ Şampiyonu 🏆",
             "insights.productiveDay.message": "Haftanın en verimli günü %@! Harika gidiyorsun.",
             "insights.monthlyTrend.up.title": "Yükseliştesin 📈",
-            "insights.monthlyTrend.up.message": "Bu ay geçen aya göre %%d daha fazla alışkanlık tamamladın.",
+            "insights.monthlyTrend.up.message": "Bu ay geçen aya göre %d%% daha fazla alışkanlık tamamladın.",
             "insights.monthlyTrend.down.title": "Biraz Yavaşladık 📉",
-            "insights.monthlyTrend.down.message": "Geçen aya göre %%d oranında bir düşüş var. Toparlanma zamanı!",
+            "insights.monthlyTrend.down.message": "Geçen aya göre %d%% oranında bir düşüş var. Toparlanma zamanı!",
             "insights.sentimentTrend.positive.title": "Pozitif Enerji Yükseliyor 🌈",
             "insights.sentimentTrend.positive.message": "Son zamanlarda aldığın notlar giderek daha pozitifleşiyor.",
             "insights.sentimentTrend.negative.title": "Duygusal Kontrol 💙",
@@ -1573,6 +1613,24 @@ enum L10n {
             "watch.app.title": "Arium",
             "watch.today": "Bugün",
             "watch.weeklyProgress": "Bu Hafta",
+            
+            // Garden
+            "garden.title": "Arium Bahçesi",
+            "garden.water": "Su Damlası",
+            "garden.water.action": "Sula",
+            "garden.earn.water": "Alışkanlık tamamlayarak su kazan!",
+            "garden.unlock": "Kilidi Aç",
+            "garden.locked": "Premium Bitki",
+            "garden.locked.message": "Bu egzotik bitkiyi büyütmek için Premium'a geç!",
+            "garden.stage.seed": "Tohum",
+            "garden.stage.sprout": "Filiz",
+            "garden.stage.growing": "Büyüyor",
+            "garden.stage.mature": "Yetişkin",
+            "plant.succulent": "Sukkulent",
+            "plant.monstera": "Deve Tabanı",
+            "plant.cactus": "Kaktüs",
+            "plant.fern": "Eğrelti Otu",
+            "plant.sunflower": "Ayçiçeği",
             
             // Errors
             "error.title": "Hata",
@@ -2127,6 +2185,15 @@ enum L10n {
             "insights.recovery.message": "'%@' hat sich in der letzten Woche um %d%% verbessert! Du machst großartig! 🎉",
             
             // Insight Actions (DE)
+            // ML Insights (New)
+            "insight.smartReminder.title": "✨ Beste Zeit",
+            "insight.smartReminder.subtitle": "Du erledigst diese Gewohnheit oft um diese Zeit.",
+            "insight.successScope.title": "Erfolgsprognose",
+            "insight.successScope.high": "Sieht gut aus! Du wirst es wahrscheinlich schaffen.",
+            "insight.successScope.medium": "Du schaffst das! Behalte den Schwung bei.",
+            "insight.successScope.low": "Etwas riskant. Versuch es bald zu erledigen!",
+            "button.use": "Verwenden",
+
             "insight.action.focus": "Auf diese Gewohnheit fokussieren",
             "insight.action.updateGoal": "Ziel aktualisieren",
             "insight.action.setReminder": "Erinnerung einstellen",
@@ -2789,6 +2856,15 @@ enum L10n {
             "insights.recovery.message": "'%@' s'est amélioré de %d%% cette semaine! Vous faites du bon travail! 🎉",
             
             // Insight Actions (FR)
+            // ML Insights (New)
+            "insight.smartReminder.title": "✨ Meilleur Moment",
+            "insight.smartReminder.subtitle": "Vous complétez souvent cette habitude à cette heure.",
+            "insight.successScope.title": "Prévision de Succès",
+            "insight.successScope.high": "C'est super ! Vous allez probablement réussir.",
+            "insight.successScope.medium": "Vous pouvez le faire ! Gardez le rythme.",
+            "insight.successScope.low": "Un peu risqué. Essayez de le faire bientôt !",
+            "button.use": "Utiliser",
+
             "insight.action.focus": "Se concentrer sur cette habitude",
             "insight.action.updateGoal": "Mettre à jour l'objectif",
             "insight.action.setReminder": "Définir un rappel",
@@ -4104,6 +4180,15 @@ enum L10n {
             "insights.recovery.message": "¡'%@' ha mejorado un %d%% esta semana! ¡Lo estás haciendo genial! 🎉",
             
             // Insight Actions (ES)
+            // ML Insights (New)
+            "insight.smartReminder.title": "✨ Mejor Momento",
+            "insight.smartReminder.subtitle": "Sueles completar este hábito a esta hora.",
+            "insight.successScope.title": "Probabilidad de Éxito",
+            "insight.successScope.high": "¡Se ve genial! Es probable que lo completes.",
+            "insight.successScope.medium": "¡Tú puedes! Mantén el impulso.",
+            "insight.successScope.low": "Un poco arriesgado. ¡Intenta hacerlo pronto!",
+            "button.use": "Usar",
+
             "insight.action.focus": "Enfocarse en este hábito",
             "insight.action.updateGoal": "Actualizar objetivo",
             "insight.action.setReminder": "Establecer recordatorio",
@@ -4920,6 +5005,15 @@ enum L10n {
             "insights.recovery.message": "'%@' è migliorato del %d%% questa settimana! Stai andando alla grande! 🎉",
             
             // Insight Actions (IT)
+            // ML Insights (New)
+            "insight.smartReminder.title": "✨ Miglior Orario",
+            "insight.smartReminder.subtitle": "Completi spesso questa abitudine a quest'ora.",
+            "insight.successScope.title": "Previsione Successo",
+            "insight.successScope.high": "Sembra ottimo! Probabilmente la completerai.",
+            "insight.successScope.medium": "Puoi farcela! Mantieni lo slancio.",
+            "insight.successScope.low": "Un po' rischioso. Prova a farlo presto!",
+            "button.use": "Usa",
+
             "insight.action.focus": "Concentrarsi su questa abitudine",
             "insight.action.updateGoal": "Aggiornare obiettivo",
             "insight.action.setReminder": "Impostare promemoria",

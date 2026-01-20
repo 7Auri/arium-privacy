@@ -41,10 +41,10 @@ class CloudSyncManager: ObservableObject {
         Task {
             let isAvailable = await checkAccountStatus()
             if isAvailable {
-                print("✅ iCloud CloudKit is available and enabled")
+                logger.info("✅ iCloud CloudKit is available and enabled")
                 await subscribeToChanges()
             } else {
-                print("⚠️ iCloud CloudKit is not available (check iCloud account or Developer account)")
+                logger.warning("⚠️ iCloud CloudKit is not available (check iCloud account or Developer account)")
             }
         }
     }
@@ -55,15 +55,15 @@ class CloudSyncManager: ObservableObject {
         // Check if running on simulator
         #if targetEnvironment(simulator)
         #if DEBUG
-        print("⚠️ CloudKit/iCloud has limited functionality on iOS Simulator")
-        print("⚠️ For full iCloud sync testing, please use a real device")
+        logger.warning("⚠️ CloudKit/iCloud has limited functionality on iOS Simulator")
+        logger.warning("⚠️ For full iCloud sync testing, please use a real device")
         #endif
         // On simulator, we'll still try but it may not work fully
         #endif
         
         guard let container = container else {
             #if DEBUG
-            print("⚠️ CloudKit container not initialized")
+            logger.warning("⚠️ CloudKit container not initialized")
             #endif
             await MainActor.run {
                 syncEnabled = false
@@ -80,32 +80,32 @@ class CloudSyncManager: ObservableObject {
             #if DEBUG
             switch status {
             case .available:
-                print("✅ iCloud account is available")
+                logger.info("✅ iCloud account is available")
             case .noAccount:
-                print("⚠️ No iCloud account signed in. Please sign in to iCloud in Settings.")
+                logger.warning("⚠️ No iCloud account signed in. Please sign in to iCloud in Settings.")
                 #if targetEnvironment(simulator)
-                print("⚠️ Note: iCloud may not work properly on Simulator - use a real device")
+                logger.warning("⚠️ Note: iCloud may not work properly on Simulator - use a real device")
                 #endif
             case .restricted:
-                print("⚠️ iCloud account is restricted (parental controls)")
+                logger.warning("⚠️ iCloud account is restricted (parental controls)")
             case .couldNotDetermine:
-                print("⚠️ Could not determine iCloud account status")
+                logger.warning("⚠️ Could not determine iCloud account status")
                 #if targetEnvironment(simulator)
-                print("⚠️ Note: This is common on Simulator - use a real device for testing")
+                logger.warning("⚠️ Note: This is common on Simulator - use a real device for testing")
                 #endif
             case .temporarilyUnavailable:
-                print("⚠️ iCloud account is temporarily unavailable")
+                logger.warning("⚠️ iCloud account is temporarily unavailable")
             @unknown default:
-                print("⚠️ Unknown iCloud account status")
+                logger.warning("⚠️ Unknown iCloud account status")
             }
             #endif
             
             return status == .available
         } catch {
             #if DEBUG
-            print("❌ iCloud account status check failed: \(error.localizedDescription)")
+            logger.error("❌ iCloud account status check failed: \(error.localizedDescription)")
             #if targetEnvironment(simulator)
-            print("⚠️ Note: CloudKit errors are common on Simulator - use a real device")
+            logger.warning("⚠️ Note: CloudKit errors are common on Simulator - use a real device")
             #endif
             #endif
             await MainActor.run {
@@ -318,7 +318,7 @@ class CloudSyncManager: ObservableObject {
                 case .success(let record):
                     return recordToHabit(record)
                 case .failure(let error):
-                    print("❌ Failed to fetch record: \(error)")
+                    logger.error("❌ Failed to fetch record: \(error.localizedDescription)")
                     return nil
                 }
             }
@@ -326,18 +326,18 @@ class CloudSyncManager: ObservableObject {
             // CloudKit'ten zaten sıralı geldi, ama emin olmak için tekrar sırala
             let sortedHabits = habits.sorted { $0.createdAt > $1.createdAt }
             
-            print("✅ Successfully downloaded \(sortedHabits.count) habits from iCloud")
+            logger.info("✅ Successfully downloaded \(sortedHabits.count) habits from iCloud")
             return sortedHabits
         } catch let error as CKError {
             // Queryable field hatası - record ID'leri kullanarak fetch et
             if error.code == .invalidArguments {
-                print("ℹ️ CloudKit query requires queryable fields. Trying alternative method...")
+                logger.info("ℹ️ CloudKit query requires queryable fields. Trying alternative method...")
                 return try await downloadHabitsByRecordIDs()
             }
-            print("❌ Failed to download habits: \(error)")
+            logger.error("❌ Failed to download habits: \(error.localizedDescription)")
             throw error
         } catch {
-            print("❌ Failed to download habits: \(error)")
+            logger.error("❌ Failed to download habits: \(error.localizedDescription)")
             throw error
         }
     }
@@ -368,34 +368,34 @@ class CloudSyncManager: ObservableObject {
                         case .success(let record):
                             return recordToHabit(record)
                         case .failure(let error):
-                            print("❌ Failed to fetch record: \(error)")
+                            logger.error("❌ Failed to fetch record: \(error.localizedDescription)")
                             return nil
                         }
                     }
                     allHabits.append(contentsOf: habits)
                 } catch {
                     // Zone query'si de başarısız olabilir
-                    print("⚠️ Failed to fetch records from zone: \(error.localizedDescription)")
+                    logger.warning("⚠️ Failed to fetch records from zone: \(error.localizedDescription)")
                 }
             }
             
             // Eğer zone yoksa veya zone query'si başarısız olduysa, boş liste döndür
             if allHabits.isEmpty {
-                print("ℹ️ No habits found in CloudKit zones. This might be normal for first sync.")
-                print("ℹ️ Note: CloudKit requires queryable fields to be configured in CloudKit Console.")
-                print("ℹ️ Go to: https://icloud.developer.apple.com/dashboard")
-                print("ℹ️ Schema > Record Types > Habit > Mark fields as Queryable")
+                logger.info("ℹ️ No habits found in CloudKit zones. This might be normal for first sync.")
+                logger.info("ℹ️ Note: CloudKit requires queryable fields to be configured in CloudKit Console.")
+                logger.info("ℹ️ Go to: https://icloud.developer.apple.com/dashboard")
+                logger.info("ℹ️ Schema > Record Types > Habit > Mark fields as Queryable")
                 return []
             }
             
             let sortedHabits = allHabits.sorted { $0.createdAt > $1.createdAt }
-            print("✅ Successfully downloaded \(sortedHabits.count) habits from iCloud (via zones)")
+            logger.info("✅ Successfully downloaded \(sortedHabits.count) habits from iCloud (via zones)")
             return sortedHabits
         } catch {
-            print("❌ Failed to download habits by zones: \(error)")
-            print("ℹ️ CloudKit query requires queryable fields. Returning empty list.")
-            print("ℹ️ Configure queryable fields in CloudKit Console:")
-            print("ℹ️ https://icloud.developer.apple.com/dashboard")
+            logger.error("❌ Failed to download habits by zones: \(error.localizedDescription)")
+            logger.info("ℹ️ CloudKit query requires queryable fields. Returning empty list.")
+            logger.info("ℹ️ Configure queryable fields in CloudKit Console:")
+            logger.info("ℹ️ https://icloud.developer.apple.com/dashboard")
             return []
         }
     }
@@ -409,9 +409,9 @@ class CloudSyncManager: ObservableObject {
         
         do {
             try await privateDatabase.deleteRecord(withID: recordID)
-            print("✅ Successfully deleted habit \(id) from iCloud")
+            logger.info("✅ Successfully deleted habit \(id) from iCloud")
         } catch {
-            print("❌ Failed to delete habit: \(error)")
+            logger.error("❌ Failed to delete habit: \(error.localizedDescription)")
             throw error
         }
     }
@@ -426,7 +426,7 @@ class CloudSyncManager: ObservableObject {
         }
         
         guard privateDatabase != nil else {
-            print("⚠️ iCloud database is not available")
+            logger.warning("⚠️ iCloud database is not available")
             throw NSError(domain: "CloudSyncManager", code: 2, userInfo: [NSLocalizedDescriptionKey: "iCloud database is not available"])
         }
         
@@ -448,11 +448,11 @@ class CloudSyncManager: ObservableObject {
             // Download'ı dene, eğer record type yoksa boş liste döndür
             do {
                 cloudHabits = try await downloadHabits()
-                print("📥 Downloaded \(cloudHabits.count) habits from iCloud")
+                logger.info("📥 Downloaded \(cloudHabits.count) habits from iCloud")
             } catch let error as CKError {
                 // Record type yoksa (ilk sync), sadece upload yap
                 if error.code == .unknownItem {
-                    print("ℹ️ Record type 'Habit' not found in CloudKit. Creating it by uploading habits...")
+                    logger.info("ℹ️ Record type 'Habit' not found in CloudKit. Creating it by uploading habits...")
                     cloudHabits = []
                 } else {
                     throw error
@@ -473,14 +473,14 @@ class CloudSyncManager: ObservableObject {
                     // Compare modification dates and keep newer
                     if cloudHabit.lastModified > localHabit.lastModified {
                         mergedHabits[cloudHabit.id] = cloudHabit
-                        print("🔄 Merged: Using cloud version for habit '\(cloudHabit.title)' (remote is newer)")
+                        logger.info("🔄 Merged: Using cloud version for habit '\(cloudHabit.title)' (remote is newer)")
                     } else {
-                        print("ℹ️ Keeping local version for habit '\(localHabit.title)' (local is newer)")
+                        logger.info("ℹ️ Keeping local version for habit '\(localHabit.title)' (local is newer)")
                     }
                 } else {
                     // New habit from cloud
                     mergedHabits[cloudHabit.id] = cloudHabit
-                    print("➕ Added new habit from cloud: '\(cloudHabit.title)'")
+                    logger.info("➕ Added new habit from cloud: '\(cloudHabit.title)'")
                 }
             }
             
@@ -488,7 +488,7 @@ class CloudSyncManager: ObservableObject {
             
             // Upload merged result back to cloud with conflict resolution
             try await uploadHabits(result)
-            print("📤 Uploaded \(result.count) habits to iCloud")
+            logger.info("📤 Uploaded \(result.count) habits to iCloud")
             
             await MainActor.run {
                 lastSyncDate = Date()
@@ -499,7 +499,7 @@ class CloudSyncManager: ObservableObject {
             await MainActor.run {
                 isSyncing = false
             }
-            print("❌ Sync failed: \(error)")
+            logger.error("❌ Sync failed: \(error.localizedDescription)")
             throw error
         }
     }

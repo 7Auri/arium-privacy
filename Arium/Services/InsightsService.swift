@@ -823,32 +823,44 @@ class InsightsService {
         var hourCompletionMap: [Int: Int] = [:]
         let calendar = Calendar.current
         
+        // Find global best time across all habits? Or specific habit?
+        // The plan says "Suggest the best time to set a reminder based on actual completion history."
+        // Usually best for a specific habit.
+        
         for habit in habits {
+            hourCompletionMap.removeAll()
+            // Analyze specific habit history
             for completionDate in habit.completionDates {
                 let hour = calendar.component(.hour, from: completionDate)
                 hourCompletionMap[hour, default: 0] += 1
             }
-        }
-        
-        guard let bestHour = hourCompletionMap.max(by: { $0.value < $1.value }),
-              bestHour.value > 5 else {
-            return nil
-        }
-        
-        let totalCompletions = hourCompletionMap.values.reduce(0, +)
-        let bestHourPercentage = Double(bestHour.value) / Double(totalCompletions)
-        
-        // Eğer belirli bir saatte %30'tan fazla tamamlama varsa
-        if bestHourPercentage > 0.3 {
-            let hourString = String(format: "%02d:00", bestHour.key)
-            return Insight(
-                type: .timeOptimizer,
-                title: L10n.t("insights.timeOptimizer.title"),
-                message: String(format: L10n.t("insights.timeOptimizer.message"), hourString),
-                relatedHabitId: nil,
-                suggestedActions: [.adjustSchedule(UUID())],
-                confidence: 0.75
-            )
+            
+            guard let bestHour = hourCompletionMap.max(by: { $0.value < $1.value }),
+                  bestHour.value > 3 else { // Min 3 completions to suggest
+                continue
+            }
+            
+            let totalCompletions = hourCompletionMap.values.reduce(0, +)
+            let bestHourPercentage = Double(bestHour.value) / max(1.0, Double(totalCompletions))
+            
+            // If > 40% of completions happen in this hour block
+            if bestHourPercentage > 0.4 {
+                let hourString = String(format: "%02d:00", bestHour.key)
+                
+                // We encode the hour in the message or title heavily?
+                // Or we assume the UI parses it? This is tricky without changing Insight struct.
+                // Let's change Insight struct or use a workaround.
+                // Workaround: Use title as "Best Time: 14:00" and UI checks for .timeOptimizer type.
+                
+                return Insight(
+                    type: .timeOptimizer,
+                    title: hourString, // Store hour directly in title for easy parsing/display
+                    message: String(format: L10n.t("insights.timeOptimizer.message"), hourString),
+                    relatedHabitId: habit.id,
+                    suggestedActions: [.adjustSchedule(habit.id)],
+                    confidence: 0.8
+                )
+            }
         }
         return nil
     }
@@ -942,6 +954,14 @@ class InsightsService {
         let dataQuality = min(1.0, Double(habit.completionDates.count) / 30.0)
         return 0.5 + (dataQuality * 0.3) // Base 0.5 + up to 0.3 based on data
     }
+    
+    /// Calculates daily success probability for a habit
+    func calculateDailySuccessProbability(habit: Habit) async -> Double {
+        if mlPredictor == nil {
+            mlPredictor = HabitMLPredictor()
+        }
+        return mlPredictor?.calculateDailyProbability(habit: habit) ?? 0.5
+    }
 }
 
 // MARK: - ML Predictor (Core ML Integration)
@@ -1018,6 +1038,60 @@ class HabitMLPredictor {
         // Fallback to rule-based confidence calculation
         return calculateConfidence(features: features, type: type, habit: habit)
     }
+    
+    /// Calculates the probability (0-100%) of completing the habit today
+    func calculateDailyProbability(habit: Habit) -> Double {
+        // 1. Weekday Consistency (50%)
+        let calendar = Calendar.current
+        let today = calendar.component(.weekday, from: Date())
+        
+        var matchCount = 0
+        var totalCount = 0
+        
+        let recentCompletions = habit.completionDates.sorted(by: >).prefix(40) // Look at last 40 completions
+        
+        for date in recentCompletions {
+            let weekday = calendar.component(.weekday, from: date)
+            if weekday == today {
+                matchCount += 1
+            }
+            totalCount += 1
+        }
+        
+        // Normalize: If we have history, how often is it this weekday?
+        // But better: How often do we complete on this weekday relative to expected?
+        // Let's look at last 8 weeks specific to this weekday.
+        let eightWeeksAgo = calendar.date(byAdding: .weekOfYear, value: -8, to: Date())!
+        let completionsSince = habit.completionDates.filter { $0 >= eightWeeksAgo }
+        
+        var weekdayCompletions = 0
+        for date in completionsSince {
+            if calendar.component(.weekday, from: date) == today {
+                weekdayCompletions += 1
+            }
+        }
+        
+        // Max score if completed 6-8 times in last 8 weeks on this day
+        let consistencyScore = min(1.0, Double(weekdayCompletions) / 6.0)
+        
+        // 2. Streak Bonus (30%)
+        let streakScore = min(1.0, Double(habit.streak) / 10.0)
+        
+        // 3. Time Decay (20%) - If it's late (e.g. 23:00) and not done, lower prob
+        let hour = calendar.component(.hour, from: Date())
+        var timeScore = 1.0
+        if hour >= 22 {
+            timeScore = 0.2
+        } else if hour >= 20 {
+            timeScore = 0.6
+        }
+        
+        // Weighted Average
+        let probability = (consistencyScore * 0.5) + (streakScore * 0.3) + (timeScore * 0.2)
+        
+        return max(0.1, min(0.99, probability))
+    }
+    
     
     /// Calculates confidence using rule-based algorithm (fallback)
     private func calculateConfidence(features: HabitFeatures, type: InsightType, habit: Habit) -> Double {

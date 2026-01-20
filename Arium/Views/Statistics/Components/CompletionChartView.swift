@@ -12,6 +12,7 @@ struct CompletionChartView: View {
     let dailyStats: [DailyStat]
     let accentColor: Color
     let isPremium: Bool
+    var target: Int = 1
     
     @State private var selectedDate: Date?
     
@@ -20,24 +21,29 @@ struct CompletionChartView: View {
             // Chart
             Chart {
                 ForEach(dailyStats) { stat in
+                    // Background (Target)
                     BarMark(
                         x: .value("Date", stat.date, unit: .day),
-                        y: .value("Completions", stat.completionCount)
+                        y: .value("Target", target)
                     )
-                    .foregroundStyle(
-                        stat.completed ?
-                        LinearGradient(
-                            colors: [accentColor, accentColor.opacity(0.7)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        ) :
-                        LinearGradient(
-                            colors: [AriumTheme.textTertiary.opacity(0.3)],
-                            startPoint: .top,
-                            endPoint: .bottom
-                        )
-                    )
+                    .foregroundStyle(AriumTheme.textTertiary.opacity(0.1))
                     .cornerRadius(4)
+                    
+                    // Foreground (Actual Completions)
+                    if stat.completionCount > 0 {
+                        BarMark(
+                            x: .value("Date", stat.date, unit: .day),
+                            y: .value("Completions", stat.completionCount)
+                        )
+                        .foregroundStyle(
+                            LinearGradient(
+                                colors: [accentColor, accentColor.opacity(0.7)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .cornerRadius(4)
+                    }
                 }
             }
             .chartXAxis {

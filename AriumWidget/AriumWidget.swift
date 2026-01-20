@@ -156,6 +156,13 @@ struct SmallWidgetView: View {
                             .font(.headline)
                             .lineLimit(1)
                         
+                        if firstHabit.dailyRepetitions > 1 {
+                            Text("\(firstHabit.todayCompletions.count)/\(firstHabit.dailyRepetitions)")
+                                .font(.caption2)
+                                .fontWeight(.bold)
+                                .foregroundColor(firstHabit.isFullyCompletedToday ? .green : .secondary)
+                        }
+
                         // Streak with progress
                         VStack(alignment: .leading, spacing: 4) {
                             HStack(spacing: 4) {
@@ -273,8 +280,15 @@ struct MediumWidgetView: View {
                                     .foregroundColor(.secondary)
                             }
                             
-                            Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                                .foregroundColor(habit.isCompletedToday ? .green : .gray)
+                            if habit.dailyRepetitions > 1 {
+                                Text("\(habit.todayCompletions.count)/\(habit.dailyRepetitions)")
+                                    .font(.caption2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(habit.isFullyCompletedToday ? .green : .secondary)
+                            } else {
+                                Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                                    .foregroundColor(habit.isCompletedToday ? .green : .gray)
+                            }
                         }
                     }
                     .buttonStyle(.plain)
@@ -385,10 +399,21 @@ struct LargeWidgetView: View {
                                 }
                                 
                                 Spacer()
-                                
-                                Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
-                                    .font(.title3)
-                                    .foregroundColor(habit.isCompletedToday ? .green : .gray)
+
+                                if habit.dailyRepetitions > 1 {
+                                    Text("\(habit.todayCompletions.count)/\(habit.dailyRepetitions)")
+                                        .font(.caption2)
+                                        .fontWeight(.bold)
+                                        .foregroundColor(habit.isFullyCompletedToday ? .green : .secondary)
+                                        .padding(.horizontal, 6)
+                                        .padding(.vertical, 2)
+                                        .background(Color.gray.opacity(0.1))
+                                        .cornerRadius(4)
+                                } else {
+                                    Image(systemName: habit.isCompletedToday ? "checkmark.circle.fill" : "circle")
+                                        .font(.title3)
+                                        .foregroundColor(habit.isCompletedToday ? .green : .gray)
+                                }
                             }
                             .padding(.vertical, 4)
                         }

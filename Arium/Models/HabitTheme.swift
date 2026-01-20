@@ -218,6 +218,22 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         accentColor: "#FF8C69"
     )
     
+    var isAvailable: Bool {
+        switch id {
+        case "christmas":
+            let calendar = Calendar.current
+            let month = calendar.component(.month, from: Date())
+            // Available in December (12) and January (1)
+            return month == 12 || month == 1
+        default:
+            return true
+        }
+    }
+    
+    static var availableThemes: [HabitTheme] {
+        allThemes.filter { $0.isAvailable }
+    }
+
     static let allThemes: [HabitTheme] = [
         // Original
         .purple, .blue, .green, .pink, .orange,
