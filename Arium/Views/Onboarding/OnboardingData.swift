@@ -13,7 +13,7 @@ struct OnboardingData {
             id: 0,
             titleKey: "onboarding.page1.title",
             subtitleKey: "onboarding.page1.subtitle",
-            iconName: "sparkles",
+            iconName: "leaf.fill",
             accentColor: AriumTheme.accent,
             showThemeSelector: false
         ),
@@ -21,16 +21,16 @@ struct OnboardingData {
             id: 1,
             titleKey: "onboarding.page2.title",
             subtitleKey: "onboarding.page2.subtitle",
-            iconName: "chart.line.uptrend.xyaxis",
-            accentColor: AriumTheme.success,
+            iconName: "drop.fill",
+            accentColor: Color.blue,
             showThemeSelector: false
         ),
         OnboardingPageModel(
             id: 2,
             titleKey: "onboarding.page3.title",
             subtitleKey: "onboarding.page3.subtitle",
-            iconName: "brain.head.profile",
-            accentColor: Color.blue,
+            iconName: "seal.fill",
+            accentColor: AriumTheme.warning, // Gold/Orange
             showThemeSelector: false
         ),
         OnboardingPageModel(
@@ -38,7 +38,7 @@ struct OnboardingData {
             titleKey: "onboarding.page4.title",
             subtitleKey: "onboarding.page4.subtitle",
             iconName: "paintpalette.fill",
-            accentColor: AriumTheme.warning,
+            accentColor: AriumTheme.accent,
             showThemeSelector: true
         )
     ]
