@@ -141,6 +141,7 @@ enum L10n {
             
             // Garden
             "garden.title": "Arium Garden",
+            "garden.add": "New Plant",
             "garden.water": "Water Drops",
             "garden.water.action": "Water",
             "garden.earn.water": "Complete habits to earn water!",
@@ -167,6 +168,7 @@ enum L10n {
             "habit.new": "New Habit",
             "habit.title": "Title",
             "habit.notes": "Notes",
+            "habit.notes.edit": "Edit Notes",
             "habit.streak": "Day Streak",
             "habit.theme": "Theme",
             "habit.detail": "Habit Details",
@@ -241,6 +243,9 @@ enum L10n {
             "premium.templates.message": "Habit templates are available for Premium members only. Upgrade to unlock 10+ ready-to-use habit templates!",
             
             // Settings
+            "button.settings": "Settings",
+            "notification.permission.title": "Notifications Disabled",
+            "notification.permission.message": "Please enable notifications in Settings to receive habit reminders.",
             "settings.title": "Settings",
             "settings.accessibility.hint": "Open settings to customize the app",
             "settings.language": "Language",
@@ -586,6 +591,7 @@ enum L10n {
             // Notifications
             "notification.reminder.title": "⏰ Habit Reminder",
             "notification.reminder.body": "Time to complete: %@",
+            "notification.reminder.time": "Reminder Time",
             "notification.completion.title": "🎉 Bravo!",
             "notification.completion.body": "You completed %@ today! Keep it up!",
             "notification.streak.warning.title": "🔥 Don't Break Your Streak!",
@@ -1013,6 +1019,7 @@ enum L10n {
             "habit.new": "Yeni Alışkanlık",
             "habit.title": "Başlık",
             "habit.notes": "Notlar",
+            "habit.notes.edit": "Notu Düzenle",
             "habit.streak": "Günlük Seri",
             "habit.theme": "Tema",
             "habit.detail": "Alışkanlık Detayları",
@@ -1087,6 +1094,9 @@ enum L10n {
             "premium.templates.message": "Alışkanlık şablonları sadece Premium üyeler için kullanılabilir. 10+ hazır alışkanlık şablonunu açmak için yükseltin!",
             
             // Settings
+            "button.settings": "Ayarlar",
+            "notification.permission.title": "Bildirimler Kapalı",
+            "notification.permission.message": "Hatırlatıcı almak için lütfen Ayarlar'dan bildirimlere izin verin.",
             "settings.title": "Ayarlar",
             "settings.accessibility.hint": "Uygulamayı özelleştirmek için ayarları aç",
             "settings.language": "Dil",
@@ -1111,6 +1121,18 @@ enum L10n {
             "settings.clearCache": "Cache Temizle",
             "settings.debug": "Hata Ayıklama",
             "settings.debug.togglePremium": "Premium Aç/Kapat (Debug)",
+            "settings.email.error": "Mail uygulaması açılamadı",
+            
+            // Certificate
+            "certificate.title": "Başarı Sertifikası",
+            "certificate.name.prompt": "Sertifika için ismini gir",
+            "certificate.name.placeholder": "Adın Soyadın",
+            "certificate.share": "Oluştur ve Paylaş",
+            "certificate.disclaimer": "Başarını dünyayla paylaş!",
+            "certificate.presented_to": "Sayın",
+            "certificate.description": "Arium ile kişisel gelişim ve düzenli alışkanlık oluşturma konusundaki üstün özverisi için.",
+            "certificate.date": "Tarih",
+            "certificate.get": "Sertifika Al",
             "settings.appTheme": "Uygulama Teması",
             "settings.appearance": "Görünüm",
             "settings.feedback.title": "Geri Bildirim & Destek",
@@ -1534,6 +1556,7 @@ enum L10n {
             // Notifications
             "notification.reminder.title": "⏰ Alışkanlık Hatırlatıcısı",
             "notification.reminder.body": "Tamamlama zamanı: %@",
+            "notification.reminder.time": "Hatırlatma Zamanı",
             "notification.completion.title": "🎉 Bravo!",
             "notification.completion.body": "Bugün %@ alışkanlığını tamamladın! Harika iş!",
             "notification.streak.warning.title": "🔥 Serini Kaybetme!",
@@ -1590,7 +1613,7 @@ enum L10n {
             "export.deselectAll": "Tümünü Kaldır",
             "export.selectedCount": "%d alışkanlık seçildi",
             "export.button": "Dışa Aktar",
-            "export.success.title": "Dışa Aktarma Başarılı",
+            "export.success.title": "Dışa Aktırma Başarılı",
             "export.success.message": "%d alışkanlık başarıyla dışa aktarıldı.",
             "import.success.title": "İçe Aktarma Başarılı",
             "import.success.message": "%d alışkanlık başarıyla içe aktarıldı.",
@@ -1616,6 +1639,7 @@ enum L10n {
             
             // Garden
             "garden.title": "Arium Bahçesi",
+            "garden.add": "Yeni Bitki",
             "garden.water": "Su Damlası",
             "garden.water.action": "Sula",
             "garden.earn.water": "Alışkanlık tamamlayarak su kazan!",
@@ -3189,7 +3213,7 @@ enum L10n {
             "template.stretch.description": "10 minutes d'étirements",
             "template.teeth.title": "Se brosser les dents deux fois",
             "template.teeth.description": "Brossage matin et soir",
-            "template.skincare.title": "Routine de soins de la peau",
+            "template.skincare.title": "Cilt Bakımı",
             "template.skincare.description": "Régime complet de soins de la peau",
             
             // Quick Actions
@@ -3598,6 +3622,18 @@ enum L10n {
             "premium.templates.message": "Las plantillas de hábitos están disponibles solo para miembros Premium. ¡Actualiza para desbloquear más de 10 plantillas de hábitos listas para usar!",
             
             // Settings
+            "settings.email.error": "Could not open mail client",
+            
+            // Certificate
+            "certificate.title": "Achievement Certificate",
+            "certificate.name.prompt": "Enter your name for the certificate",
+            "certificate.name.placeholder": "Your Name",
+            "certificate.share": "Generate & Share",
+            "certificate.disclaimer": "Share your success with the world!",
+            "certificate.presented_to": "Presented to",
+            "certificate.description": "For outstanding dedication to personal growth and consistent habit building with Arium.",
+            "certificate.date": "Date",
+            "certificate.get": "Get Certificate",
             "settings.title": "Configuración",
             "settings.accessibility.hint": "Abrir configuración para personalizar la aplicación",
             "settings.language": "Idioma",

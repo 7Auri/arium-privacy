@@ -88,35 +88,62 @@ class HabitDetailViewModel: ObservableObject {
         store.updateHabit(habit)
     }
     
+    func updateNotes(_ notes: String, store: HabitStore) {
+        habit.notes = notes
+        store.updateHabit(habit)
+    }
+    
+    @Published var showingPermissionAlert = false
+    
     func toggleReminder(_ enabled: Bool, store: HabitStore) {
-        habit.isReminderEnabled = enabled
-        
         if enabled {
-            // Set default times if not set
-            if habit.reminderTimes == nil || habit.reminderTimes!.isEmpty {
-                let calendar = Calendar.current
-                let defaultTime = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
-                
-                // If we have a legacy time, us that
-                let timeToUse = habit.reminderTime ?? defaultTime
-                
-                habit.reminderTimes = Array(repeating: timeToUse, count: max(1, habit.dailyRepetitions))
-                habit.reminderTime = timeToUse
-                
-                editableReminderTimes = habit.reminderTimes!
-                editableReminderTime = timeToUse
-            }
-            
-            // Schedule
+            // Check permission first
             Task {
-                await notificationManager.scheduleHabitReminder(for: habit)
+                if !notificationManager.isAuthorized {
+                    let granted = await notificationManager.requestAuthorization()
+                    if !granted {
+                        await MainActor.run {
+                            // Revert toggle if permission denied
+                            habit.isReminderEnabled = false
+                            showingPermissionAlert = true
+                            store.updateHabit(habit)
+                        }
+                        return
+                    }
+                }
+                
+                await MainActor.run {
+                    habit.isReminderEnabled = true
+                    
+                    // Set default times if not set
+                    if habit.reminderTimes == nil || habit.reminderTimes!.isEmpty {
+                        let calendar = Calendar.current
+                        let defaultTime = calendar.date(bySettingHour: 9, minute: 0, second: 0, of: Date()) ?? Date()
+                        
+                        // If we have a legacy time, use that
+                        let timeToUse = habit.reminderTime ?? defaultTime
+                        
+                        habit.reminderTimes = Array(repeating: timeToUse, count: max(1, habit.dailyRepetitions))
+                        habit.reminderTime = timeToUse
+                        
+                        editableReminderTimes = habit.reminderTimes!
+                        editableReminderTime = timeToUse
+                    }
+                    
+                    // Schedule
+                    Task {
+                        await notificationManager.scheduleHabitReminder(for: habit)
+                    }
+                    
+                    store.updateHabit(habit)
+                }
             }
         } else {
+            habit.isReminderEnabled = false
             // Cancel notification
             notificationManager.cancelHabitReminder(for: habit.id)
+            store.updateHabit(habit)
         }
-        
-        store.updateHabit(habit)
     }
     
     // Updates a specific reminder slot

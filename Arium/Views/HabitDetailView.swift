@@ -16,6 +16,8 @@ struct HabitDetailView: View {
     
     @State private var showingNoteAlert = false
     @State private var noteText = ""
+    @State private var showingEditNotesSheet = false
+    @State private var editableNotes = ""
     @State private var showingShareSheet = false
     @State private var shareImage: UIImage?
     @State private var toast: ToastItem?
@@ -67,10 +69,23 @@ struct HabitDetailView: View {
             .sheet(isPresented: $showingNoteAlert) {
                 noteSheetView
             }
+            .sheet(isPresented: $showingEditNotesSheet) {
+                editNotesSheet
+            }
             .alert(L10n.t("habit.delete.confirm"), isPresented: $viewModel.showingDeleteAlert) {
                 deleteAlertButtons
             } message: {
                 Text(L10n.t("habit.delete.message"))
+            }
+            .alert(L10n.t("notification.permission.title"), isPresented: $viewModel.showingPermissionAlert) {
+                Button(L10n.t("button.settings")) {
+                    if let url = URL(string: UIApplication.openSettingsURLString) {
+                        UIApplication.shared.open(url)
+                    }
+                }
+                Button(L10n.t("button.cancel"), role: .cancel) { }
+            } message: {
+                Text(L10n.t("notification.permission.message"))
             }
             .toast($toast)
         }
@@ -115,6 +130,20 @@ struct HabitDetailView: View {
                             .font(.headline)
                             .fontWeight(.semibold)
                             .foregroundStyle(.primary)
+                        
+                        Spacer()
+                        
+                        Button {
+                            editableNotes = viewModel.habit.notes
+                            showingEditNotesSheet = true
+                        } label: {
+                            Image(systemName: "pencil")
+                                .font(.system(size: 14, weight: .bold))
+                                .foregroundColor(viewModel.habit.theme.accent)
+                                .padding(8)
+                                .background(viewModel.habit.theme.accent.opacity(0.1))
+                                .clipShape(Circle())
+                        }
                     }
                     
                     Text(viewModel.habit.notes)
@@ -135,6 +164,49 @@ struct HabitDetailView: View {
                 )
             }
         }
+    }
+    
+    // MARK: - Edit Notes Sheet
+    
+    private var editNotesSheet: some View {
+        NavigationStack {
+            VStack {
+                TextEditor(text: $editableNotes)
+                    .font(.body)
+                    .padding(8)
+                    .scrollContentBackground(.hidden) // Remove default background
+                    .background(Color(.secondarySystemBackground))
+                    .cornerRadius(12)
+                    .padding()
+                
+                Spacer()
+            }
+            .background(Color(.systemBackground))
+            .navigationTitle(L10n.t("habit.notes.edit"))
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button(L10n.t("button.cancel")) {
+                        showingEditNotesSheet = false
+                    }
+                }
+                
+                ToolbarItem(placement: .confirmationAction) {
+                    Button(L10n.t("button.save")) {
+                        viewModel.updateNotes(editableNotes, store: habitStore)
+                        showingEditNotesSheet = false
+                        
+                        // Show toast
+                        let appThemeManager = AppThemeManager.shared
+                        let message = appThemeManager.accentColor == .cat ? L10n.t("habit.update.success.cat") : L10n.t("habit.update.success")
+                        toast = ToastItem(message: message, type: .success)
+                    }
+                    .fontWeight(.bold)
+                    .foregroundStyle(viewModel.habit.theme.accent)
+                }
+            }
+        }
+        .presentationDetents([.medium, .large])
     }
     
     // MARK: - Success Scope (ML Feature)

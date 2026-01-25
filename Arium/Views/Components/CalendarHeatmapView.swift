@@ -119,7 +119,7 @@ struct CalendarHeatmapView: View {
             
             // Weekday labels
             HStack(spacing: 2) {
-                ForEach(weekdaySymbols, id: \.self) { day in
+                ForEach(Array(weekdaySymbols.enumerated()), id: \.offset) { _, day in
                     Text(day)
                         .applyAppFont(size: 10, weight: .medium)
                         .foregroundStyle(AriumTheme.textTertiary)

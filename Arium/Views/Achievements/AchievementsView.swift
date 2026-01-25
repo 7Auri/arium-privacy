@@ -13,6 +13,7 @@ struct AchievementsView: View {
     @EnvironmentObject var habitStore: HabitStore
     @EnvironmentObject var premiumManager: PremiumManager
     @State private var selectedCategory: AchievementCategory? = nil
+    @State private var showingCertificate = false
     
     var body: some View {
         ScrollView {
@@ -41,6 +42,9 @@ struct AchievementsView: View {
         )
         .onAppear {
             achievementManager.markAllAsSeen()
+        }
+        .sheet(isPresented: $showingCertificate) {
+            CertificateView()
         }
     }
     
@@ -236,10 +240,43 @@ struct AchievementsView: View {
                         }
                     }
                 }
+                // Certificate Button
+                certificateButton
             }
             .padding(.horizontal, 4)
         }
         .scrollBounceBehavior(.basedOnSize)
+    }
+    
+    private var certificateButton: some View {
+        Button {
+            showingCertificate = true
+        } label: {
+            HStack(spacing: 6) {
+                Image(systemName: "seal.fill")
+                    .applyAppFont(size: 14, weight: .semibold)
+                Text(L10n.t("certificate.get"))
+                    .applyAppFont(size: 13, weight: .semibold)
+            }
+            .foregroundStyle(.white)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 10)
+            .background(
+                Capsule()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                Color(red: 0.83, green: 0.69, blue: 0.22), // Gold
+                                Color(red: 0.77, green: 0.63, blue: 0.16)  // Dark Gold
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
+                    .shadow(color: Color.black.opacity(0.1), radius: 4, x: 0, y: 2)
+            )
+        }
+        .buttonStyle(.plain)
     }
     
     // MARK: - Achievements Grid

@@ -120,22 +120,12 @@ struct PlantCard: View {
                     .frame(height: 120)
                 
                 ZStack {
-                    // Soft warm gradient
-                    LinearGradient(
-                        colors: [
-                            Color(red: 0.98, green: 0.95, blue: 0.90),
-                            Color(red: 0.95, green: 0.92, blue: 0.85)
-                        ],
-                        startPoint: .topLeading,
-                        endPoint: .bottomTrailing
-                    )
-                    .frame(width: 100, height: 100)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
-                    
                     Image(plant.imageName)
                         .resizable()
                         .scaledToFit()
                         .frame(height: 100)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .shadow(radius: 4, y: 2)
                 }
             }
             
@@ -178,7 +168,7 @@ struct AddPlantCard: View {
                     .foregroundColor(isLocked ? .secondary : .accentColor)
             }
             
-            Text(isLocked ? L10n.t("garden.unlock") : L10n.t("garden.water.action")) // Reusing logic roughly
+            Text(isLocked ? L10n.t("garden.unlock") : L10n.t("garden.add"))
                 .font(.headline)
                 .foregroundColor(isLocked ? .secondary : .primary)
                 .opacity(0) // Spacer
