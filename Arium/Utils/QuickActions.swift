@@ -9,9 +9,9 @@ import UIKit
 
 /// Home Screen Quick Actions (3D Touch / Long Press)
 enum QuickAction: String {
-    case addHabit = "zorbey.Arium.addHabit"
-    case viewStatistics = "zorbey.Arium.viewStatistics"
-    case todayHabits = "zorbey.Arium.todayHabits"
+    case addHabit = "com.zorbeyteam.arium.addHabit"
+    case viewStatistics = "com.zorbeyteam.arium.viewStatistics"
+    case todayHabits = "com.zorbeyteam.arium.todayHabits"
     
     var type: String {
         return rawValue

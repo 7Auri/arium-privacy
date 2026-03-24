@@ -49,7 +49,7 @@ struct CategoryProvider: TimelineProvider {
     }
     
     private func getSelectedCategory() -> HabitCategoryType? {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let categoryString = sharedDefaults.string(forKey: "CategoryWidget.selectedCategory") else {
             return nil
         }
@@ -57,7 +57,7 @@ struct CategoryProvider: TimelineProvider {
     }
     
     private func loadHabits(for category: HabitCategoryType?) -> [Habit] {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let allHabits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
@@ -72,7 +72,7 @@ struct CategoryProvider: TimelineProvider {
     }
     
     private func hasSampleData() -> Bool {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let _ = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return false

@@ -20,7 +20,7 @@ final class IntegrationTests: XCTestCase {
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
         
         // Clear shared UserDefaults (App Groups)
-        if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") {
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
             sharedDefaults.removeObject(forKey: "SavedHabits")
         }
     }
@@ -29,7 +29,7 @@ final class IntegrationTests: XCTestCase {
         habitStore = nil
         UserDefaults.standard.removeObject(forKey: "SavedHabits")
         
-        if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") {
+        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
             sharedDefaults.removeObject(forKey: "SavedHabits")
         }
         
@@ -120,7 +120,7 @@ final class IntegrationTests: XCTestCase {
         try habitStore.addHabit(habit)
         
         // Verify data is saved to shared UserDefaults
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let loadedHabits = try? JSONDecoder().decode([Habit].self, from: data) else {
             return

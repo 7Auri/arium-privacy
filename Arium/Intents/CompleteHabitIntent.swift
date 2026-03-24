@@ -18,7 +18,7 @@ struct CompleteHabitIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         // Load habits to show count
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return .result(dialog: "Opening Arium...")
@@ -44,7 +44,7 @@ struct ShowTodayHabitsIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         // Load habits
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return .result(dialog: "No habits found")

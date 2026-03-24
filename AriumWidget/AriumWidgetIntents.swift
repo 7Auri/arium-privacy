@@ -27,7 +27,7 @@ struct ToggleHabitIntent: AppIntent {
     
     func perform() async throws -> some IntentResult & ProvidesDialog {
         // Load habits from App Groups
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               var habits = try? CodingCache.decoder.decode([Habit].self, from: data),
               let index = habits.firstIndex(where: { $0.id.uuidString == habitId }) else {

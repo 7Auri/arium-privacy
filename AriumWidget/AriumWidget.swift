@@ -50,7 +50,7 @@ struct Provider: TimelineProvider {
     }
     
     private func loadHabits() -> [Habit] {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
@@ -59,7 +59,7 @@ struct Provider: TimelineProvider {
     }
     
     private func hasSampleData() -> Bool {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let _ = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return false

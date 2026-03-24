@@ -8,7 +8,7 @@
 import Foundation
 
 struct SharedDefaults {
-    static let suiteName = "group.zorbey.Arium"
+    static let suiteName = "group.com.zorbeyteam.arium"
     
     static let store: UserDefaults = {
         UserDefaults(suiteName: suiteName) ?? .standard

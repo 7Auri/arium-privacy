@@ -48,7 +48,7 @@ struct WatchProvider: TimelineProvider {
     
     // Fast version - minimal logging to avoid SIGTERM
     private func loadHabitsFast() -> [Habit] {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits"),
               let habits = try? CodingCache.decoder.decode([Habit].self, from: data) else {
             return []
@@ -58,7 +58,7 @@ struct WatchProvider: TimelineProvider {
     
     // Detailed version for debugging (use sparingly)
     private func loadHabits() -> [Habit] {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") else {
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") else {
             return []
         }
         
@@ -74,7 +74,7 @@ struct WatchProvider: TimelineProvider {
     }
     
     private func hasSampleData() -> Bool {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
               let data = sharedDefaults.data(forKey: "SavedHabits") else {
             return false
         }

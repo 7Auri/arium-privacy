@@ -6,7 +6,7 @@
 	<string>development</string>
 	<key>com.apple.developer.icloud-container-identifiers</key>
 	<array>
-		<string>iCloud.com.zorbeyteam.arium</string>
+		<string>iCloud.Cloud.com.zorbeyteam.arium</string>
 	</array>
 	<key>com.apple.developer.icloud-services</key>
 	<array>
