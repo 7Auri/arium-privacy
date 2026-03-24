@@ -89,8 +89,8 @@ All HTML files use inline CSS for easy customization. Colors use the Arium brand
 ## 📧 Contact
 
 For questions or updates:
-- Email: support@zorbeyteam.com
-- Website: https://zorbeyteam.com/arium
+- Email: hello.ariumapp@gmail.com
+- Website: https://7Auri.github.io/arium-privacy
 
 ## 📄 License
 

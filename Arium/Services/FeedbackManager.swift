@@ -20,7 +20,7 @@ class FeedbackManager: ObservableObject {
     // Strong reference to retain the mail compose delegate while the composer is presented
     private var mailComposeDelegate: MailComposeDelegate?
     
-    private let supportEmail = "support@zorbeyteam.com"
+    private let supportEmail = "hello.ariumapp@gmail.com"
     private static let appName = "Arium"
     private static var appVersion: String {
         Bundle.main.displayVersion

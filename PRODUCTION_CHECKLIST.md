@@ -337,7 +337,7 @@ reminderTime    Date/Time
 First Name: [Your Name]
 Last Name: [Your Last Name]
 Phone: [Your Phone]
-Email: support@zorbeyteam.com
+Email: hello.ariumapp@gmail.com
 
 Demo Account: Not required (no login)
 ```
@@ -369,7 +369,7 @@ TESTING NOTIFICATIONS:
 The app is fully functional without any external dependencies.
 All data is stored locally and optionally in user's iCloud.
 
-Contact: support@zorbeyteam.com
+Contact: hello.ariumapp@gmail.com
 ```
 
 ---
@@ -474,10 +474,10 @@ xcodebuild clean -project Arium.xcodeproj -scheme Arium
 ## 📞 Support Contacts
 
 ```
-Email: support@zorbeyteam.com
-Website: https://zorbeyteam.com/arium
-Privacy: privacy@zorbeyteam.com
-DPO: dpo@zorbeyteam.com (GDPR)
+Email: hello.ariumapp@gmail.com
+Website: https://7Auri.github.io/arium-privacy
+Privacy: hello.ariumapp@gmail.com
+DPO: hello.ariumapp@gmail.com (GDPR)
 ```
 
 ---

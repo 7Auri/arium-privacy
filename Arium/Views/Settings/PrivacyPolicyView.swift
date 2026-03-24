@@ -120,7 +120,7 @@ struct PrivacyPolicyView: View {
                             • Right to data portability
                             • Right to object to processing
                             
-                            Contact: privacy@zorbeyteam.com
+                            Contact: hello.ariumapp@gmail.com
                             """
                         )
                         
@@ -129,8 +129,8 @@ struct PrivacyPolicyView: View {
                             content: """
                             If you have questions about this Privacy Policy:
                             
-                            Email: support@zorbeyteam.com
-                            Website: https://zorbeyteam.com/arium
+                            Email: hello.ariumapp@gmail.com
+                            Website: https://7Auri.github.io/arium-privacy
                             """
                         )
                     }
@@ -172,7 +172,7 @@ struct PrivacyPolicyView: View {
                 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        if let url = URL(string: "https://zorbeyteam.github.io/arium-privacy/privacy.html") {
+                        if let url = URL(string: "https://7Auri.github.io/arium-privacy/privacy.html") {
                             UIApplication.shared.open(url)
                         }
                     } label: {

@@ -157,8 +157,8 @@ struct TermsOfServiceView: View {
                             content: """
                             For questions about these Terms:
                             
-                            Email: support@zorbeyteam.com
-                            Website: https://zorbeyteam.com/arium
+                            Email: hello.ariumapp@gmail.com
+                            Website: https://7Auri.github.io/arium-privacy
                             """
                         )
                     }
@@ -175,7 +175,7 @@ struct TermsOfServiceView: View {
                             summaryItem(icon: "app.badge", text: "What we provide: The App \"as is\" with regular updates")
                             summaryItem(icon: "lock.shield", text: "What we don't do: Access your data or guarantee 100% uptime")
                             summaryItem(icon: "dollarsign.circle", text: "Refunds: Handled by Apple")
-                            summaryItem(icon: "envelope", text: "Questions: support@zorbeyteam.com")
+                            summaryItem(icon: "envelope", text: "Questions: hello.ariumapp@gmail.com")
                         }
                     }
                     .padding(16)
@@ -201,7 +201,7 @@ struct TermsOfServiceView: View {
                 
                 ToolbarItem(placement: .primaryAction) {
                     Button {
-                        if let url = URL(string: "https://zorbeyteam.github.io/arium-privacy/terms.html") {
+                        if let url = URL(string: "https://7Auri.github.io/arium-privacy/terms.html") {
                             UIApplication.shared.open(url)
                         }
                     } label: {
