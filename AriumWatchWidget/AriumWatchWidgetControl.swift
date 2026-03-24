@@ -13,7 +13,7 @@ import WidgetKit
 struct AriumWatchWidgetControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
-            kind: "zorbey.Arium.watchkitapp.AriumWatchWidget",
+            kind: "com.zorbeyteam.arium.watchkitapp.AriumWatchWidget",
             provider: Provider()
         ) { value in
             ControlWidgetToggle(

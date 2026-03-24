@@ -12,7 +12,7 @@ import WidgetKit
 struct AriumWidgetControl: ControlWidget {
     var body: some ControlWidgetConfiguration {
         StaticControlConfiguration(
-            kind: "zorbey.Arium.AriumWidget",
+            kind: "com.zorbeyteam.arium.AriumWidget",
             provider: Provider()
         ) { value in
             ControlWidgetToggle(

@@ -1297,7 +1297,7 @@ struct SettingsView: View {
             }
             .listRowBackground(Color(.secondarySystemGroupedBackground))
             
-            Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
+            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/privacy.html") ?? URL(string: "https://7Auri.github.io/arium-privacy")!) {
                 HStack {
                     Text(L10n.t("settings.privacyPolicy"))
                         .foregroundStyle(.primary)
@@ -1311,7 +1311,7 @@ struct SettingsView: View {
             }
             .listRowBackground(Color(.secondarySystemGroupedBackground))
             
-            Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
+            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/terms.html") ?? URL(string: "https://7Auri.github.io/arium-privacy")!) {
                 HStack {
                     Text(L10n.t("settings.termsOfService"))
                         .foregroundStyle(.primary)
