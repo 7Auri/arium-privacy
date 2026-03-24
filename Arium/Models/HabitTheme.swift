@@ -223,8 +223,9 @@ struct HabitTheme: Identifiable, Codable, Equatable {
         case "christmas":
             let calendar = Calendar.current
             let month = calendar.component(.month, from: Date())
-            // Available in December (12) and January (1)
-            return month == 12 || month == 1
+            let day = calendar.component(.day, from: Date())
+            // Available December 1 - January 7
+            return (month == 12 && day >= 1) || (month == 1 && day <= 7)
         default:
             return true
         }

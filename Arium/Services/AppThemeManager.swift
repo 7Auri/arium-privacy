@@ -50,7 +50,7 @@ enum AppAccentColor: String, CaseIterable, Identifiable {
     var specialOccasionDateRange: (start: (month: Int, day: Int), end: (month: Int, day: Int))? {
         switch self {
         case .christmas:
-            return ((12, 1), (12, 31)) // December 1-31
+            return ((12, 1), (1, 7)) // December 1 - January 7
         default:
             return nil
         }

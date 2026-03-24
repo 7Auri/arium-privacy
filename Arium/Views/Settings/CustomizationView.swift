@@ -21,7 +21,7 @@ struct CustomizationView: View {
     }
     
     private var specialOccasionThemes: [AppAccentColor] {
-        AppAccentColor.allCases.filter { $0.isSpecialOccasion }
+        AppAccentColor.allCases.filter { $0.isSpecialOccasion && $0.isCurrentlyActive }
     }
     
     var body: some View {
