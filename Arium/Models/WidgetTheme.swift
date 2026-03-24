@@ -73,7 +73,7 @@ class WidgetThemeManager: ObservableObject {
     
     func loadTheme() {
         // First try App Group (widgets can access)
-        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+        if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
            let savedTheme = sharedDefaults.string(forKey: appGroupSaveKey),
            let theme = WidgetTheme(rawValue: savedTheme) {
             selectedTheme = theme
@@ -85,7 +85,7 @@ class WidgetThemeManager: ObservableObject {
            let theme = WidgetTheme(rawValue: savedTheme) {
             selectedTheme = theme
             // Also save to App Group for widget access
-            if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+            if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") {
                 sharedDefaults.set(theme.rawValue, forKey: appGroupSaveKey)
                 sharedDefaults.synchronize()
             }
@@ -98,7 +98,7 @@ class WidgetThemeManager: ObservableObject {
         // Save to both local and App Group
         UserDefaults.standard.set(theme.rawValue, forKey: saveKey)
         
-        if let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") {
+        if let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") {
             sharedDefaults.set(theme.rawValue, forKey: appGroupSaveKey)
             sharedDefaults.synchronize()
         }

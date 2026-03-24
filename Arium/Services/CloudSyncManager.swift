@@ -34,7 +34,7 @@ class CloudSyncManager: ObservableObject {
     
     private init() {
         // CloudKit container'ı initialize et
-        container = CKContainer(identifier: "iCloud.com.zorbeyteam.arium")
+        container = CKContainer(identifier: "iCloud.zorbey.Arium")
         privateDatabase = container?.privateCloudDatabase
         
         // Account status'u kontrol et (async)

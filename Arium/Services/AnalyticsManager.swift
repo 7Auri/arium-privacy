@@ -12,7 +12,7 @@ import OSLog
 class AnalyticsManager: ObservableObject {
     static let shared = AnalyticsManager()
     
-    private let logger = Logger(subsystem: "com.zorbeyteam.arium", category: "Analytics")
+    private let logger = Logger(subsystem: "zorbey.Arium", category: "Analytics")
     private let userDefaults = UserDefaults.standard
     
     // Analytics keys

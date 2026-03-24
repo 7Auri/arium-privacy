@@ -70,8 +70,8 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     
     func loadHabits() {
         // Load from shared UserDefaults (App Groups)
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium") else {
-            print("❌ Watch: Failed to access App Groups 'group.com.zorbeyteam.arium'")
+        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium") else {
+            print("❌ Watch: Failed to access App Groups 'group.zorbey.Arium'")
             return
         }
         
@@ -127,7 +127,7 @@ class WatchHabitViewModel: NSObject, ObservableObject {
     }
     
     private func saveHabitsToAppGroups(_ habitsToSave: [Habit]) {
-        guard let sharedDefaults = UserDefaults(suiteName: "group.com.zorbeyteam.arium"),
+        guard let sharedDefaults = UserDefaults(suiteName: "group.zorbey.Arium"),
               let data = try? CodingCache.compactEncoder.encode(habitsToSave) else {
             print("❌ Watch: Failed to save habits to App Groups")
             return
