@@ -53,6 +53,8 @@ struct SettingsView: View {
     @StateObject private var analyticsManager = AnalyticsManager.shared
     @State private var showingMailComposer = false
     @State private var currentFeedbackType: FeedbackManager.FeedbackType?
+    @State private var showingPrivacyPolicy = false
+    @State private var showingTermsOfService = false
     
     // MARK: - Computed Properties
     
@@ -689,7 +691,9 @@ struct SettingsView: View {
                     .fill(Color(.secondarySystemBackground))
             )
             
-            Link(destination: URL(string: "https://zorbeyteam.com/arium/privacy") ?? URL(string: "https://zorbeyteam.com")!) {
+            Button {
+                showingPrivacyPolicy = true
+            } label: {
                 HStack {
                     Text(L10n.t("settings.privacyPolicy"))
                         .applyAppFont(size: 15, weight: .medium)
@@ -697,7 +701,7 @@ struct SettingsView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "arrow.up.right.square")
+                    Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -708,8 +712,15 @@ struct SettingsView: View {
                         .fill(Color(.secondarySystemBackground))
                 )
             }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingPrivacyPolicy) {
+                PrivacyPolicyView()
+                    .environmentObject(appThemeManager)
+            }
             
-            Link(destination: URL(string: "https://zorbeyteam.com/arium/terms") ?? URL(string: "https://zorbeyteam.com")!) {
+            Button {
+                showingTermsOfService = true
+            } label: {
                 HStack {
                     Text(L10n.t("settings.termsOfService"))
                         .applyAppFont(size: 15, weight: .medium)
@@ -717,7 +728,7 @@ struct SettingsView: View {
                     
                     Spacer()
                     
-                    Image(systemName: "arrow.up.right.square")
+                    Image(systemName: "chevron.right")
                         .font(.system(size: 14, weight: .semibold))
                         .foregroundStyle(.secondary)
                 }
@@ -727,6 +738,11 @@ struct SettingsView: View {
                     RoundedRectangle(cornerRadius: 16)
                         .fill(Color(.secondarySystemBackground))
                 )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .sheet(isPresented: $showingTermsOfService) {
+                TermsOfServiceView()
+                    .environmentObject(appThemeManager)
             }
         }
     }
