@@ -570,6 +570,8 @@ struct SettingsView: View {
         }
     }
     
+    @State private var showingDeleteAllConfirmation = false
+    
     private var dataManagementCard: some View {
         VStack(spacing: 12) {
             ModernSettingsCard(
@@ -596,6 +598,37 @@ struct SettingsView: View {
                     showingImportPicker = true
                 }
             )
+            
+            ModernSettingsCard(
+                iconName: "trash",
+                iconColor: .red,
+                title: L10n.t("settings.deleteAllData"),
+                description: L10n.t("settings.deleteAllData.description"),
+                action: {
+                    showingDeleteAllConfirmation = true
+                }
+            )
+            .alert(L10n.t("settings.deleteAllData.confirm.title"), isPresented: $showingDeleteAllConfirmation) {
+                Button(L10n.t("button.cancel"), role: .cancel) { }
+                Button(L10n.t("settings.deleteAllData.confirm.button"), role: .destructive) {
+                    // Tüm local verileri sil
+                    habitStore.habits.removeAll()
+                    
+                    // iCloud verilerini sil (eğer sync açıksa)
+                    if cloudSyncManager.syncEnabled {
+                        Task {
+                            await cloudSyncManager.deleteAllCloudData()
+                        }
+                    }
+                    
+                    // Premium test durumunu sıfırla
+                    UserDefaults.standard.removeObject(forKey: "isTestPremium")
+                    
+                    HapticManager.warning()
+                }
+            } message: {
+                Text(L10n.t("settings.deleteAllData.confirm.message"))
+            }
         }
     }
     
@@ -1242,21 +1275,6 @@ struct SettingsView: View {
                 }
             )
             
-            // Bana bir kahve ısmarla
-            ModernSettingsCard(
-                iconName: "cup.and.saucer.fill",
-                iconColor: .brown,
-                title: L10n.t("settings.feedback.coffee"),
-                description: L10n.t("settings.feedback.coffee.description"),
-                action: {
-                    currentFeedbackType = .coffee
-                    showingMailComposer = true
-                    feedbackManager.composeMail(type: .coffee)
-                    analyticsManager.trackFeedback(type: "coffee")
-                    HapticManager.success()
-                }
-            )
-            
             // App Store'da değerlendir
             ModernSettingsCard(
                 iconName: "star.fill",
@@ -1325,7 +1343,8 @@ struct SettingsView: View {
             }
             .listRowBackground(Color(.secondarySystemGroupedBackground))
             
-            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/privacy.html") ?? URL(string: "https://7Auri.github.io/arium-privacy")!) {
+            // swiftlint:disable:next force_unwrapping
+            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/privacy.html")!) {
                 HStack {
                     Text(L10n.t("settings.privacyPolicy"))
                         .foregroundStyle(.primary)
@@ -1339,7 +1358,8 @@ struct SettingsView: View {
             }
             .listRowBackground(Color(.secondarySystemGroupedBackground))
             
-            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/terms.html") ?? URL(string: "https://7Auri.github.io/arium-privacy")!) {
+            // swiftlint:disable:next force_unwrapping
+            Link(destination: URL(string: "https://7Auri.github.io/arium-privacy/terms.html")!) {
                 HStack {
                     Text(L10n.t("settings.termsOfService"))
                         .foregroundStyle(.primary)
