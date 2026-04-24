@@ -28,6 +28,11 @@ struct AlertsModifier: ViewModifier {
             }
             .alert(L10n.t("premium.title"), isPresented: $viewModel.showingPremiumAlert) {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
+                Button(L10n.t("premium.restore.button")) {
+                    Task {
+                        await premiumManager.restorePurchases()
+                    }
+                }
                 Button(L10n.t("premium.button")) {
                     Task {
                         await premiumManager.purchasePremium()
