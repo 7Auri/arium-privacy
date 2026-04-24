@@ -892,10 +892,11 @@ struct ModernHeaderView: View {
                     }
                     .alert(L10n.t("home.slots.title"), isPresented: $showingSlotsInfo) {
                         Button(L10n.t("button.done"), role: .cancel) { }
+                        Button(L10n.t("premium.restore.button")) {
+                            Task { await premiumManager.restorePurchases() }
+                        }
                         Button(L10n.t("premium.button")) {
-                            Task {
-                                await premiumManager.purchasePremium()
-                            }
+                            Task { await premiumManager.purchasePremium() }
                         }
                     } message: {
                         Text(String(format: L10n.t("home.slots.message"), remainingSlots))

@@ -127,10 +127,11 @@ struct HabitTemplatesView: View {
             }
             .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
+                Button(L10n.t("premium.restore.button")) {
+                    Task { await premiumManager.restorePurchases() }
+                }
                 Button(L10n.t("premium.button")) {
-                    Task {
-                        await premiumManager.purchasePremium()
-                    }
+                    Task { await premiumManager.purchasePremium() }
                 }
             } message: {
                 Text(L10n.t("premium.message"))
