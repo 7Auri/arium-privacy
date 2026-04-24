@@ -416,6 +416,24 @@ class CloudSyncManager: ObservableObject {
         }
     }
     
+    /// Tüm iCloud verilerini siler (hesap silme / veri temizleme için)
+    func deleteAllCloudData() async {
+        guard syncEnabled, let privateDatabase = privateDatabase else { return }
+        
+        do {
+            let query = CKQuery(recordType: recordType, predicate: NSPredicate(value: true))
+            let results = try await privateDatabase.records(matching: query)
+            
+            for (recordID, _) in results.matchResults {
+                try? await privateDatabase.deleteRecord(withID: recordID)
+            }
+            
+            logger.info("✅ All cloud data deleted successfully")
+        } catch {
+            logger.error("❌ Failed to delete all cloud data: \(error.localizedDescription)")
+        }
+    }
+    
     // MARK: - Sync (Merge Strategy)
     
     func syncHabits(localHabits: [Habit]) async throws -> [Habit] {

@@ -167,9 +167,15 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
         defer { isLoading = false }
         
         do {
-            // Ürün yüklenmemişse yükle
+            // Ürün yüklenmemişse, 3 denemeye kadar yükle
             if product == nil {
-                await loadProduct()
+                for attempt in 1...3 {
+                    await loadProduct()
+                    if product != nil { break }
+                    if attempt < 3 {
+                        try? await Task.sleep(nanoseconds: UInt64(attempt) * 1_000_000_000)
+                    }
+                }
             }
             
             guard let product = product else {
