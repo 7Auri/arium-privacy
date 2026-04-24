@@ -326,22 +326,36 @@ struct SettingsView: View {
         }
     }
     
+    private var premiumCardDescription: String {
+        if premiumManager.isPremium {
+            return L10n.t("settings.active")
+        } else if premiumManager.isProductLoading {
+            return L10n.t("premium.loading")
+        } else if premiumManager.productLoadFailed {
+            return L10n.t("premium.error.loadFailed")
+        } else {
+            return premiumManager.product?.displayPrice ?? L10n.t("settings.freePlan")
+        }
+    }
+    
     private var premiumCard: some View {
         VStack(spacing: 12) {
+            // Ana premium kartı
             ModernSettingsCard(
                 iconName: "crown.fill",
                 iconColor: .orange,
                 title: L10n.t("settings.premium"),
-                description: premiumManager.isPremium 
-                    ? L10n.t("settings.active")
-                    : (premiumManager.product?.displayPrice ?? L10n.t("settings.freePlan")),
+                description: premiumCardDescription,
                 rightIndicator: AnyView(
                     Group {
                         if premiumManager.isPremium {
                             Image(systemName: "checkmark.circle.fill")
                                 .applyAppFont(size: 20, weight: .semibold)
                                 .foregroundStyle(AriumTheme.success)
-                        } else {
+                        } else if premiumManager.isLoading || premiumManager.isProductLoading {
+                            ProgressView()
+                                .tint(.orange)
+                        } else if premiumManager.product != nil {
                             Text(L10n.t("premium.button"))
                                 .applyAppFont(size: 12)
                                 .fontWeight(.semibold)
@@ -358,23 +372,37 @@ struct SettingsView: View {
                                 .clipShape(Capsule())
                                 .shadow(color: .orange.opacity(0.3), radius: 4, x: 0, y: 2)
                         }
+                        // Ürün yüklenemezse buton gösterme
                     }
                 ),
                 action: {
-                    if !premiumManager.isPremium {
+                    if !premiumManager.isPremium && !premiumManager.isLoading && premiumManager.product != nil {
                         Task {
-                            do {
-                                try await premiumManager.purchasePremium()
-                            } catch {
-                                showingPremiumError = true
-                                premiumError = error as? AppError ?? PremiumError.unknown
-                            }
+                            await premiumManager.purchasePremium()
+                        }
+                    } else if premiumManager.productLoadFailed {
+                        // Ürün yüklenemezse tekrar dene
+                        Task {
+                            await premiumManager.loadProduct()
                         }
                     }
                 }
             )
             
-
+            // Satın Alımları Geri Yükle butonu (premium değilse göster)
+            if !premiumManager.isPremium {
+                ModernSettingsCard(
+                    iconName: "arrow.clockwise",
+                    iconColor: .blue,
+                    title: L10n.t("premium.restore.button"),
+                    description: L10n.t("premium.restore.description"),
+                    action: {
+                        Task {
+                            await premiumManager.restorePurchases()
+                        }
+                    }
+                )
+            }
         }
     }
     
@@ -1551,6 +1579,29 @@ struct SettingsView: View {
                 Button(L10n.t("button.ok")) { }
             } message: {
                 Text(L10n.t("premium.purchase.success.message"))
+            }
+            // Satın alma beklemede (aile onayı vb.)
+            .alert(L10n.t("premium.pending.title"), isPresented: $premiumManager.showingPendingMessage) {
+                Button(L10n.t("button.ok")) { }
+            } message: {
+                Text(L10n.t("premium.pending.message"))
+            }
+            // Geri yükleme başarılı
+            .alert(L10n.t("premium.restore.success"), isPresented: $premiumManager.showingRestoreSuccess) {
+                Button(L10n.t("button.ok")) { }
+            }
+            // PremiumManager errorMessage alert'i
+            .alert(L10n.t("premium.title"), isPresented: Binding(
+                get: { premiumManager.errorMessage != nil },
+                set: { if !$0 { premiumManager.errorMessage = nil } }
+            )) {
+                Button(L10n.t("button.ok")) {
+                    premiumManager.errorMessage = nil
+                }
+            } message: {
+                if let msg = premiumManager.errorMessage {
+                    Text(msg)
+                }
             }
             .alert(L10n.t("update.available.title"), isPresented: $showingUpdateAlert) {
                 Button(L10n.t("update.available.update")) {

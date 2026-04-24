@@ -20,13 +20,13 @@
       "internalID" : "01C78B67",
       "localizations" : [
         {
-          "description" : "",
-          "displayName" : "",
+          "description" : "Unlock unlimited habits, custom themes, daily repetitions, premium templates, and more!",
+          "displayName" : "Arium Premium",
           "locale" : "en_US"
         },
         {
-          "description" : "",
-          "displayName" : "Turkish",
+          "description" : "Sınırsız alışkanlık, özel temalar, günlük tekrarlar, premium şablonlar ve daha fazlasının kilidini açın!",
+          "displayName" : "Arium Premium",
           "locale" : "tr"
         }
       ],

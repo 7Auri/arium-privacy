@@ -894,18 +894,12 @@ struct ModernHeaderView: View {
                         Button(L10n.t("button.done"), role: .cancel) { }
                         Button(L10n.t("premium.button")) {
                             Task {
-                                do {
-                                    try await premiumManager.purchasePremium()
-                                } catch {
-                                    showingPremiumError = true
-                                    premiumError = error as? AppError ?? PremiumError.unknown
-                                }
+                                await premiumManager.purchasePremium()
                             }
                         }
                     } message: {
                         Text(String(format: L10n.t("home.slots.message"), remainingSlots))
                     }
-                    .errorAlert(error: $premiumError)
                     .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
                     .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                         Button(L10n.t("button.ok")) { }
