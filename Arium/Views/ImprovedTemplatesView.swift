@@ -67,11 +67,7 @@ struct ImprovedTemplatesView: View {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
                 Button(L10n.t("premium.button")) {
                     Task {
-                        do {
-                            try await premiumManager.purchasePremium()
-                        } catch {
-                            // Handle error silently
-                        }
+                        await premiumManager.purchasePremium()
                     }
                 }
             } message: {

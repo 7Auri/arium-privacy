@@ -9,32 +9,57 @@ import Foundation
 import StoreKit
 import SwiftUI
 
+// MARK: - Purchase Service Protocol (Testability)
+
 @MainActor
-class PremiumManager: ObservableObject {
+protocol PurchaseServiceProtocol: ObservableObject {
+    var isPremium: Bool { get }
+    var isLoading: Bool { get }
+    var isProductLoading: Bool { get }
+    var errorMessage: String? { get }
+    var showingPurchaseSuccess: Bool { get set }
+    var showingPendingMessage: Bool { get set }
+    var showingRestoreSuccess: Bool { get set }
+    var product: Product? { get }
+    var productLoadFailed: Bool { get }
+    
+    func loadProduct() async
+    func purchasePremium() async
+    func restorePurchases() async
+    func checkPremiumStatus() async
+}
+
+// MARK: - Premium Manager
+
+@MainActor
+class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     static let shared = PremiumManager()
     
     @Published var isPremium: Bool = false
     @Published var isLoading: Bool = false
+    @Published var isProductLoading: Bool = false
     @Published var errorMessage: String?
     @Published var showingPurchaseSuccess: Bool = false
+    @Published var showingPendingMessage: Bool = false
+    @Published var showingRestoreSuccess: Bool = false
+    @Published var productLoadFailed: Bool = false
     
-    // Product bilgileri (App Store Connect'ten otomatik alınır)
+    // Ürün bilgileri (App Store Connect'ten otomatik alınır)
     @Published var product: Product?
     
     // StoreKit 2 Product ID
-    // NOT: App Store Connect'te bu product ID'yi oluşturmanız gerekiyor
     private let premiumProductID = "com.zorbeyteam.arium.premium"
     
     private var updateListenerTask: Task<Void, Error>?
     
     private init() {
-        // Load saved premium status
+        // Kayıtlı premium durumunu yükle
         loadPremiumStatus()
         
-        // Start listening for transaction updates
+        // Transaction güncellemelerini dinlemeye başla (Apple zorunlu)
         updateListenerTask = listenForTransactions()
         
-        // Check current subscription status and load product
+        // Mevcut entitlement'ları kontrol et ve ürünü yükle
         Task {
             await checkPremiumStatus()
             await loadProduct()
@@ -45,15 +70,13 @@ class PremiumManager: ObservableObject {
         updateListenerTask?.cancel()
     }
     
-    // MARK: - Premium Status
+    // MARK: - Premium Durumu
     
     private func loadPremiumStatus() {
-        // Test premium durumunu kontrol et
         let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
         let savedPremium = UserDefaults.standard.bool(forKey: "isPremium")
         
         if isTestPremium && savedPremium {
-            // Test premium aktifse, StoreKit kontrolünü atla
             isPremium = true
         } else {
             isPremium = savedPremium
@@ -65,188 +88,188 @@ class PremiumManager: ObservableObject {
         UserDefaults.standard.set(status, forKey: "isPremium")
     }
     
-    // MARK: - Test Helper (TestFlight için - Canlıya geçerken kaldırılacak)
+    // MARK: - Test Helper (TestFlight için)
     
-    /// TestFlight'ta premium test etmek için kullanılır
-    /// Canlıya geçerken bu fonksiyon kaldırılmalı
     func setPremiumStatus(_ status: Bool) {
-        // Test premium durumunu işaretle (StoreKit kontrolünü atla)
         UserDefaults.standard.set(true, forKey: "isTestPremium")
         savePremiumStatus(status)
     }
     
-    // MARK: - StoreKit 2
+    // MARK: - Ürün Yükleme
     
-    /// App Store Connect'ten ürün bilgilerini otomatik olarak yükler
-    /// Fiyat, isim, açıklama gibi bilgileri Product objesinden alır
     func loadProduct() async {
+        isProductLoading = true
+        productLoadFailed = false
+        
+        defer { isProductLoading = false }
+        
         do {
             let products = try await Product.products(for: [premiumProductID])
             
-            await MainActor.run {
-                self.product = products.first
+            if let loadedProduct = products.first {
+                self.product = loadedProduct
                 
                 #if DEBUG
-                if let product = self.product {
-                    print("✅ Premium product loaded from App Store Connect:")
-                    print("   📋 Display Name: \(product.displayName)")
-                    print("   💰 Price: \(product.displayPrice)")
-                    print("   📝 Description: \(product.description)")
-                } else {
-                    print("⚠️ Premium product not found in App Store Connect")
-                }
+                print("✅ Premium ürün App Store Connect'ten yüklendi:")
+                print("   📋 Görünen Ad: \(loadedProduct.displayName)")
+                print("   💰 Fiyat: \(loadedProduct.displayPrice)")
+                print("   📝 Açıklama: \(loadedProduct.description)")
+                #endif
+            } else {
+                // Ürün bulunamadı — UI'da hata göster
+                productLoadFailed = true
+                #if DEBUG
+                print("⚠️ Premium ürün App Store Connect'te bulunamadı")
                 #endif
             }
         } catch {
+            productLoadFailed = true
             #if DEBUG
-            print("❌ Failed to load product: \(error)")
+            print("❌ Ürün yüklenemedi: \(error)")
             #endif
         }
     }
+    
+    // MARK: - Entitlement Kontrolü (Uygulama Açılışında — Apple Zorunlu)
     
     func checkPremiumStatus() async {
         // Test premium aktifse StoreKit kontrolünü atla
         let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
         if isTestPremium && UserDefaults.standard.bool(forKey: "isPremium") {
-            await MainActor.run {
-                isPremium = true
-            }
+            isPremium = true
             return
         }
         
-        // Check if user has active subscription
+        // Transaction.currentEntitlements ile aktif satın alımları kontrol et
+        var foundEntitlement = false
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
                 if transaction.productID == premiumProductID {
-                    await MainActor.run {
-                        savePremiumStatus(true)
-                    }
-                    return
+                    savePremiumStatus(true)
+                    foundEntitlement = true
+                    break
                 }
             }
         }
         
-        // No active subscription found (test premium değilse)
-        if !isTestPremium {
-            await MainActor.run {
-                savePremiumStatus(false)
-            }
+        // Aktif entitlement bulunamadıysa (ve test premium değilse)
+        if !foundEntitlement && !isTestPremium {
+            savePremiumStatus(false)
         }
     }
     
-    func purchasePremium() async throws {
+    // MARK: - Satın Alma
+    
+    func purchasePremium() async {
         isLoading = true
         errorMessage = nil
         
-        defer {
-            isLoading = false
-        }
+        defer { isLoading = false }
         
         do {
-            // Load product (eğer yüklenmemişse)
+            // Ürün yüklenmemişse yükle
             if product == nil {
                 await loadProduct()
             }
             
             guard let product = product else {
-                #if DEBUG
-                print("❌ Premium product not found!")
-                print("📋 Product ID being searched: \(premiumProductID)")
-                print("📋 Product loaded: \(self.product != nil ? "Yes" : "No")")
-                print("")
-                print("🔍 CHECKLIST:")
-                print("   1. App Store Connect → In-App Purchases")
-                print("      → Product ID: \(premiumProductID) (tam olarak bu olmalı!)")
-                print("   2. Product Status: 'Ready to Submit' veya 'Approved' olmalı")
-                print("   3. Availability: 'All Countries' veya Türkiye seçili olmalı")
-                print("   4. Display Name ve Description doldurulmuş olmalı")
-                print("   5. TestFlight: 15-30 dakika bekle (sync için)")
-                print("   6. Sandbox account ile giriş yapıldı mı?")
-                print("")
-                print("💡 Hızlı Test: Xcode → Edit Scheme → StoreKit Configuration → AriumStoreKit.storekit")
-                #endif
-                // Ürün bulunamazsa her zaman hata fırlat (debug olsun ya da olmasın)
-                throw PremiumError.productNotFound
+                errorMessage = L10n.t("premium.error.productNotFound")
+                return
             }
             
-            // Purchase product
             let result = try await product.purchase()
             
             switch result {
             case .success(let verification):
                 let transaction = try checkVerified(verification)
                 
-                // Update premium status
-                await MainActor.run {
-                    savePremiumStatus(true)
-                    showingPurchaseSuccess = true
-                }
+                // Premium durumunu güncelle
+                savePremiumStatus(true)
+                showingPurchaseSuccess = true
                 
-                // Finish transaction
+                // Transaction'ı bitir (Apple zorunlu)
                 await transaction.finish()
                 
                 HapticManager.success()
                 
             case .userCancelled:
-                throw PremiumError.userCancelled
+                // Kullanıcı iptal etti — sessizce kapat, hata gösterme
+                break
                 
             case .pending:
-                throw PremiumError.pending
+                // Aile onayı bekliyor — kullanıcıya bilgi ver
+                showingPendingMessage = true
                 
             @unknown default:
-                throw PremiumError.unknown
+                errorMessage = L10n.t("premium.error.unknown")
             }
+        } catch let error as StoreKitError {
+            // StoreKit hatalarını kullanıcıya anlamlı mesajlarla göster
+            errorMessage = storeKitErrorMessage(for: error)
+        } catch let error as PremiumError {
+            errorMessage = error.errorMessage
         } catch {
-            await MainActor.run {
-                errorMessage = error.localizedDescription
-            }
-            throw error
+            errorMessage = L10n.t("premium.error.unknown")
+            #if DEBUG
+            print("❌ Satın alma hatası: \(error)")
+            #endif
         }
     }
     
-    func restorePurchases() async throws {
+    // MARK: - Satın Alımları Geri Yükle
+    
+    func restorePurchases() async {
         isLoading = true
         errorMessage = nil
         
-        defer {
-            isLoading = false
+        defer { isLoading = false }
+        
+        do {
+            try await AppStore.sync()
+            await checkPremiumStatus()
+            
+            if isPremium {
+                showingRestoreSuccess = true
+                HapticManager.success()
+            } else {
+                errorMessage = L10n.t("premium.error.noSubscription")
+            }
+        } catch {
+            errorMessage = L10n.t("premium.restore.failed")
+            #if DEBUG
+            print("❌ Geri yükleme hatası: \(error)")
+            #endif
         }
-        
-        try await AppStore.sync()
-        await checkPremiumStatus()
-        
-        if !isPremium {
-            throw PremiumError.noActiveSubscription
-        }
-        
-        HapticManager.success()
     }
     
-    // MARK: - Transaction Listener
+    // MARK: - Transaction Listener (Apple Zorunlu)
     
     private func listenForTransactions() -> Task<Void, Error> {
-        return Task.detached {
+        return Task.detached { [weak self] in
             for await result in Transaction.updates {
+                guard let self = self else { return }
                 do {
                     let transaction = try self.checkVerified(result)
                     
-                    // Update premium status if transaction is for premium product
                     if transaction.productID == self.premiumProductID {
                         await MainActor.run {
                             self.savePremiumStatus(true)
                         }
                     }
                     
-                    // Finish transaction
+                    // Transaction'ı bitir (Apple zorunlu — bu olmadan sandbox'ta
+                    // satın alımlar yeniden başlatmada "kaybolur")
                     await transaction.finish()
                 } catch {
-                    print("❌ Transaction verification failed: \(error)")
+                    #if DEBUG
+                    print("❌ Transaction doğrulama hatası: \(error)")
+                    #endif
                 }
             }
         }
     }
     
-    // MARK: - Helpers
+    // MARK: - Yardımcılar
     
     nonisolated private func checkVerified<T>(_ result: VerificationResult<T>) throws -> T {
         switch result {
@@ -256,9 +279,25 @@ class PremiumManager: ObservableObject {
             return safe
         }
     }
+    
+    /// StoreKit hatalarını kullanıcı dostu mesajlara çevirir
+    private func storeKitErrorMessage(for error: StoreKitError) -> String {
+        switch error {
+        case .networkError:
+            return L10n.t("premium.error.network")
+        case .systemError:
+            return L10n.t("premium.error.system")
+        case .notAvailableInStorefront:
+            return L10n.t("premium.error.notAvailable")
+        case .notEntitled:
+            return L10n.t("premium.error.notEntitled")
+        default:
+            return L10n.t("premium.error.unknown")
+        }
+    }
 }
 
-// MARK: - Premium Errors
+// MARK: - Premium Hataları
 
 enum PremiumError: AppError {
     case productNotFound
@@ -293,4 +332,3 @@ enum PremiumError: AppError {
         return errorMessage
     }
 }
-

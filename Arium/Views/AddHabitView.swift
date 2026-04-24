@@ -496,12 +496,7 @@ struct AddHabitView: View {
                 Button(L10n.t("button.cancel"), role: .cancel) { }
                 Button(L10n.t("premium.button")) {
                     Task {
-                        do {
-                            try await premiumManager.purchasePremium()
-                        } catch {
-                            showingError = true
-                            currentError = error as? AppError ?? PremiumError.unknown
-                        }
+                        await premiumManager.purchasePremium()
                     }
                 }
             } message: {
