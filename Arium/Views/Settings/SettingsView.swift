@@ -389,20 +389,20 @@ struct SettingsView: View {
                 }
             )
             
-            // Satın Alımları Geri Yükle butonu (premium değilse göster)
-            if !premiumManager.isPremium {
-                ModernSettingsCard(
-                    iconName: "arrow.clockwise",
-                    iconColor: .blue,
-                    title: L10n.t("premium.restore.button"),
-                    description: L10n.t("premium.restore.description"),
-                    action: {
-                        Task {
-                            await premiumManager.restorePurchases()
-                        }
+            // Satın Alımları Geri Yükle butonu (her zaman görünür — Apple 3.1.1 zorunlu)
+            ModernSettingsCard(
+                iconName: "arrow.clockwise",
+                iconColor: .blue,
+                title: L10n.t("premium.restore.button"),
+                description: premiumManager.isPremium
+                    ? L10n.t("premium.restore.alreadyActive")
+                    : L10n.t("premium.restore.description"),
+                action: {
+                    Task {
+                        await premiumManager.restorePurchases()
                     }
-                )
-            }
+                }
+            )
         }
     }
     
