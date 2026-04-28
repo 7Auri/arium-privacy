@@ -1115,40 +1115,62 @@ class InsightsService {
 
 // MARK: - ML Predictor (Core ML Integration)
 
-/// ML Predictor for habit insights with Core ML support
+/// ML Predictor for habit insights with Core ML support.
+///
+/// **Current Status**: The bundled `HabitInsightModel.mlmodelc` does NOT exist yet.
+/// All predictions currently use the rule-based fallback (`calculateConfidence`).
+///
+/// **To train a real model**:
+/// 1. Run `HabitMLTrainingDataGenerator.generateCSV()` to create synthetic training data
+/// 2. Open Create ML in Xcode (Xcode → Open Developer Tool → Create ML)
+/// 3. Create a Tabular Regression model with target column "successProbability"
+/// 4. Import the generated CSV, train, and export as `HabitInsightModel.mlmodel`
+/// 5. Add the `.mlmodel` to the Xcode project — Xcode auto-compiles to `.mlmodelc`
+///
+/// **Important**: The synthetic-trained model is a bootstrap that matches current rule-based
+/// logic plus controlled noise. It is NOT a true predictor of user behavior.
+/// TODO: Replace with model trained on real user data once we have ≥10k samples.
 class HabitMLPredictor {
-    // Core ML model (will be loaded when available)
-    private var model: MLModel?
-    private var isModelLoaded = false
-    private var modelLoadAttempted = false
     
-    // Feature extractor for ML model
+    /// Which prediction path is active
+    enum PredictionPath: String {
+        case coreML = "CoreML"
+        case ruleBased = "RuleBased"
+    }
+    
+    private var model: MLModel?
+    private(set) var isModelLoaded = false
+    private var modelLoadAttempted = false
+    private(set) var activePath: PredictionPath = .ruleBased
+    
     private let featureExtractor = HabitFeatureExtractor()
     
     init() {
-        // Initialize ML model when available (lazy loading)
         Task {
             await loadMLModel()
         }
     }
     
-    /// Loads Core ML model from bundle
+    /// Loads Core ML model from bundle.
+    /// If the model is missing, logs which path is active (debug builds only).
     @MainActor
     private func loadMLModel() async {
         guard !modelLoadAttempted else { return }
         modelLoadAttempted = true
         
-        // Try to load the model
+        // NOTE: HabitInsightModel.mlmodelc is not yet bundled.
+        // When you add it to the project, this code will automatically pick it up.
         guard let modelURL = Bundle.main.url(forResource: "HabitInsightModel", withExtension: "mlmodelc") ??
                             Bundle.main.url(forResource: "HabitInsightModel", withExtension: "mlmodel") else {
+            activePath = .ruleBased
             #if DEBUG
-            print("ℹ️ Core ML model not found in bundle, using rule-based fallback")
+            print("🧠 [HabitMLPredictor] Model path: RULE-BASED (HabitInsightModel.mlmodelc not found in bundle)")
+            print("   → To train a model, see HabitMLTrainingDataGenerator.swift")
             #endif
             return
         }
         
         do {
-            // If .mlmodel, compile it first
             let finalURL: URL
             if modelURL.pathExtension == "mlmodel" {
                 finalURL = try await MLModel.compileModel(at: modelURL)
@@ -1156,17 +1178,17 @@ class HabitMLPredictor {
                 finalURL = modelURL
             }
             
-            // Load the compiled model
             model = try MLModel(contentsOf: finalURL)
             isModelLoaded = true
+            activePath = .coreML
             
             #if DEBUG
-            print("✅ Core ML model loaded successfully from: \(finalURL.lastPathComponent)")
+            print("🧠 [HabitMLPredictor] Model path: CORE ML (\(finalURL.lastPathComponent))")
             #endif
         } catch {
+            activePath = .ruleBased
             #if DEBUG
-            print("⚠️ Failed to load Core ML model: \(error.localizedDescription)")
-            print("   Using rule-based fallback instead")
+            print("🧠 [HabitMLPredictor] Model path: RULE-BASED (load failed: \(error.localizedDescription))")
             #endif
             isModelLoaded = false
         }
