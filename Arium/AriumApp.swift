@@ -92,6 +92,12 @@ struct AriumApp: App {
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
         application.registerForRemoteNotifications()
+        
+        // Handle quick action from cold launch
+        if let shortcutItem = launchOptions?[.shortcutItem] as? UIApplicationShortcutItem {
+            handleShortcutItem(shortcutItem)
+        }
+        
         return true
     }
     
@@ -100,4 +106,29 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let result = CloudSyncManager.shared.handleNotification(userInfo: userInfo)
         completionHandler(result)
     }
+    
+    /// Handle Home Screen Quick Actions (3D Touch / Long Press)
+    func application(_ application: UIApplication, performActionFor shortcutItem: UIApplicationShortcutItem, completionHandler: @escaping (Bool) -> Void) {
+        let handled = handleShortcutItem(shortcutItem)
+        completionHandler(handled)
+    }
+    
+    @discardableResult
+    private func handleShortcutItem(_ shortcutItem: UIApplicationShortcutItem) -> Bool {
+        guard let action = QuickAction(rawValue: shortcutItem.type) else { return false }
+        
+        // Post notification so the UI can respond
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+            NotificationCenter.default.post(
+                name: .quickActionTriggered,
+                object: nil,
+                userInfo: ["action": action.rawValue]
+            )
+        }
+        return true
+    }
+}
+
+extension Notification.Name {
+    static let quickActionTriggered = Notification.Name("quickActionTriggered")
 }

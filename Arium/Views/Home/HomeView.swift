@@ -317,6 +317,22 @@ struct HomeView: View {
                 habitForNote: nil
             )
         }
+        .onReceive(NotificationCenter.default.publisher(for: .quickActionTriggered)) { notification in
+            guard let actionRaw = notification.userInfo?["action"] as? String,
+                  let action = QuickAction(rawValue: actionRaw) else { return }
+            
+            switch action {
+            case .addHabit:
+                if habitStore.canAddMoreHabits {
+                    sheetCoordinator.showAddHabit()
+                }
+            case .viewStatistics:
+                sheetCoordinator.showStatistics()
+            case .todayHabits:
+                // Already on home screen — no navigation needed
+                break
+            }
+        }
     }
     
     // MARK: - Helper Functions

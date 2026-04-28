@@ -404,6 +404,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sync data",
             "quickAction.viewStatistics": "View Statistics",
             "quickAction.viewStatistics.subtitle": "View progress",
+            "quickAction.today": "Today's Habits",
+            "quickAction.today.subtitle": "Check progress",
             
             // Template View
             "template.search.placeholder": "Search templates...",
@@ -1283,6 +1285,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Verileri senkronize et",
             "quickAction.viewStatistics": "İstatistikleri Gör",
             "quickAction.viewStatistics.subtitle": "İlerlemeyi gör",
+            "quickAction.today": "Bugünün Alışkanlıkları",
+            "quickAction.today.subtitle": "İlerlemeyi kontrol et",
             
             // Template View
             "template.search.placeholder": "Şablonlarda ara...",
@@ -2455,6 +2459,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Daten synchronisieren",
             "quickAction.viewStatistics": "Statistiken anzeigen",
             "quickAction.viewStatistics.subtitle": "Fortschritt sehen",
+            "quickAction.today": "Heutige Gewohnheiten",
+            "quickAction.today.subtitle": "Fortschritt prüfen",
             
             // Template View
             "template.search.placeholder": "Vorlagen suchen...",
@@ -3287,6 +3293,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Synchroniser les données",
             "quickAction.viewStatistics": "Voir les statistiques",
             "quickAction.viewStatistics.subtitle": "Voir les progrès",
+            "quickAction.today": "Habitudes du jour",
+            "quickAction.today.subtitle": "Vérifier les progrès",
             
             // Template View
             "template.search.placeholder": "Rechercher des modèles...",
@@ -4069,6 +4077,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sincronizar datos",
             "quickAction.viewStatistics": "Ver estadísticas",
             "quickAction.viewStatistics.subtitle": "Ver progreso",
+            "quickAction.today": "Hábitos de hoy",
+            "quickAction.today.subtitle": "Ver progreso",
             
             // Template View
             "template.search.placeholder": "Buscar plantillas...",
@@ -4895,6 +4905,8 @@ enum L10n {
             "quickAction.syncICloud.subtitle": "Sincronizza dati",
             "quickAction.viewStatistics": "Visualizza statistiche",
             "quickAction.viewStatistics.subtitle": "Vedi progresso",
+            "quickAction.today": "Abitudini di oggi",
+            "quickAction.today.subtitle": "Controlla progresso",
             
             // Template View
             "template.search.placeholder": "Cerca modelli...",

@@ -27,15 +27,15 @@ class QuickActionManager {
     func setupQuickActions() {
         let addHabitAction = UIApplicationShortcutItem(
             type: QuickAction.addHabit.type,
-            localizedTitle: L10n.t("quickAction.addHabit"),
-            localizedSubtitle: L10n.t("quickAction.addHabit.subtitle"),
+            localizedTitle: L10n.t("quickAction.newHabit"),
+            localizedSubtitle: L10n.t("quickAction.newHabit.subtitle"),
             icon: UIApplicationShortcutIcon(systemImageName: "plus.circle.fill")
         )
         
         let statisticsAction = UIApplicationShortcutItem(
             type: QuickAction.viewStatistics.type,
-            localizedTitle: L10n.t("quickAction.statistics"),
-            localizedSubtitle: L10n.t("quickAction.statistics.subtitle"),
+            localizedTitle: L10n.t("quickAction.viewStatistics"),
+            localizedSubtitle: L10n.t("quickAction.viewStatistics.subtitle"),
             icon: UIApplicationShortcutIcon(systemImageName: "chart.bar.fill")
         )
         
