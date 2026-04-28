@@ -1145,7 +1145,8 @@ class HabitMLPredictor {
     
     private let featureExtractor = HabitFeatureExtractor()
     
-    init() {
+    init(personalizer: ModelPersonalizing? = ModelPersonalizationService.shared) {
+        self.personalizer = personalizer
         Task {
             await loadMLModel()
         }
@@ -1194,19 +1195,29 @@ class HabitMLPredictor {
         }
     }
     
-    /// Predicts confidence score for an insight using ML model or fallback algorithm
+    /// Personalization service (injected, premium-only)
+    private let personalizer: ModelPersonalizing?
+    
+    /// Predicts confidence score using: personalized model → Core ML → rule-based fallback
     func predictConfidence(for type: InsightType, habit: Habit) async -> Double {
-        // Extract features for ML model
         let features = featureExtractor.extractFeatures(for: habit, insightType: type)
+        let featureArray = features.toMLArray()
         
-        // If ML model is available and loaded, use it
+        // Priority 1: Personalized model (premium users only)
+        let isPremium = await MainActor.run { PremiumManager.shared.isPremium }
+        if isPremium, let personalizer = personalizer,
+           let personalized = personalizer.personalizedProbability(features: featureArray) {
+            return personalized
+        }
+        
+        // Priority 2: Core ML model
         if isModelLoaded, let model = model {
             if let mlConfidence = await predictWithML(model: model, features: features) {
                 return mlConfidence
             }
         }
         
-        // Fallback to rule-based confidence calculation
+        // Priority 3: Rule-based fallback
         return calculateConfidence(features: features, type: type, habit: habit)
     }
     

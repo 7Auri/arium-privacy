@@ -405,6 +405,35 @@ struct SettingsView: View {
             )
         }
     }
+    
+    @AppStorage("isPersonalizedAIEnabled") private var isPersonalizedAIEnabled = true
+    
+    private var personalizationCard: some View {
+        VStack(spacing: 12) {
+            ModernSettingsCard(
+                iconName: "brain.head.profile",
+                iconColor: .purple,
+                title: L10n.t("settings.personalization.toggle"),
+                description: L10n.t("settings.personalization.description"),
+                toggleBinding: $isPersonalizedAIEnabled,
+                toggleTint: .purple,
+                action: {}
+            )
+            
+            if ModelPersonalizationService.shared.hasPersonalizedModel {
+                ModernSettingsCard(
+                    iconName: "arrow.counterclockwise",
+                    iconColor: .red,
+                    title: L10n.t("settings.personalization.reset"),
+                    description: L10n.t("settings.personalization.reset.description"),
+                    action: {
+                        ModelPersonalizationService.shared.reset()
+                        HapticManager.warning()
+                    }
+                )
+            }
+        }
+    }
 
     private var notificationsCard: some View {
         VStack(spacing: 12) {
@@ -1422,6 +1451,17 @@ struct SettingsView: View {
                 iconColor: .orange
             ) {
                 premiumCard
+            }
+            
+            // AI Personalization (Premium only)
+            if premiumManager.isPremium {
+                modernSection(
+                    title: L10n.t("settings.personalization.title"),
+                    icon: "brain.head.profile",
+                    iconColor: .purple
+                ) {
+                    personalizationCard
+                }
             }
             
             // Notifications
