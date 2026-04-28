@@ -686,6 +686,10 @@ enum L10n {
             "insights.recovery.title": "📈 Recovery",
             "insights.recovery.message": "'%@' shows %d%% more completions this week compared to last week. Keep it up! 🎉",
             
+            // Streak Break Forecast (Premium)
+            "insights.streakBreakForecast.title": "📊 Streak Forecast",
+            "insights.streakBreakForecast.message": "At your current pace, there's a %d%% chance your streak for '%@' breaks within 7 days. Stay consistent!",
+            
             // ML Insights (New)
             "insight.smartReminder.title": "✨ Best Time",
             "insight.smartReminder.subtitle": "You often complete this habit around this time.",
@@ -1594,6 +1598,10 @@ enum L10n {
             "insights.recovery.title": "📈 Toparlanma",
             "insights.recovery.message": "'%@' bu hafta geçen haftaya göre %%%d daha fazla tamamlanma gösteriyor. Devam et! 🎉",
             
+            // Streak Break Forecast (Premium)
+            "insights.streakBreakForecast.title": "📊 Seri Tahmini",
+            "insights.streakBreakForecast.message": "Mevcut tempoyla 7 gün içinde '%@' serinin kırılma olasılığı %%%d. Tutarlı kal!",
+            
             // ML Insights (TR)
             "insight.smartReminder.title": "✨ En İyi Zaman",
             "insight.smartReminder.subtitle": "Bu alışkanlığı genelde bu saatlerde tamamlıyorsun.",
@@ -2345,6 +2353,9 @@ enum L10n {
             "insights.recovery.title": "📈 Erholung",
             "insights.recovery.message": "'%@' zeigt diese Woche %d%% mehr Abschlüsse als letzte Woche. Weiter so! 🎉",
             
+            "insights.streakBreakForecast.title": "📊 Serien-Prognose",
+            "insights.streakBreakForecast.message": "Bei deinem aktuellen Tempo besteht eine %d%%-Chance, dass deine Serie für '%@' innerhalb von 7 Tagen bricht. Bleib dran!",
+            
             // Insight Actions (DE)
             // ML Insights (New)
             "insight.smartReminder.title": "✨ Beste Zeit",
@@ -3082,6 +3093,9 @@ enum L10n {
             "insights.habitChain.message": "'%@' et '%@' sont souvent complétées le même jour. (%d fois)",
             "insights.recovery.title": "📈 Récupération",
             "insights.recovery.message": "'%@' montre %d%% de complétions en plus cette semaine par rapport à la semaine dernière. Continuez! 🎉",
+            
+            "insights.streakBreakForecast.title": "📊 Prévision de Série",
+            "insights.streakBreakForecast.message": "À votre rythme actuel, il y a %d%% de chances que votre série pour '%@' se brise dans les 7 jours. Restez régulier!",
             
             // Insight Actions (FR)
             // ML Insights (New)
@@ -4505,6 +4519,9 @@ enum L10n {
             "insights.recovery.title": "📈 Recuperación",
             "insights.recovery.message": "'%@' muestra %d%% más completaciones esta semana comparado con la semana pasada. ¡Sigue así! 🎉",
             
+            "insights.streakBreakForecast.title": "📊 Pronóstico de Racha",
+            "insights.streakBreakForecast.message": "A tu ritmo actual, hay un %d%% de probabilidad de que tu racha para '%@' se rompa en 7 días. ¡Mantén la constancia!",
+            
             // Insight Actions (ES)
             // ML Insights (New)
             "insight.smartReminder.title": "✨ Mejor Momento",
@@ -5396,6 +5413,9 @@ enum L10n {
             "insights.habitChain.message": "'%@' e '%@' vengono spesso completate nello stesso giorno. (%d volte)",
             "insights.recovery.title": "📈 Recupero",
             "insights.recovery.message": "'%@' mostra %d%% in più di completamenti questa settimana rispetto alla scorsa. Continua così! 🎉",
+            
+            "insights.streakBreakForecast.title": "📊 Previsione Serie",
+            "insights.streakBreakForecast.message": "Al tuo ritmo attuale, c'è il %d%% di probabilità che la tua serie per '%@' si interrompa entro 7 giorni. Resta costante!",
             
             // Insight Actions (IT)
             // ML Insights (New)

@@ -39,12 +39,14 @@ enum InsightType {
     case measurementTrendUp // Ölçüm trendi yukarı
     case measurementTrendDown // Ölçüm trendi aşağı
     case habitMeasurementCorrelation // Alışkanlık-ölçüm korelasyonu
+    // Forecasting insights (premium)
+    case streakBreakForecast // 7-gün streak kırılma tahmini (Holt-Winters)
     
     var color: Color {
         switch self {
         case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader, .habitChain, .recovery, .measurementTrendUp:
             return .green
-        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk, .measurementTrendDown:
+        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk, .measurementTrendDown, .streakBreakForecast:
             return .orange
         case .habitMeasurementCorrelation:
             return .blue
@@ -81,6 +83,7 @@ enum InsightType {
         case .measurementTrendUp: return "chart.line.uptrend.xyaxis"
         case .measurementTrendDown: return "chart.line.downtrend.xyaxis"
         case .habitMeasurementCorrelation: return "arrow.triangle.merge"
+        case .streakBreakForecast: return "chart.line.downtrend.xyaxis.circle"
         }
     }
 }

@@ -153,6 +153,10 @@ class InsightsService {
                 group.addTask {
                     await self.analyzeHabitMeasurementCorrelation(habits: habits)
                 }
+                
+                group.addTask {
+                    self.analyzeStreakBreakForecast(habits: habits)
+                }
             }
             
             // Collect results
@@ -775,7 +779,8 @@ class InsightsService {
             .earlyBird, .nightOwl, .weekendWarrior,
             .timeOptimizer, .categoryMaster, .socialButterfly, .healthHero, .learningLeader,
             .habitChain,
-            .measurementTrendUp, .measurementTrendDown, .habitMeasurementCorrelation
+            .measurementTrendUp, .measurementTrendDown, .habitMeasurementCorrelation,
+            .streakBreakForecast
         ]
         
         return insights.sorted { insight1, insight2 in
@@ -1082,6 +1087,39 @@ class InsightsService {
             }
         }
         
+        return nil
+    }
+    
+    // MARK: - Streak Break Forecast (Holt-Winters)
+    
+    /// Forecaster instance (lazy, reusable)
+    private lazy var streakForecaster: StreakForecasting = StreakForecaster()
+    
+    /// Analyzes streak break risk using Holt-Winters time series forecasting.
+    /// Premium-only. Only shown if probability ≥ 40% AND current streak ≥ 7 days.
+    private func analyzeStreakBreakForecast(habits: [Habit]) -> Insight? {
+        for habit in habits {
+            guard habit.streak >= 7 else { continue }
+            
+            guard let forecast = streakForecaster.forecast(
+                completionDates: habit.completionDates,
+                currentStreak: habit.streak
+            ) else { continue }
+            
+            // Only show if break probability ≥ 40% (otherwise it's noisy)
+            guard forecast.breakProbability >= 0.40 else { continue }
+            
+            let percentChance = Int(forecast.breakProbability * 100)
+            
+            return Insight(
+                type: .streakBreakForecast,
+                title: L10n.t("insights.streakBreakForecast.title"),
+                message: String(format: L10n.t("insights.streakBreakForecast.message"), percentChance, habit.title),
+                relatedHabitId: habit.id,
+                suggestedActions: [.focusOnHabit(habit.id), .setReminder(habit.id)],
+                confidence: min(0.9, 0.6 + Double(forecast.historyDays) / 200.0) // More history = higher confidence
+            )
+        }
         return nil
     }
     
