@@ -35,13 +35,19 @@ enum InsightType {
     case streakRisk // Streak kaybetme riski
     case habitChain // Alışkanlık zinciri
     case recovery // Toparlanma pattern'i
+    // Measurement insights
+    case measurementTrendUp // Ölçüm trendi yukarı
+    case measurementTrendDown // Ölçüm trendi aşağı
+    case habitMeasurementCorrelation // Alışkanlık-ölçüm korelasyonu
     
     var color: Color {
         switch self {
-        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader, .habitChain, .recovery:
+        case .streakMaster, .consistent, .earlyBird, .weekendWarrior, .nightOwl, .moodBooster, .productiveDay, .monthlyTrendUp, .sentimentTrendUp, .consistencyChampion, .comebackKid, .timeOptimizer, .categoryMaster, .goalAchiever, .socialButterfly, .healthHero, .learningLeader, .habitChain, .recovery, .measurementTrendUp:
             return .green
-        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk:
+        case .needsFocus, .warning, .challengingHabit, .monthlyTrendDown, .sentimentTrendDown, .streakRisk, .measurementTrendDown:
             return .orange
+        case .habitMeasurementCorrelation:
+            return .blue
         }
     }
     
@@ -72,6 +78,9 @@ enum InsightType {
         case .streakRisk: return "exclamationmark.triangle.fill"
         case .habitChain: return "link"
         case .recovery: return "arrow.up.circle.fill"
+        case .measurementTrendUp: return "chart.line.uptrend.xyaxis"
+        case .measurementTrendDown: return "chart.line.downtrend.xyaxis"
+        case .habitMeasurementCorrelation: return "arrow.triangle.merge"
         }
     }
 }

@@ -43,6 +43,8 @@ struct ContentView: View {
                                     isPremium: premiumManager.isPremium,
                                     isPresentedAsSheet: false
                                 )
+                            case .measurements:
+                                MeasurementsListView()
                             case .settings:
                                 SettingsView()
                             }

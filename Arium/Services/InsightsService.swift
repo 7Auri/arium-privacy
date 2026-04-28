@@ -143,6 +143,18 @@ class InsightsService {
                 await self.analyzeRecoveryPattern(habits: habits)
             }
             
+            // Measurement insights (premium only)
+            let isPremiumUser = await MainActor.run { PremiumManager.shared.isPremium }
+            if isPremiumUser {
+                group.addTask {
+                    await self.analyzeMeasurementTrend()
+                }
+                
+                group.addTask {
+                    await self.analyzeHabitMeasurementCorrelation(habits: habits)
+                }
+            }
+            
             // Collect results
             for await insight in group {
                 if let insight = insight {
@@ -756,7 +768,8 @@ class InsightsService {
             .consistencyChampion, .comebackKid, .goalAchiever,
             .earlyBird, .nightOwl, .weekendWarrior,
             .timeOptimizer, .categoryMaster, .socialButterfly, .healthHero, .learningLeader,
-            .habitChain
+            .habitChain,
+            .measurementTrendUp, .measurementTrendDown, .habitMeasurementCorrelation
         ]
         
         return insights.sorted { insight1, insight2 in
@@ -933,6 +946,136 @@ class InsightsService {
                 )
             }
         }
+        return nil
+    }
+    
+    // MARK: - Measurement Insights
+    
+    /// Analyzes measurement trends for each type over the last 30 days
+    private func analyzeMeasurementTrend() async -> Insight? {
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+        
+        for type in MeasurementType.allTypes {
+            let typeEntries = await MainActor.run {
+                MeasurementStore.shared.entries(for: type.id)
+            }.filter { $0.date >= thirtyDaysAgo }
+             .sorted { $0.date < $1.date }
+            
+            guard typeEntries.count >= 3 else { continue }
+            
+            // Linear regression
+            let n = Double(typeEntries.count)
+            let referenceDate = typeEntries.first!.date
+            let points: [(x: Double, y: Double)] = typeEntries.map { entry in
+                let x = entry.date.timeIntervalSince(referenceDate) / 86400.0
+                return (x: x, y: entry.value)
+            }
+            
+            let sumX = points.reduce(0.0) { $0 + $1.x }
+            let sumY = points.reduce(0.0) { $0 + $1.y }
+            let sumXY = points.reduce(0.0) { $0 + $1.x * $1.y }
+            let sumX2 = points.reduce(0.0) { $0 + $1.x * $1.x }
+            
+            let denominator = n * sumX2 - sumX * sumX
+            guard abs(denominator) > 1e-10 else { continue }
+            
+            let slope = (n * sumXY - sumX * sumY) / denominator
+            
+            // Threshold: slope relative to average value
+            let avgValue = sumY / n
+            guard avgValue > 0 else { continue }
+            let relativeSlope = slope / avgValue
+            
+            if relativeSlope > 0.01 {
+                return Insight(
+                    type: .measurementTrendUp,
+                    title: L10n.t("insights.measurementTrendUp.title"),
+                    message: String(format: L10n.t("insights.measurementTrendUp.message"), type.displayName),
+                    relatedHabitId: nil,
+                    suggestedActions: [.reviewProgress(UUID())],
+                    confidence: 0.75
+                )
+            } else if relativeSlope < -0.01 {
+                return Insight(
+                    type: .measurementTrendDown,
+                    title: L10n.t("insights.measurementTrendDown.title"),
+                    message: String(format: L10n.t("insights.measurementTrendDown.message"), type.displayName),
+                    relatedHabitId: nil,
+                    suggestedActions: [.reviewProgress(UUID())],
+                    confidence: 0.75
+                )
+            }
+        }
+        
+        return nil
+    }
+    
+    /// Analyzes correlation between habit completions and measurement trends
+    private func analyzeHabitMeasurementCorrelation(habits: [Habit]) async -> Insight? {
+        let calendar = Calendar.current
+        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: Date())!
+        
+        for type in MeasurementType.allTypes {
+            let typeEntries = await MainActor.run {
+                MeasurementStore.shared.entries(for: type.id)
+            }.filter { $0.date >= thirtyDaysAgo }
+             .sorted { $0.date < $1.date }
+            
+            guard typeEntries.count >= 5 else { continue }
+            
+            for habit in habits {
+                let recentCompletions = habit.completionDates.filter { $0 >= thirtyDaysAgo }
+                guard recentCompletions.count >= 10 else { continue }
+                
+                // Build daily arrays for Pearson correlation
+                var measurementValues: [Double] = []
+                var completionValues: [Double] = []
+                
+                // For each day in the last 30 days
+                for dayOffset in 0..<30 {
+                    guard let day = calendar.date(byAdding: .day, value: -dayOffset, to: Date()) else { continue }
+                    
+                    // Check if there's a measurement on this day
+                    let dayMeasurement = typeEntries.first { calendar.isDate($0.date, inSameDayAs: day) }
+                    guard let measurement = dayMeasurement else { continue }
+                    
+                    // Check if habit was completed on this day
+                    let wasCompleted = recentCompletions.contains { calendar.isDate($0, inSameDayAs: day) }
+                    
+                    measurementValues.append(measurement.value)
+                    completionValues.append(wasCompleted ? 1.0 : 0.0)
+                }
+                
+                guard measurementValues.count >= 5 else { continue }
+                
+                // Pearson correlation
+                let n = Double(measurementValues.count)
+                let sumX = measurementValues.reduce(0, +)
+                let sumY = completionValues.reduce(0, +)
+                let sumXY = zip(measurementValues, completionValues).reduce(0.0) { $0 + $1.0 * $1.1 }
+                let sumX2 = measurementValues.reduce(0.0) { $0 + $1 * $1 }
+                let sumY2 = completionValues.reduce(0.0) { $0 + $1 * $1 }
+                
+                let numerator = n * sumXY - sumX * sumY
+                let denominator = sqrt((n * sumX2 - sumX * sumX) * (n * sumY2 - sumY * sumY))
+                
+                guard denominator > 1e-10 else { continue }
+                let r = numerator / denominator
+                
+                if abs(r) > 0.5 {
+                    return Insight(
+                        type: .habitMeasurementCorrelation,
+                        title: L10n.t("insights.habitMeasurementCorrelation.title"),
+                        message: String(format: L10n.t("insights.habitMeasurementCorrelation.message"), habit.title, type.displayName),
+                        relatedHabitId: habit.id,
+                        suggestedActions: [.reviewProgress(habit.id)],
+                        confidence: 0.7
+                    )
+                }
+            }
+        }
+        
         return nil
     }
     

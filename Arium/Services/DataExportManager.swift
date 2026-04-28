@@ -387,6 +387,33 @@ class DataExportManager {
         return habits
     }
     
+    // MARK: - Measurement CSV Export
+    
+    func exportMeasurementsToCSV(entries: [MeasurementEntry]) throws -> URL {
+        guard !entries.isEmpty else {
+            throw DataExportError.noData
+        }
+        
+        var csvString = "ID,Type,Value,Unit,Date,Note\n"
+        
+        let sortedEntries = entries.sorted { $0.date < $1.date }
+        
+        for entry in sortedEntries {
+            let row = [
+                entry.id.uuidString,
+                escapeCsvField(entry.typeId),
+                String(entry.value),
+                escapeCsvField(entry.unit),
+                dateFormatter.string(from: entry.date),
+                escapeCsvField(entry.note ?? "")
+            ].joined(separator: ",")
+            
+            csvString.append(row + "\n")
+        }
+        
+        return try saveToTemporaryFile(csvString, filename: "Arium_Measurements_\(timestamp).csv")
+    }
+    
     // MARK: - Share
     
     func shareExport(url: URL, from viewController: UIViewController) {

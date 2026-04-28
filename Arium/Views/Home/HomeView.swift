@@ -70,7 +70,8 @@ struct HomeView: View {
             onAchievementsTap: { sheetCoordinator.showAchievements() },
             onInsightsTap: { sheetCoordinator.showInsights() },
             onStatisticsTap: { sheetCoordinator.showStatistics() },
-            onGardenTap: { sheetCoordinator.showGarden() }
+            onGardenTap: { sheetCoordinator.showGarden() },
+            onMeasurementsTap: { sheetCoordinator.showMeasurements() }
         )
         .padding(.horizontal, 20)
         .padding(.top, 8)
@@ -669,6 +670,7 @@ struct ModernHeaderView: View {
     let onInsightsTap: () -> Void
     let onStatisticsTap: () -> Void
     let onGardenTap: () -> Void
+    let onMeasurementsTap: () -> Void
     
     @State private var showingSlotsInfo = false
     @State private var showingPremiumError = false
@@ -814,6 +816,32 @@ struct ModernHeaderView: View {
                 .interactiveButton(haptic: .selection)
                 .accessibilityLabel(L10n.t("garden.title"))
                 .accessibilityHint("View your Arium Garden")
+                
+                // Measurements Button
+                Button(action: {
+                    HapticManager.selection()
+                    onMeasurementsTap()
+                }) {
+                    ZStack {
+                        Circle()
+                            .fill(
+                                LinearGradient(
+                                    colors: [Color.pink.opacity(0.2), Color.red.opacity(0.15)],
+                                    startPoint: .topLeading,
+                                    endPoint: .bottomTrailing
+                                )
+                            )
+                            .frame(width: 44, height: 44)
+                        
+                        Image(systemName: "figure.mixed.cardio")
+                            .applyAppFont(size: 18, weight: .semibold)
+                            .foregroundStyle(Color.pink)
+                    }
+                    .shadow(color: Color.pink.opacity(0.2), radius: 8, x: 0, y: 4)
+                }
+                .interactiveButton(haptic: .selection)
+                .accessibilityLabel(L10n.t("measurement.title"))
+                .accessibilityHint("View your body measurements")
                 
                 // Statistics Button
                 Button(action: {
