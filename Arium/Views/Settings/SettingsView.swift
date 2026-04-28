@@ -55,6 +55,16 @@ struct SettingsView: View {
     @State private var currentFeedbackType: FeedbackManager.FeedbackType?
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
+
+    // Promo Code
+    @State private var promoCodeText: String = ""
+    @State private var promoCodeResult: PromoCodeResult?
+
+    enum PromoCodeResult {
+        case success
+        case invalid
+        case alreadyPremium
+    }
     
     // MARK: - Computed Properties
     
@@ -403,9 +413,86 @@ struct SettingsView: View {
                     }
                 }
             )
+
+            // Promo Code
+            VStack(spacing: 8) {
+                HStack(spacing: 8) {
+                    Image(systemName: "ticket.fill")
+                        .foregroundStyle(.purple)
+                        .font(.system(size: 16))
+                    
+                    TextField(L10n.t("promo.placeholder"), text: $promoCodeText)
+                        .textInputAutocapitalization(.characters)
+                        .autocorrectionDisabled()
+                        .applyAppFont(size: 14)
+                    
+                    Button {
+                        redeemPromoCode()
+                    } label: {
+                        Text(L10n.t("promo.redeem"))
+                            .applyAppFont(size: 12)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(.white)
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 6)
+                            .background(Color.purple)
+                            .clipShape(Capsule())
+                    }
+                    .disabled(promoCodeText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                }
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(
+                    RoundedRectangle(cornerRadius: 12)
+                        .fill(Color(.secondarySystemGroupedBackground))
+                )
+
+                if let result = promoCodeResult {
+                    HStack {
+                        switch result {
+                        case .success:
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.green)
+                            Text(L10n.t("promo.success"))
+                                .foregroundStyle(.green)
+                        case .invalid:
+                            Image(systemName: "xmark.circle.fill")
+                                .foregroundStyle(.red)
+                            Text(L10n.t("promo.invalid"))
+                                .foregroundStyle(.red)
+                        case .alreadyPremium:
+                            Image(systemName: "checkmark.circle.fill")
+                                .foregroundStyle(.orange)
+                            Text(L10n.t("promo.alreadyPremium"))
+                                .foregroundStyle(.orange)
+                        }
+                        Spacer()
+                    }
+                    .applyAppFont(size: 12)
+                    .padding(.horizontal, 4)
+                }
+            }
         }
     }
     
+    // MARK: - Promo Code
+
+    private func redeemPromoCode() {
+        if premiumManager.isPremium {
+            promoCodeResult = .alreadyPremium
+        } else if premiumManager.redeemPromoCode(promoCodeText) {
+            promoCodeResult = .success
+            promoCodeText = ""
+        } else {
+            promoCodeResult = .invalid
+        }
+
+        // Auto-dismiss result after 3 seconds
+        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+            withAnimation { promoCodeResult = nil }
+        }
+    }
+
     private var notificationsCard: some View {
         VStack(spacing: 12) {
             ModernSettingsCard(

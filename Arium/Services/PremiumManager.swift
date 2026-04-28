@@ -74,9 +74,10 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     
     private func loadPremiumStatus() {
         let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
+        let isPromoPremium = UserDefaults.standard.bool(forKey: "isPromoPremium")
         let savedPremium = UserDefaults.standard.bool(forKey: "isPremium")
         
-        if isTestPremium && savedPremium {
+        if (isTestPremium || isPromoPremium) && savedPremium {
             isPremium = true
         } else {
             isPremium = savedPremium
@@ -93,6 +94,44 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     func setPremiumStatus(_ status: Bool) {
         UserDefaults.standard.set(true, forKey: "isTestPremium")
         savePremiumStatus(status)
+    }
+
+    // MARK: - Promo Code
+
+    /// Valid promo codes that grant premium access.
+    /// Add codes here — they are case-insensitive.
+    private static let validPromoCodes: Set<String> = [
+        "ARIUM2026",
+        "ARIUMVIP",
+        "ARIUMPREMIUM",
+        "ZORBEYTEAM"
+    ]
+
+    /// Validates and redeems a promo code. Returns true if the code was valid.
+    @discardableResult
+    func redeemPromoCode(_ code: String) -> Bool {
+        let normalized = code.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+        guard !normalized.isEmpty else { return false }
+
+        // Check if already redeemed
+        let redeemedCodes = UserDefaults.standard.stringArray(forKey: "redeemedPromoCodes") ?? []
+        if redeemedCodes.contains(normalized) {
+            // Already redeemed but still grant premium (idempotent)
+            savePremiumStatus(true)
+            UserDefaults.standard.set(true, forKey: "isPromoPremium")
+            return true
+        }
+
+        guard Self.validPromoCodes.contains(normalized) else { return false }
+
+        // Redeem the code
+        var codes = redeemedCodes
+        codes.append(normalized)
+        UserDefaults.standard.set(codes, forKey: "redeemedPromoCodes")
+        UserDefaults.standard.set(true, forKey: "isPromoPremium")
+        savePremiumStatus(true)
+        HapticManager.success()
+        return true
     }
     
     // MARK: - Ürün Yükleme
@@ -133,9 +172,10 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     // MARK: - Entitlement Kontrolü (Uygulama Açılışında — Apple Zorunlu)
     
     func checkPremiumStatus() async {
-        // Test premium aktifse StoreKit kontrolünü atla
+        // Test premium veya promo premium aktifse StoreKit kontrolünü atla
         let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
-        if isTestPremium && UserDefaults.standard.bool(forKey: "isPremium") {
+        let isPromoPremium = UserDefaults.standard.bool(forKey: "isPromoPremium")
+        if (isTestPremium || isPromoPremium) && UserDefaults.standard.bool(forKey: "isPremium") {
             isPremium = true
             return
         }
@@ -152,8 +192,8 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
             }
         }
         
-        // Aktif entitlement bulunamadıysa (ve test premium değilse)
-        if !foundEntitlement && !isTestPremium {
+        // Aktif entitlement bulunamadıysa (ve test/promo premium değilse)
+        if !foundEntitlement && !isTestPremium && !isPromoPremium {
             savePremiumStatus(false)
         }
     }
