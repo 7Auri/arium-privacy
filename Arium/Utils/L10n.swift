@@ -407,12 +407,6 @@ enum L10n {
             "quickAction.today": "Today's Habits",
             "quickAction.today.subtitle": "Check progress",
 
-            // Promo Code
-            "promo.placeholder": "Enter promo code",
-            "promo.redeem": "Redeem",
-            "promo.success": "Premium activated! Enjoy all features.",
-            "promo.invalid": "Invalid promo code. Please try again.",
-            "promo.alreadyPremium": "You already have Premium!",
             
             // Template View
             "template.search.placeholder": "Search templates...",
@@ -702,7 +696,6 @@ enum L10n {
             "button.use": "Use",
 
             // Insight Actions
-
 
             "insight.action.focus": "Focus on This Habit",
             "insight.action.updateGoal": "Update Goal",
@@ -1295,12 +1288,6 @@ enum L10n {
             "quickAction.today": "Bugünün Alışkanlıkları",
             "quickAction.today.subtitle": "İlerlemeyi kontrol et",
 
-            // Promo Code
-            "promo.placeholder": "Promosyon kodu girin",
-            "promo.redeem": "Kullan",
-            "promo.success": "Premium aktif! Tüm özelliklerin keyfini çıkarın.",
-            "promo.invalid": "Geçersiz promosyon kodu. Tekrar deneyin.",
-            "promo.alreadyPremium": "Zaten Premium'unuz var!",
             
             // Template View
             "template.search.placeholder": "Şablonlarda ara...",
@@ -1569,7 +1556,6 @@ enum L10n {
             "button.use": "Kullan",
             
             // Insight Actions (TR)
-
 
             "insight.action.focus": "Bu Alışkanlığa Odaklan",
             "insight.action.updateGoal": "Hedefi Güncelle",
@@ -2476,12 +2462,6 @@ enum L10n {
             "quickAction.today": "Heutige Gewohnheiten",
             "quickAction.today.subtitle": "Fortschritt prüfen",
 
-            // Promo Code
-            "promo.placeholder": "Promo-Code eingeben",
-            "promo.redeem": "Einlösen",
-            "promo.success": "Premium aktiviert! Genießen Sie alle Funktionen.",
-            "promo.invalid": "Ungültiger Promo-Code. Bitte versuchen Sie es erneut.",
-            "promo.alreadyPremium": "Sie haben bereits Premium!",
             
             // Template View
             "template.search.placeholder": "Vorlagen suchen...",
@@ -3317,12 +3297,6 @@ enum L10n {
             "quickAction.today": "Habitudes du jour",
             "quickAction.today.subtitle": "Vérifier les progrès",
 
-            // Promo Code
-            "promo.placeholder": "Entrer le code promo",
-            "promo.redeem": "Utiliser",
-            "promo.success": "Premium activé ! Profitez de toutes les fonctionnalités.",
-            "promo.invalid": "Code promo invalide. Veuillez réessayer.",
-            "promo.alreadyPremium": "Vous avez déjà Premium !",
             
             // Template View
             "template.search.placeholder": "Rechercher des modèles...",
@@ -4108,12 +4082,6 @@ enum L10n {
             "quickAction.today": "Hábitos de hoy",
             "quickAction.today.subtitle": "Ver progreso",
 
-            // Promo Code
-            "promo.placeholder": "Ingresa código promocional",
-            "promo.redeem": "Canjear",
-            "promo.success": "¡Premium activado! Disfruta de todas las funciones.",
-            "promo.invalid": "Código promocional inválido. Inténtalo de nuevo.",
-            "promo.alreadyPremium": "¡Ya tienes Premium!",
             
             // Template View
             "template.search.placeholder": "Buscar plantillas...",
@@ -4943,12 +4911,6 @@ enum L10n {
             "quickAction.today": "Abitudini di oggi",
             "quickAction.today.subtitle": "Controlla progresso",
 
-            // Promo Code
-            "promo.placeholder": "Inserisci codice promozionale",
-            "promo.redeem": "Riscatta",
-            "promo.success": "Premium attivato! Goditi tutte le funzionalità.",
-            "promo.invalid": "Codice promozionale non valido. Riprova.",
-            "promo.alreadyPremium": "Hai già Premium!",
             
             // Template View
             "template.search.placeholder": "Cerca modelli...",
