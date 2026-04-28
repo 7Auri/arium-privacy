@@ -76,6 +76,7 @@ struct MeasurementsListView: View {
                     }
                 }
             }
+            .environment(\.locale, Locale(identifier: L10n.currentLanguage))
             .navigationTitle(L10n.t("measurement.title"))
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

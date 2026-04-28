@@ -169,6 +169,7 @@ struct MeasurementChartView: View {
     
     private func formatDate(_ date: Date) -> String {
         let formatter = DateFormatter()
+        formatter.locale = Locale(identifier: L10n.currentLanguage)
         if selectedPeriod == .quarter {
             formatter.dateFormat = "MMM d"
         } else {

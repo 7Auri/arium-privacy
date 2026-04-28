@@ -70,6 +70,7 @@ struct MeasurementGoalSheet: View {
                         in: Date()...,
                         displayedComponents: [.date]
                     )
+                    .environment(\.locale, Locale(identifier: L10n.currentLanguage))
                     .applyAppFont(size: 17, weight: .regular)
                 } header: {
                     Text(L10n.t("measurement.goal.targetDate"))

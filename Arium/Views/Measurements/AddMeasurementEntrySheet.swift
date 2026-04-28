@@ -73,6 +73,7 @@ struct AddMeasurementEntrySheet: View {
                         selection: $date,
                         displayedComponents: [.date]
                     )
+                    .environment(\.locale, Locale(identifier: L10n.currentLanguage))
                     .applyAppFont(size: 17, weight: .regular)
                 }
                 
