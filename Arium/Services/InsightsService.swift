@@ -271,37 +271,43 @@ class InsightsService {
         var insights: [Insight] = []
         
         for habit in habits {
-            // Combine habit notes with recent completion notes
-            var allNotes: [String] = []
-            
-            if !habit.notes.isEmpty {
-                allNotes.append(habit.notes)
-            }
-            
             let calendar = Calendar.current
             let dateFormatter = DateFormatter()
             dateFormatter.dateFormat = "yyyy-MM-dd"
-            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: Date())!
-            let limitKey = dateFormatter.string(from: sevenDaysAgo)
+            let now = Date()
             
-            // Son 7 günün notlarını al ve tarihe göre sırala (en yeni önce)
+            // Tüm completion notlarını tarihleriyle birlikte topla (EWMA için)
+            var datedNotes: [(daysAgo: Int, text: String)] = []
+            
+            for (dateKey, note) in habit.completionNotes where !note.isEmpty {
+                if let noteDate = dateFormatter.date(from: dateKey) {
+                    let daysAgo = calendar.dateComponents([.day], from: noteDate, to: now).day ?? 0
+                    datedNotes.append((daysAgo: max(0, daysAgo), text: note))
+                }
+            }
+            
+            // Habit'in ana notunu da ekle (daysAgo = 0 olarak, her zaman güncel kabul edilir)
+            if !habit.notes.isEmpty {
+                datedNotes.append((daysAgo: 0, text: habit.notes))
+            }
+            
+            // EWMA ile ağırlıklı sentiment hesapla
+            // Hard 7-gün cutoff yerine gradual decay kullanıyoruz — tek bir kötü gün
+            // tüm skoru domine edemez, ama yakın geçmiş yine de daha ağırlıklı.
+            let sentimentScore: Double
+            if datedNotes.isEmpty {
+                sentimentScore = 0.0
+            } else {
+                sentimentScore = SentimentAnalyzer.ewmaSentiment(for: datedNotes)
+            }
+            
+            // Son 7 günün notlarını al (son not kontrolü için)
+            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: now)!
+            let limitKey = dateFormatter.string(from: sevenDaysAgo)
             let recentNotes = habit.completionNotes
                 .filter { $0.key >= limitKey && !$0.value.isEmpty }
-                .sorted { $0.key > $1.key } // En yeni önce
+                .sorted { $0.key > $1.key }
                 .map { $0.value }
-            
-            allNotes.append(contentsOf: recentNotes)
-            
-            let sentimentScore: Double
-            if allNotes.isEmpty {
-                sentimentScore = 0.0
-            } else if recentNotes.isEmpty {
-                sentimentScore = SentimentAnalyzer.analyzeSentiment(for: habit.notes)
-            } else {
-                let mainScore = SentimentAnalyzer.analyzeSentiment(for: habit.notes)
-                let recentScore = SentimentAnalyzer.averageSentiment(for: recentNotes)
-                sentimentScore = (mainScore * 0.3) + (recentScore * 0.7)
-            }
             
             // ÖNEMLİ: Son 1-2 notun sentiment'ine özel bak
             // Eğer son notlar çok negatifse, genel ortalama iyi olsa bile insight oluştur
@@ -1356,11 +1362,20 @@ class HabitFeatureExtractor {
             recoveryScore = 0.0
         }
         
-        // Sentiment score
+        // Sentiment score (EWMA for time-aware weighting)
         let sentimentScore: Double
         if !habit.completionNotes.isEmpty {
-            let notes = Array(habit.completionNotes.values)
-            sentimentScore = max(-1.0, min(1.0, SentimentAnalyzer.averageSentiment(for: notes)))
+            let calendar = Calendar.current
+            let now = Date()
+            let dateFormatter = DateFormatter()
+            dateFormatter.dateFormat = "yyyy-MM-dd"
+            
+            let datedNotes: [(daysAgo: Int, text: String)] = habit.completionNotes.compactMap { (dateKey, note) in
+                guard !note.isEmpty, let noteDate = dateFormatter.date(from: dateKey) else { return nil }
+                let daysAgo = calendar.dateComponents([.day], from: noteDate, to: now).day ?? 0
+                return (daysAgo: max(0, daysAgo), text: note)
+            }
+            sentimentScore = max(-1.0, min(1.0, SentimentAnalyzer.ewmaSentiment(for: datedNotes)))
         } else {
             sentimentScore = SentimentAnalyzer.analyzeSentiment(for: habit.notes)
         }

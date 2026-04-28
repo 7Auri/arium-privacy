@@ -72,6 +72,7 @@ class SentimentAnalyzer {
     }
     
     /// Analyzes an array of notes and returns the average sentiment score.
+    /// Simple unweighted average — use `ewmaSentiment` for time-aware weighting.
     static func averageSentiment(for notes: [String]) -> Double {
         guard !notes.isEmpty else { return 0.0 }
         
@@ -88,5 +89,49 @@ class SentimentAnalyzer {
         
         guard validNotes > 0 else { return 0.0 }
         return totalScore / Double(validNotes)
+    }
+    
+    // MARK: - EWMA Sentiment
+    
+    /// Computes Exponential Weighted Moving Average sentiment over dated notes.
+    ///
+    /// **Why EWMA instead of a hard 7-day window?**
+    /// A hard cutoff (e.g. 70% weight on last 7 days) means a single bad day can
+    /// skew the entire score by 2.3x. EWMA applies gradual exponential decay:
+    /// recent notes still matter more, but each individual note has bounded influence.
+    /// The smoothing factor α = 0.15 gives a half-life of ~4.3 days, meaning a note
+    /// from a week ago still carries ~35% of today's weight — enough to matter,
+    /// but not enough to dominate.
+    ///
+    /// Formula: weight(i) = α * (1 - α)^i, where i = days ago
+    /// Result:  Σ(score_i * weight_i) / Σ(weight_i)
+    ///
+    /// - Parameters:
+    ///   - datedNotes: Array of (daysAgo, noteText) tuples, where daysAgo = 0 means today.
+    ///                 Notes are expected to be pre-sorted (most recent first) but order doesn't affect result.
+    ///   - alpha: Smoothing factor (0 < α ≤ 1). Default 0.15. Higher = more weight on recent notes.
+    /// - Returns: Weighted sentiment score in range -1.0 to +1.0, or 0.0 if no valid notes.
+    static func ewmaSentiment(
+        for datedNotes: [(daysAgo: Int, text: String)],
+        alpha: Double = 0.15
+    ) -> Double {
+        guard !datedNotes.isEmpty else { return 0.0 }
+        
+        var weightedSum = 0.0
+        var totalWeight = 0.0
+        
+        for note in datedNotes {
+            let score = analyzeSentiment(for: note.text)
+            // Skip neutral/zero scores to avoid diluting the signal
+            guard score != 0 else { continue }
+            
+            // weight = α * (1 - α)^daysAgo
+            let weight = alpha * pow(1.0 - alpha, Double(max(0, note.daysAgo)))
+            weightedSum += score * weight
+            totalWeight += weight
+        }
+        
+        guard totalWeight > 0 else { return 0.0 }
+        return weightedSum / totalWeight
     }
 }
