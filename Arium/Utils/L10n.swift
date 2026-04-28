@@ -646,7 +646,7 @@ enum L10n {
             "insights.weeklyTotal": "Total completions this week: %d",
             "insights.generateReport": "Establish Detailed Report",
             "insights.moodBooster.title": "Mood Booster 🌟",
-            "insights.moodBooster.message": "Your notes for '%@' are very positive. This habit brings you joy!",
+            "insights.moodBooster.message": "Your notes for '%@' are very positive. This habit coincides with a good mood!",
             "insights.challenging.title": "Challenging Habit 🏔️",
             "insights.challenging.message": "You seem to struggle with '%@'. Don't give up, small steps count!",
             "insights.productiveDay.title": "%@ Champion 🏆",
@@ -682,9 +682,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Streak Risk",
             "insights.streakRisk.message": "Your %d day streak for '%@' is at risk! Not completed in the last 3 days.",
             "insights.habitChain.title": "🔗 Habit Chain",
-            "insights.habitChain.message": "You're more successful when '%@' and '%@' are completed together! (%d times)",
+            "insights.habitChain.message": "'%@' and '%@' tend to be completed on the same days. (%d times)",
             "insights.recovery.title": "📈 Recovery",
-            "insights.recovery.message": "'%@' has improved by %d%% in the last week! You're doing great! 🎉",
+            "insights.recovery.message": "'%@' shows %d%% more completions this week compared to last week. Keep it up! 🎉",
             
             // ML Insights (New)
             "insight.smartReminder.title": "✨ Best Time",
@@ -1043,7 +1043,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Measurement Going Down",
             "insights.measurementTrendDown.message": "Your %@ measurements show a downward trend over the last 30 days.",
             "insights.habitMeasurementCorrelation.title": "🔗 Habit-Measurement Link",
-            "insights.habitMeasurementCorrelation.message": "Your habit '%@' appears correlated with your %@ measurements.",
+            "insights.habitMeasurementCorrelation.message": "Your habit '%@' appears correlated with your %@ measurements. This is an observed pattern, not causation.",
         ],
         "tr": [
             "app.name": "Arium",
@@ -1559,7 +1559,7 @@ enum L10n {
             "insights.weeklyTotal": "Bu hafta tamamlananlar: %d",
             "insights.generateReport": "Detaylı Rapor Oluştur",
             "insights.moodBooster.title": "Mutluluk Kaynağı 🌟",
-            "insights.moodBooster.message": "'%@' için aldığın notlar çok pozitif. Bu alışkanlık sana iyi geliyor!",
+            "insights.moodBooster.message": "'%@' için aldığın notlar çok pozitif. Bu alışkanlık iyi bir ruh haliyle birlikte gerçekleşiyor!",
             "insights.challenging.title": "Zorlayıcı Alışkanlık 🏔️",
             "insights.challenging.message": "'%@' seni biraz zorluyor gibi. Pes etme, küçük adımlar önemli!",
             
@@ -1585,9 +1585,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Seri Riski",
             "insights.streakRisk.message": "'%@' için %d günlük serin risk altında! Son 3 gündür tamamlanmadı.",
             "insights.habitChain.title": "🔗 Alışkanlık Zinciri",
-            "insights.habitChain.message": "'%@' ve '%@' birlikte tamamlandığında daha başarılısınız! (%d kez)",
+            "insights.habitChain.message": "'%@' ve '%@' genellikle aynı günlerde tamamlanıyor. (%d kez)",
             "insights.recovery.title": "📈 Toparlanma",
-            "insights.recovery.message": "'%@' için son haftada %d%% iyileşme var! Harika gidiyorsunuz! 🎉",
+            "insights.recovery.message": "'%@' bu hafta geçen haftaya göre %%%d daha fazla tamamlanma gösteriyor. Devam et! 🎉",
             
             // ML Insights (TR)
             "insight.smartReminder.title": "✨ En İyi Zaman",
@@ -1992,7 +1992,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Ölçüm Düşüyor",
             "insights.measurementTrendDown.message": "%@ ölçümleriniz son 30 günde düşüş trendi gösteriyor.",
             "insights.habitMeasurementCorrelation.title": "🔗 Alışkanlık-Ölçüm Bağlantısı",
-            "insights.habitMeasurementCorrelation.message": "'%@' alışkanlığınız %@ ölçümlerinizle ilişkili görünüyor.",
+            "insights.habitMeasurementCorrelation.message": "'%@' alışkanlığınız %@ ölçümlerinizle ilişkili görünüyor. Bu bir ilişki gözlemi, neden-sonuç değil.",
         ],
         "de": [
             "app.name": "Arium",
@@ -2305,7 +2305,7 @@ enum L10n {
             "insights.weeklyTotal": "Gesamtabschlüsse diese Woche: %d",
             "insights.generateReport": "Detaillierten Bericht erstellen",
             "insights.moodBooster.title": "Stimmungsaufheller 🌟",
-            "insights.moodBooster.message": "Deine Notizen für '%@' sind sehr positiv. Diese Gewohnheit bringt dir Freude!",
+            "insights.moodBooster.message": "Deine Notizen für '%@' sind sehr positiv. Diese Gewohnheit geht mit guter Stimmung einher!",
             "insights.challenging.title": "Herausfordernde Gewohnheit 🏔️",
             "insights.challenging.message": "Du scheinst mit '%@' zu kämpfen. Gib nicht auf, kleine Schritte zählen!",
             
@@ -2331,9 +2331,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Serien-Risiko",
             "insights.streakRisk.message": "Deine %d-Tage-Serie für '%@' ist gefährdet! In den letzten 3 Tagen nicht abgeschlossen.",
             "insights.habitChain.title": "🔗 Gewohnheitskette",
-            "insights.habitChain.message": "Du bist erfolgreicher, wenn '%@' und '%@' zusammen abgeschlossen werden! (%d Mal)",
+            "insights.habitChain.message": "'%@' und '%@' werden oft am selben Tag abgeschlossen. (%d Mal)",
             "insights.recovery.title": "📈 Erholung",
-            "insights.recovery.message": "'%@' hat sich in der letzten Woche um %d%% verbessert! Du machst großartig! 🎉",
+            "insights.recovery.message": "'%@' zeigt diese Woche %d%% mehr Abschlüsse als letzte Woche. Weiter so! 🎉",
             
             // Insight Actions (DE)
             // ML Insights (New)
@@ -2876,7 +2876,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Messung sinkt",
             "insights.measurementTrendDown.message": "Ihre %@-Messungen zeigen einen Abwärtstrend in den letzten 30 Tagen.",
             "insights.habitMeasurementCorrelation.title": "🔗 Gewohnheit-Messung Verbindung",
-            "insights.habitMeasurementCorrelation.message": "Ihre Gewohnheit '%@' scheint mit Ihren %@-Messungen korreliert zu sein.",
+            "insights.habitMeasurementCorrelation.message": "Ihre Gewohnheit '%@' scheint mit Ihren %@-Messungen zusammenzuhängen. Dies ist ein beobachtetes Muster, keine Kausalität.",
         ],
         "fr": [
             "app.name": "Arium",
@@ -3038,7 +3038,7 @@ enum L10n {
             "insights.weeklyTotal": "Completions total cette semaine: %d",
             "insights.generateReport": "Générer un rapport détaillé",
             "insights.moodBooster.title": "Booster de bonne humeur 🌟",
-            "insights.moodBooster.message": "Vos notes pour '%@' sont très positives. Cette habitude vous apporte de la joie!",
+            "insights.moodBooster.message": "Vos notes pour '%@' sont très positives. Cette habitude coïncide avec une bonne humeur!",
             "insights.challenging.title": "Habitude difficile 🏔️",
             "insights.challenging.message": "Vous semblez avoir du mal avec '%@'. N'abandonnez pas, les petits pas comptent!",
             
@@ -3064,9 +3064,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Risque de Série",
             "insights.streakRisk.message": "Votre série de %d jours pour '%@' est en danger! Non complétée ces 3 derniers jours.",
             "insights.habitChain.title": "🔗 Chaîne d'Habitudes",
-            "insights.habitChain.message": "Vous êtes plus performant quand '%@' et '%@' sont complétées ensemble! (%d fois)",
+            "insights.habitChain.message": "'%@' et '%@' sont souvent complétées le même jour. (%d fois)",
             "insights.recovery.title": "📈 Récupération",
-            "insights.recovery.message": "'%@' s'est amélioré de %d%% cette semaine! Vous faites du bon travail! 🎉",
+            "insights.recovery.message": "'%@' montre %d%% de complétions en plus cette semaine par rapport à la semaine dernière. Continuez! 🎉",
             
             // Insight Actions (FR)
             // ML Insights (New)
@@ -3762,7 +3762,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Mesure en baisse",
             "insights.measurementTrendDown.message": "Vos mesures de %@ montrent une tendance à la baisse sur les 30 derniers jours.",
             "insights.habitMeasurementCorrelation.title": "🔗 Lien habitude-mesure",
-            "insights.habitMeasurementCorrelation.message": "Votre habitude '%@' semble corrélée avec vos mesures de %@.",
+            "insights.habitMeasurementCorrelation.message": "Votre habitude '%@' semble liée à vos mesures de %@. Il s'agit d'une corrélation observée, pas d'un lien de cause à effet.",
         ],
         "es": [
             "app.name": "Arium",
@@ -4450,7 +4450,7 @@ enum L10n {
             "insights.weeklyTotal": "Total de completados esta semana: %d",
             "insights.generateReport": "Establecer informe detallado",
             "insights.moodBooster.title": "Mejora del estado de ánimo 🌟",
-            "insights.moodBooster.message": "Tus notas para '%@' son muy positivas. ¡Este hábito te trae alegría!",
+            "insights.moodBooster.message": "Tus notas para '%@' son muy positivas. ¡Este hábito coincide con un buen estado de ánimo!",
             "insights.challenging.title": "Hábito desafiante 🏔️",
             "insights.challenging.message": "Parece que tienes dificultades con '%@'. ¡No te rindas, los pequeños pasos cuentan!",
             
@@ -4476,9 +4476,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Riesgo de Racha",
             "insights.streakRisk.message": "¡Tu racha de %d días para '%@' está en riesgo! No completada en los últimos 3 días.",
             "insights.habitChain.title": "🔗 Cadena de Hábitos",
-            "insights.habitChain.message": "¡Eres más exitoso cuando '%@' y '%@' se completan juntos! (%d veces)",
+            "insights.habitChain.message": "'%@' y '%@' suelen completarse el mismo día. (%d veces)",
             "insights.recovery.title": "📈 Recuperación",
-            "insights.recovery.message": "¡'%@' ha mejorado un %d%% esta semana! ¡Lo estás haciendo genial! 🎉",
+            "insights.recovery.message": "'%@' muestra %d%% más completaciones esta semana comparado con la semana pasada. ¡Sigue así! 🎉",
             
             // Insight Actions (ES)
             // ML Insights (New)
@@ -4660,7 +4660,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Medición en descenso",
             "insights.measurementTrendDown.message": "Tus mediciones de %@ muestran una tendencia a la baja en los últimos 30 días.",
             "insights.habitMeasurementCorrelation.title": "🔗 Enlace hábito-medición",
-            "insights.habitMeasurementCorrelation.message": "Tu hábito '%@' parece estar correlacionado con tus mediciones de %@.",
+            "insights.habitMeasurementCorrelation.message": "Tu hábito '%@' parece estar relacionado con tus mediciones de %@. Este es un patrón observado, no una relación causal.",
         ],
         "it": [
             "app.name": "Arium",
@@ -5337,7 +5337,7 @@ enum L10n {
             "insights.weeklyTotal": "Completamenti totali questa settimana: %d",
             "insights.generateReport": "Stabilisci report dettagliato",
             "insights.moodBooster.title": "Miglioratore dell'umore 🌟",
-            "insights.moodBooster.message": "Le tue note per '%@' sono molto positive. Questa abitudine ti porta gioia!",
+            "insights.moodBooster.message": "Le tue note per '%@' sono molto positive. Questa abitudine coincide con un buon umore!",
             "insights.challenging.title": "Abitudine impegnativa 🏔️",
             "insights.challenging.message": "Sembra che tu abbia difficoltà con '%@'. Non arrenderti, i piccoli passi contano!",
             
@@ -5363,9 +5363,9 @@ enum L10n {
             "insights.streakRisk.title": "⚠️ Rischio Serie",
             "insights.streakRisk.message": "La tua serie di %d giorni per '%@' è a rischio! Non completata negli ultimi 3 giorni.",
             "insights.habitChain.title": "🔗 Catena di Abitudini",
-            "insights.habitChain.message": "Sei più performante quando '%@' e '%@' vengono completate insieme! (%d volte)",
+            "insights.habitChain.message": "'%@' e '%@' vengono spesso completate nello stesso giorno. (%d volte)",
             "insights.recovery.title": "📈 Recupero",
-            "insights.recovery.message": "'%@' è migliorato del %d%% questa settimana! Stai andando alla grande! 🎉",
+            "insights.recovery.message": "'%@' mostra %d%% in più di completamenti questa settimana rispetto alla scorsa. Continua così! 🎉",
             
             // Insight Actions (IT)
             // ML Insights (New)
@@ -5548,7 +5548,7 @@ enum L10n {
             "insights.measurementTrendDown.title": "📉 Misurazione in calo",
             "insights.measurementTrendDown.message": "Le tue misurazioni di %@ mostrano una tendenza al ribasso negli ultimi 30 giorni.",
             "insights.habitMeasurementCorrelation.title": "🔗 Collegamento abitudine-misurazione",
-            "insights.habitMeasurementCorrelation.message": "La tua abitudine '%@' sembra correlata con le tue misurazioni di %@.",
+            "insights.habitMeasurementCorrelation.message": "La tua abitudine '%@' sembra correlata con le tue misurazioni di %@. Questo è un pattern osservato, non un rapporto causa-effetto.",
         ]
     ])
 }
