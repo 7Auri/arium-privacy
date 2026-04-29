@@ -16,17 +16,15 @@ struct PaywallView: View {
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
     
+    var trigger: String = "generic"
+    
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 24) {
-                    // Header
                     headerSection
-                    
-                    // Features
                     featuresSection
                     
-                    // Plans
                     if premiumManager.isProductLoading {
                         ProgressView()
                             .tint(appThemeManager.accentColor.color)
@@ -43,10 +41,7 @@ struct PaywallView: View {
                         plansSection
                     }
                     
-                    // Purchase Button
                     purchaseButton
-                    
-                    // Restore + Legal
                     footerSection
                 }
                 .padding(.horizontal, 20)
@@ -57,6 +52,7 @@ struct PaywallView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button {
+                        premiumManager.analyticsPaywallDismissed(action: "close")
                         dismiss()
                     } label: {
                         Image(systemName: "xmark.circle.fill")
@@ -64,6 +60,9 @@ struct PaywallView: View {
                             .font(.title3)
                     }
                 }
+            }
+            .onAppear {
+                premiumManager.analyticsPaywallShown(trigger: trigger)
             }
             .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                 Button(L10n.t("button.ok")) { dismiss() }
@@ -136,11 +135,15 @@ struct PaywallView: View {
     private var featuresSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             featureRow(icon: "infinity", text: L10n.t("paywall.feature.unlimited"))
+            featureRow(icon: "ruler", text: L10n.t("paywall.feature.measurements"))
             featureRow(icon: "brain.head.profile", text: L10n.t("paywall.feature.ai"))
+            featureRow(icon: "chart.bar.fill", text: L10n.t("paywall.feature.stats"))
             featureRow(icon: "paintbrush.fill", text: L10n.t("paywall.feature.themes"))
             featureRow(icon: "repeat", text: L10n.t("paywall.feature.repetitions"))
             featureRow(icon: "doc.text.fill", text: L10n.t("paywall.feature.templates"))
-            featureRow(icon: "chart.bar.fill", text: L10n.t("paywall.feature.stats"))
+            featureRow(icon: "trophy.fill", text: L10n.t("paywall.feature.achievements"))
+            featureRow(icon: "leaf.fill", text: L10n.t("paywall.feature.garden"))
+            featureRow(icon: "square.and.arrow.up", text: L10n.t("paywall.feature.export"))
         }
         .padding(20)
         .background(
@@ -180,6 +183,7 @@ struct PaywallView: View {
                             withAnimation(.easeInOut(duration: 0.2)) {
                                 selectedPlan = plan
                             }
+                            premiumManager.analyticsPlanSelected(plan: plan)
                             HapticManager.selection()
                         }
                     }
@@ -262,7 +266,11 @@ struct PaywallView: View {
     private func planSubtitle(_ product: Product, plan: PremiumPlan?) -> String {
         switch plan {
         case .monthly: return L10n.t("paywall.plan.monthly.subtitle")
-        case .yearly: return L10n.t("paywall.plan.yearly.subtitle")
+        case .yearly:
+            if let savings = premiumManager.yearlySavingsPercent, savings > 0 {
+                return String(format: L10n.t("paywall.plan.yearly.savings"), savings)
+            }
+            return L10n.t("paywall.plan.yearly.subtitle")
         case .lifetime: return L10n.t("paywall.plan.lifetime.subtitle")
         case .none: return ""
         }

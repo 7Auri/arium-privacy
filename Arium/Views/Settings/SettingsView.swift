@@ -399,6 +399,29 @@ struct SettingsView: View {
                     }
                 }
             )
+            
+            // Manage Subscription (aktif subscription varsa göster)
+            if premiumManager.isPremium {
+                if case .subscribed = premiumManager.subscriptionStatus {
+                    ModernSettingsCard(
+                        iconName: "gear",
+                        iconColor: .gray,
+                        title: L10n.t("paywall.manageSubscription"),
+                        description: premiumManager.subscriptionStatusText,
+                        action: {
+                            Task { await premiumManager.showManageSubscriptions() }
+                        }
+                    )
+                } else if premiumManager.subscriptionStatus == .lifetime {
+                    ModernSettingsCard(
+                        iconName: "crown.fill",
+                        iconColor: .purple,
+                        title: L10n.t("paywall.status.lifetime"),
+                        description: L10n.t("paywall.status.lifetimeForever"),
+                        action: {}
+                    )
+                }
+            }
         }
     }
     

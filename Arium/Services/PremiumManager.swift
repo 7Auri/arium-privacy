@@ -226,6 +226,15 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     
     /// Belirli bir ürünü satın al
     func purchase(_ product: Product) async {
+        // Lifetime guard: zaten lifetime varsa subscription satın almayı engelle
+        if hasLifetime && product.id != PremiumPlan.lifetime.rawValue {
+            errorMessage = L10n.t("paywall.alreadyLifetime")
+            return
+        }
+        
+        let plan = PremiumPlan(rawValue: product.id)
+        if let plan = plan { analyticsPurchaseStarted(plan: plan) }
+        
         isLoading = true
         errorMessage = nil
         
@@ -253,6 +262,7 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
                 
                 await transaction.finish()
                 HapticManager.success()
+                if let plan = plan { analyticsPurchaseCompleted(plan: plan) }
                 
             case .userCancelled:
                 break
@@ -295,7 +305,87 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
         await purchase(product)
     }
     
-    // MARK: - Satın Alımları Geri Yükle
+    // MARK: - Dinamik Savings Hesaplama
+    
+    /// Yıllık planın aylığa göre tasarruf yüzdesi
+    var yearlySavingsPercent: Int? {
+        guard let monthly = product(for: .monthly),
+              let yearly = product(for: .yearly) else { return nil }
+        let monthlyAnnual = monthly.price * 12
+        guard monthlyAnnual > 0 else { return nil }
+        let savings = (monthlyAnnual - yearly.price) / monthlyAnnual * 100
+        return max(0, Int(savings.rounded()))
+    }
+    
+    // MARK: - Subscription Management
+    
+    /// Opens Apple's native subscription management
+    func showManageSubscriptions() async {
+        guard let windowScene = await UIApplication.shared.connectedScenes.first as? UIWindowScene else { return }
+        do {
+            try await AppStore.showManageSubscriptions(in: windowScene)
+        } catch {
+            #if DEBUG
+            print("❌ Manage subscriptions failed: \(error)")
+            #endif
+        }
+    }
+    
+    /// Formatted subscription status for display in Settings
+    var subscriptionStatusText: String {
+        switch subscriptionStatus {
+        case .none:
+            return L10n.t("settings.freePlan")
+        case .lifetime:
+            return L10n.t("paywall.status.lifetime")
+        case .subscribed(let expiresDate, let productID):
+            let planName = PremiumPlan(rawValue: productID) == .yearly
+                ? L10n.t("paywall.plan.yearly")
+                : L10n.t("paywall.plan.monthly")
+            if let date = expiresDate {
+                let formatter = DateFormatter()
+                formatter.dateStyle = .medium
+                formatter.locale = Locale(identifier: L10n.currentLanguage)
+                return String(format: L10n.t("paywall.status.active"), planName, formatter.string(from: date))
+            }
+            return planName
+        case .expired:
+            return L10n.t("paywall.status.expired")
+        }
+    }
+    
+    // MARK: - Edge Case: Lifetime + Subscription Guard
+    
+    /// Returns true if user already has lifetime — prevents double purchase
+    var hasLifetime: Bool {
+        subscriptionStatus == .lifetime
+    }
+    
+    // MARK: - Analytics Stubs
+    
+    func analyticsPaywallShown(trigger: String) {
+        // TODO: Wire to analytics provider
+    }
+    
+    func analyticsPlanSelected(plan: PremiumPlan) {
+        // TODO: Wire to analytics provider
+    }
+    
+    func analyticsPurchaseStarted(plan: PremiumPlan) {
+        // TODO: Wire to analytics provider
+    }
+    
+    func analyticsPurchaseCompleted(plan: PremiumPlan) {
+        // TODO: Wire to analytics provider
+    }
+    
+    func analyticsPurchaseFailed(plan: PremiumPlan, error: Error) {
+        // TODO: Wire to analytics provider
+    }
+    
+    func analyticsPaywallDismissed(action: String) {
+        // TODO: Wire to analytics provider
+    }
     
     func restorePurchases() async {
         isLoading = true
