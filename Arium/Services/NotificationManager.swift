@@ -581,6 +581,40 @@ class NotificationManager: NSObject, ObservableObject {
         }
     }
     
+    // MARK: - Measurement Reminder
+    
+    private let measurementReminderID = "measurement_daily_reminder"
+    
+    /// Schedules a daily reminder to log measurements (e.g. weight)
+    func scheduleMeasurementReminder(at hour: Int = 9, minute: Int = 0) {
+        let content = UNMutableNotificationContent()
+        content.title = L10n.t("measurement.reminder.title")
+        content.body = L10n.t("measurement.reminder.body")
+        content.sound = .default
+        
+        var dateComponents = DateComponents()
+        dateComponents.hour = hour
+        dateComponents.minute = minute
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
+        let request = UNNotificationRequest(identifier: measurementReminderID, content: content, trigger: trigger)
+        
+        notificationCenter.add(request) { error in
+            #if DEBUG
+            if let error = error {
+                print("❌ Measurement reminder scheduling failed: \(error)")
+            } else {
+                print("✅ Measurement reminder scheduled at \(hour):\(String(format: "%02d", minute))")
+            }
+            #endif
+        }
+    }
+    
+    /// Cancels the daily measurement reminder
+    func cancelMeasurementReminder() {
+        notificationCenter.removePendingNotificationRequests(withIdentifiers: [measurementReminderID])
+    }
+    
     // MARK: - Badge Count
     
     func updateBadgeCount(incompleteCount: Int) {

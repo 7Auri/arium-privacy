@@ -19,6 +19,7 @@ struct MeasurementsListView: View {
     @State private var showingGoalSheet = false
     @State private var showingPremiumAlert = false
     @State private var entryToEdit: MeasurementEntry?
+    @AppStorage("isMeasurementReminderEnabled") private var isMeasurementReminderEnabled = false
     
     var body: some View {
         NavigationStack {
@@ -38,12 +39,25 @@ struct MeasurementsListView: View {
                                 chartData: viewModel.chartData,
                                 trendLine: premiumManager.isPremium ? viewModel.computeTrendLine() : nil,
                                 accentColor: appThemeManager.accentColor.color,
-                                unit: viewModel.selectedType.unit,
+                                unit: viewModel.displayUnit,
                                 selectedPeriod: $viewModel.selectedPeriod,
                                 isPremium: premiumManager.isPremium
                             )
                             .onChange(of: viewModel.selectedPeriod) { _, _ in
                                 viewModel.computeChartData()
+                            }
+                            
+                            // Unit System Toggle
+                            unitSystemToggle
+                            
+                            // BMI Card (weight seçiliyken)
+                            if let bmi = viewModel.currentBMI, let category = viewModel.bmiCategory {
+                                bmiCard(bmi: bmi, category: category)
+                            }
+                            
+                            // Weekly Summary
+                            if let summary = viewModel.weeklySummary {
+                                weeklySummaryCard(summary: summary)
                             }
                             
                             // Latest Value
@@ -92,6 +106,17 @@ struct MeasurementsListView: View {
                             showingGoalSheet = true
                         } label: {
                             Label(L10n.t("measurement.goal"), systemImage: "target")
+                        }
+                        
+                        Toggle(isOn: $isMeasurementReminderEnabled) {
+                            Label(L10n.t("measurement.reminder"), systemImage: "bell.fill")
+                        }
+                        .onChange(of: isMeasurementReminderEnabled) { _, newValue in
+                            if newValue {
+                                NotificationManager.shared.scheduleMeasurementReminder()
+                            } else {
+                                NotificationManager.shared.cancelMeasurementReminder()
+                            }
                         }
                         
                         if premiumManager.isPremium {
@@ -191,6 +216,123 @@ struct MeasurementsListView: View {
         }
     }
     
+    // MARK: - Unit System Toggle
+    
+    private var unitSystemToggle: some View {
+        HStack {
+            Text(L10n.t("measurement.unitSystem"))
+                .applyAppFont(size: 14, weight: .medium)
+                .foregroundColor(AriumTheme.textSecondary)
+            
+            Spacer()
+            
+            Picker("", selection: Binding(
+                get: { viewModel.unitSystem },
+                set: { viewModel.setUnitSystem($0) }
+            )) {
+                Text("kg / cm").tag(UnitSystem.metric)
+                Text("lbs / in").tag(UnitSystem.imperial)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 180)
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 10)
+        .background(AriumTheme.cardBackground)
+        .cornerRadius(12)
+    }
+    
+    // MARK: - BMI Card
+    
+    private func bmiCard(bmi: Double, category: BMICategory) -> some View {
+        HStack {
+            VStack(alignment: .leading, spacing: 4) {
+                Text("BMI")
+                    .applyAppFont(size: 13, weight: .medium)
+                    .foregroundColor(AriumTheme.textSecondary)
+                
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text(String(format: "%.1f", bmi))
+                        .applyAppFont(size: 28, weight: .bold)
+                        .foregroundColor(AriumTheme.textPrimary)
+                    
+                    Text(category.localizedName)
+                        .applyAppFont(size: 14, weight: .semibold)
+                        .foregroundColor(category.color)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 3)
+                        .background(category.color.opacity(0.15))
+                        .clipShape(Capsule())
+                }
+            }
+            
+            Spacer()
+            
+            // BMI scale indicator
+            Image(systemName: "heart.text.square")
+                .font(.system(size: 28))
+                .foregroundColor(category.color)
+        }
+        .padding()
+        .background(AriumTheme.cardBackground)
+        .cornerRadius(16)
+    }
+    
+    // MARK: - Weekly Summary Card
+    
+    private func weeklySummaryCard(summary: MeasurementWeeklySummary) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(L10n.t("measurement.weeklySummary"))
+                .applyAppFont(size: 14, weight: .semibold)
+                .foregroundColor(AriumTheme.textSecondary)
+            
+            HStack(spacing: 16) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.t("measurement.thisWeek"))
+                        .applyAppFont(size: 12, weight: .regular)
+                        .foregroundColor(AriumTheme.textTertiary)
+                    Text(String(format: "%.1f %@", summary.thisWeekAvg, summary.unit))
+                        .applyAppFont(size: 17, weight: .bold)
+                        .foregroundColor(AriumTheme.textPrimary)
+                }
+                
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(L10n.t("measurement.lastWeek"))
+                        .applyAppFont(size: 12, weight: .regular)
+                        .foregroundColor(AriumTheme.textTertiary)
+                    Text(String(format: "%.1f %@", summary.lastWeekAvg, summary.unit))
+                        .applyAppFont(size: 17, weight: .bold)
+                        .foregroundColor(AriumTheme.textPrimary)
+                }
+                
+                Spacer()
+                
+                // Difference badge
+                let diffText = summary.difference >= 0
+                    ? String(format: "+%.1f", summary.difference)
+                    : String(format: "%.1f", summary.difference)
+                let diffColor: Color = summary.difference == 0 ? .gray : (summary.difference > 0 ? .orange : .green)
+                
+                VStack(spacing: 2) {
+                    Image(systemName: summary.difference > 0 ? "arrow.up.right" : (summary.difference < 0 ? "arrow.down.right" : "minus"))
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundColor(diffColor)
+                    
+                    Text(diffText)
+                        .applyAppFont(size: 15, weight: .bold)
+                        .foregroundColor(diffColor)
+                }
+                .padding(.horizontal, 12)
+                .padding(.vertical, 8)
+                .background(diffColor.opacity(0.1))
+                .cornerRadius(10)
+            }
+        }
+        .padding()
+        .background(AriumTheme.cardBackground)
+        .cornerRadius(16)
+    }
+    
     // MARK: - Latest Value Card
     
     private func latestValueCard(entry: MeasurementEntry) -> some View {
@@ -201,11 +343,11 @@ struct MeasurementsListView: View {
                     .foregroundColor(AriumTheme.textSecondary)
                 
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(String(format: "%.1f", entry.value))
+                    Text(String(format: "%.1f", viewModel.displayValue(entry.value)))
                         .applyAppFont(size: 28, weight: .bold)
                         .foregroundColor(AriumTheme.textPrimary)
                     
-                    Text(entry.unit)
+                    Text(viewModel.displayUnit)
                         .applyAppFont(size: 16, weight: .medium)
                         .foregroundColor(AriumTheme.textSecondary)
                 }
@@ -312,11 +454,11 @@ struct MeasurementsListView: View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
-                    Text(String(format: "%.1f", entry.value))
+                    Text(String(format: "%.1f", viewModel.displayValue(entry.value)))
                         .applyAppFont(size: 18, weight: .semibold)
                         .foregroundColor(AriumTheme.textPrimary)
                     
-                    Text(entry.unit)
+                    Text(viewModel.displayUnit)
                         .applyAppFont(size: 14, weight: .regular)
                         .foregroundColor(AriumTheme.textSecondary)
                 }

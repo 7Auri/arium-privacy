@@ -34,9 +34,11 @@ struct AddMeasurementEntrySheet: View {
         self.existingEntry = existingEntry
         self.onSave = onSave
         
-        // Pre-populate for edit mode
+        // Pre-populate for edit mode (convert from metric to display unit)
         if let entry = existingEntry {
-            _valueText = State(initialValue: String(entry.value))
+            let system = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "measurementUnitSystem") ?? "metric") ?? .metric
+            let displayVal = UnitConversion.fromMetric(entry.value, type: measurementType, system: system)
+            _valueText = State(initialValue: String(format: "%.1f", displayVal))
             _date = State(initialValue: entry.date)
             _note = State(initialValue: entry.note ?? "")
         }
@@ -128,16 +130,20 @@ struct AddMeasurementEntrySheet: View {
     // MARK: - Save
     
     private func save() {
-        guard let value = Double(valueText), value > 0 else {
+        guard let displayValue = Double(valueText), displayValue > 0 else {
             showingValidationError = true
             return
         }
         
+        // Convert from display unit to metric for storage
+        let system = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "measurementUnitSystem") ?? "metric") ?? .metric
+        let metricValue = UnitConversion.toMetric(displayValue, type: measurementType, system: system)
+        
         let entry = MeasurementEntry(
             id: existingEntry?.id ?? UUID(),
             typeId: measurementType.id,
-            value: value,
-            unit: measurementType.unit,
+            value: metricValue,
+            unit: measurementType.metricUnit,
             date: date,
             note: isPremium && !note.isEmpty ? note : nil,
             createdAt: existingEntry?.createdAt ?? Date()
