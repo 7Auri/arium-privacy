@@ -196,6 +196,9 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
         for await result in Transaction.currentEntitlements {
             if case .verified(let transaction) = result {
                 if allProductIDs.contains(transaction.productID) {
+                    // Refund edilmiş transaction'ları atla
+                    if transaction.revocationDate != nil { continue }
+                    
                     savePremiumStatus(true)
                     foundEntitlement = true
                     
@@ -328,8 +331,16 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
                     let transaction = try self.checkVerified(result)
                     
                     if self.allProductIDs.contains(transaction.productID) {
-                        await MainActor.run {
-                            self.savePremiumStatus(true)
+                        if transaction.revocationDate != nil {
+                            // Refund edilmiş — premium'u kapat
+                            await MainActor.run {
+                                self.savePremiumStatus(false)
+                                self.subscriptionStatus = .none
+                            }
+                        } else {
+                            await MainActor.run {
+                                self.savePremiumStatus(true)
+                            }
                         }
                     }
                     
