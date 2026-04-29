@@ -97,9 +97,15 @@ struct OnboardingView: View {
             // Action Button
             Button {
                 HapticManager.medium()
-                if viewModel.isLastPage {
+                if viewModel.isNotificationPage {
+                    // Bildirim izni iste, sonra devam et
+                    Task {
+                        await viewModel.requestNotificationPermission()
+                        viewModel.nextPage()
+                    }
+                } else if viewModel.isLastPage {
                     HapticManager.success()
-                    viewModel.completeOnboarding(hasSeenOnboarding: $hasSeenOnboarding)
+                    viewModel.completeOnboarding(hasSeenOnboarding: $hasSeenOnboarding, store: habitStore)
                 } else {
                     viewModel.nextPage()
                 }

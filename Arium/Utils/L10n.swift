@@ -359,10 +359,12 @@ enum L10n {
             "onboarding.page1.subtitle": "Your personal habit garden. Grow better habits, every day.",
             "onboarding.page2.title": "Grow Your Garden",
             "onboarding.page2.subtitle": "Complete habits to earn water and unlock exotic plants like Monstera and Cactus.",
-            "onboarding.page3.title": "Achieve & Celebrate",
-            "onboarding.page3.subtitle": "Get AI-powered insights and share your success with official certificates.",
-            "onboarding.page4.title": "Make It Yours",
-            "onboarding.page4.subtitle": "Choose a theme that matches your vibe.",
+            "onboarding.page3.title": "Smart Insights",
+            "onboarding.page3.subtitle": "AI analyzes your habits and gives personalized recommendations to help you improve.",
+            "onboarding.page4.title": "Stay on Track",
+            "onboarding.page4.subtitle": "Get gentle reminders so you never miss a habit. We'll only notify you when it matters.",
+            "onboarding.page5.title": "Make It Yours",
+            "onboarding.page5.subtitle": "Choose a theme that matches your vibe.",
             
             // Widget
             "widget.todaysHabits": "Today's Habits",
@@ -1326,10 +1328,12 @@ enum L10n {
             "onboarding.page1.subtitle": "Kişisel alışkanlık bahçen. Her gün daha iyiye büyü.",
             "onboarding.page2.title": "Bahçeni Büyüt",
             "onboarding.page2.subtitle": "Alışkanlıklarını tamamla, su kazan ve Monstera gibi egzotik bitkilerin kilidini aç.",
-            "onboarding.page3.title": "Başar ve Kutla",
-            "onboarding.page3.subtitle": "Yapay zeka destekli öneriler al ve başarılarını sertifikalarla taçlandır.",
-            "onboarding.page4.title": "Tarzını Seç",
-            "onboarding.page4.subtitle": "Sana en uygun temayı seç ve Arium'u kişiselleştir.",
+            "onboarding.page3.title": "Akıllı Analizler",
+            "onboarding.page3.subtitle": "AI alışkanlıklarını analiz eder ve gelişmen için kişiselleştirilmiş öneriler sunar.",
+            "onboarding.page4.title": "Yolda Kal",
+            "onboarding.page4.subtitle": "Nazik hatırlatıcılarla hiçbir alışkanlığı kaçırma. Sadece önemli olduğunda bildirim göndeririz.",
+            "onboarding.page5.title": "Tarzını Seç",
+            "onboarding.page5.subtitle": "Sana en uygun temayı seç ve Arium'u kişiselleştir.",
             
             // Widget
             "widget.todaysHabits": "Bugünün Alışkanlıkları",
@@ -2249,9 +2253,11 @@ enum L10n {
             "onboarding.page2.title": "Schwung aufbauen",
             "onboarding.page2.subtitle": "Verfolge deine Gewohnheiten, halte deine Serien am Laufen und mache täglich Fortschritte.",
             "onboarding.page3.title": "Intelligente Einblicke",
-            "onboarding.page3.subtitle": "Analysiert deine Gewohnheiten mit maschinellem Lernen und bietet personalisierte Empfehlungen.",
-            "onboarding.page4.title": "Gestalte es dir",
-            "onboarding.page4.subtitle": "Passe Designs an und erstelle deine eigene Routine.",
+            "onboarding.page3.subtitle": "KI analysiert deine Gewohnheiten und gibt personalisierte Empfehlungen zur Verbesserung.",
+            "onboarding.page4.title": "Bleib dran",
+            "onboarding.page4.subtitle": "Sanfte Erinnerungen, damit du keine Gewohnheit verpasst. Wir benachrichtigen dich nur, wenn es wichtig ist.",
+            "onboarding.page5.title": "Gestalte es dir",
+            "onboarding.page5.subtitle": "Passe Designs an und erstelle deine eigene Routine.",
             
             // Widget
             "widget.todaysHabits": "Heutige Gewohnheiten",
@@ -3247,9 +3253,11 @@ enum L10n {
             "onboarding.page2.title": "Créer de l'élan",
             "onboarding.page2.subtitle": "Suivez vos habitudes, maintenez vos séries et progressez chaque jour.",
             "onboarding.page3.title": "Analyses Intelligentes",
-            "onboarding.page3.subtitle": "Analyse vos habitudes à l'aide de l'apprentissage automatique et fournit des recommandations personnalisées.",
-            "onboarding.page4.title": "Personnalisez-le",
-            "onboarding.page4.subtitle": "Personnalisez les thèmes et créez votre propre routine.",
+            "onboarding.page3.subtitle": "L'IA analyse vos habitudes et donne des recommandations personnalisées pour vous améliorer.",
+            "onboarding.page4.title": "Restez sur la bonne voie",
+            "onboarding.page4.subtitle": "Des rappels doux pour ne jamais manquer une habitude. Nous ne vous notifions que quand c'est important.",
+            "onboarding.page5.title": "Personnalisez-le",
+            "onboarding.page5.subtitle": "Personnalisez les thèmes et créez votre propre routine.",
             
             // Widget
             "widget.todaysHabits": "Habitudes d'aujourd'hui",
@@ -4113,9 +4121,11 @@ enum L10n {
             "onboarding.page2.title": "Genera impulso",
             "onboarding.page2.subtitle": "Rastrea tus hábitos, mantén tus rachas vivas y progresa cada día.",
             "onboarding.page3.title": "Análisis Inteligente",
-            "onboarding.page3.subtitle": "Analiza tus hábitos mediante aprendizaje automático y proporciona recomendaciones personalizadas.",
-            "onboarding.page4.title": "Hazlo tuyo",
-            "onboarding.page4.subtitle": "Personaliza temas y crea tu propia rutina.",
+            "onboarding.page3.subtitle": "La IA analiza tus hábitos y te da recomendaciones personalizadas para mejorar.",
+            "onboarding.page4.title": "Mantente en el camino",
+            "onboarding.page4.subtitle": "Recordatorios suaves para que nunca te pierdas un hábito. Solo te notificamos cuando importa.",
+            "onboarding.page5.title": "Hazlo tuyo",
+            "onboarding.page5.subtitle": "Personaliza temas y crea tu propia rutina.",
             
             // Widget
             "widget.todaysHabits": "Hábitos de hoy",
@@ -5038,9 +5048,11 @@ enum L10n {
             "onboarding.page2.title": "Crea slancio",
             "onboarding.page2.subtitle": "Traccia le tue abitudini, mantieni vive le tue serie e progredisci ogni giorno.",
             "onboarding.page3.title": "Analisi Intelligente",
-            "onboarding.page3.subtitle": "Analizza le tue abitudini mediante apprendimento automatico e fornisce raccomandazioni personalizzate.",
-            "onboarding.page4.title": "Rendilo tuo",
-            "onboarding.page4.subtitle": "Personalizza i temi e crea la tua routine.",
+            "onboarding.page3.subtitle": "L'IA analizza le tue abitudini e ti dà raccomandazioni personalizzate per migliorare.",
+            "onboarding.page4.title": "Resta in carreggiata",
+            "onboarding.page4.subtitle": "Promemoria gentili per non perdere mai un'abitudine. Ti notifichiamo solo quando è importante.",
+            "onboarding.page5.title": "Rendilo tuo",
+            "onboarding.page5.subtitle": "Personalizza i temi e crea la tua routine.",
             
             // Widget
             "widget.todaysHabits": "Abitudini di oggi",
