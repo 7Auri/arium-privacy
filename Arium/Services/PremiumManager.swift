@@ -314,7 +314,7 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
         let monthlyAnnual = monthly.price * 12
         guard monthlyAnnual > 0 else { return nil }
         let savings = (monthlyAnnual - yearly.price) / monthlyAnnual * 100
-        return max(0, Int(savings.rounded()))
+        return max(0, Int(truncating: savings as NSDecimalNumber))
     }
     
     // MARK: - Subscription Management
