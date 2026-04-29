@@ -125,24 +125,10 @@ struct HabitTemplatesView: View {
                     }
                 }
             }
-            .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) { }
-                Button(L10n.t("premium.restore.button")) {
-                    Task { await premiumManager.restorePurchases() }
-                }
-                Button(L10n.t("premium.button")) {
-                    Task { await premiumManager.purchasePremium() }
-                }
-            } message: {
-                Text(L10n.t("premium.message"))
+            .sheet(isPresented: $showingPremiumAlert) {
+                PaywallView()
             }
             .errorAlert(error: $currentError)
-            .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
-            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.purchase.success.message"))
-            }
         }
     }
 }

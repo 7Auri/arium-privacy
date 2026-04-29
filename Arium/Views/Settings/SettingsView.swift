@@ -376,18 +376,14 @@ struct SettingsView: View {
                     }
                 ),
                 action: {
-                    if !premiumManager.isPremium && !premiumManager.isLoading && premiumManager.product != nil {
-                        Task {
-                            await premiumManager.purchasePremium()
-                        }
-                    } else if premiumManager.productLoadFailed {
-                        // Ürün yüklenemezse tekrar dene
-                        Task {
-                            await premiumManager.loadProduct()
-                        }
+                    if !premiumManager.isPremium {
+                        premiumManager.showingPaywall = true
                     }
                 }
             )
+            .sheet(isPresented: $premiumManager.showingPaywall) {
+                PaywallView()
+            }
             
             // Satın Alımları Geri Yükle butonu (her zaman görünür — Apple 3.1.1 zorunlu)
             ModernSettingsCard(

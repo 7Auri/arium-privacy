@@ -26,23 +26,11 @@ struct AlertsModifier: ViewModifier {
                     Text(L10n.t("habit.delete.message"))
                 }
             }
-            .alert(L10n.t("premium.title"), isPresented: $viewModel.showingPremiumAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) { }
-                Button(L10n.t("premium.restore.button")) {
-                    Task {
-                        await premiumManager.restorePurchases()
-                    }
-                }
-                Button(L10n.t("premium.button")) {
-                    Task {
-                        await premiumManager.purchasePremium()
-                    }
-                }
-            } message: {
-                Text(L10n.t("premium.message"))
+            .sheet(isPresented: $viewModel.showingPremiumAlert) {
+                PaywallView()
             }
             .errorAlert(error: $viewModel.currentError)
-            .loadingOverlay(isLoading: habitStore.isLoading || premiumManager.isLoading)
+            .loadingOverlay(isLoading: habitStore.isLoading)
             .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                 Button(L10n.t("button.ok")) { }
             } message: {

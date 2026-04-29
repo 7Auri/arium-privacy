@@ -936,20 +936,14 @@ struct ModernHeaderView: View {
                     }
                     .alert(L10n.t("home.slots.title"), isPresented: $showingSlotsInfo) {
                         Button(L10n.t("button.done"), role: .cancel) { }
-                        Button(L10n.t("premium.restore.button")) {
-                            Task { await premiumManager.restorePurchases() }
-                        }
                         Button(L10n.t("premium.button")) {
-                            Task { await premiumManager.purchasePremium() }
+                            premiumManager.showingPaywall = true
                         }
                     } message: {
                         Text(String(format: L10n.t("home.slots.message"), remainingSlots))
                     }
-                    .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
-                    .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                        Button(L10n.t("button.ok")) { }
-                    } message: {
-                        Text(L10n.t("premium.purchase.success.message"))
+                    .sheet(isPresented: $premiumManager.showingPaywall) {
+                        PaywallView()
                     }
                 }
             }

@@ -492,25 +492,12 @@ struct AddHabitView: View {
                     .disabled(!viewModel.canSave)
                 }
             }
-            .alert(L10n.t("premium.title"), isPresented: $showingPremiumAlert) {
-                Button(L10n.t("button.cancel"), role: .cancel) { }
-                Button(L10n.t("premium.restore.button")) {
-                    Task { await premiumManager.restorePurchases() }
-                }
-                Button(L10n.t("premium.button")) {
-                    Task { await premiumManager.purchasePremium() }
-                }
-            } message: {
-                Text(premiumAlertMessage.isEmpty ? L10n.t("premium.featureMessage") : premiumAlertMessage)
+            .sheet(isPresented: $showingPremiumAlert) {
+                PaywallView()
             }
             .errorAlert(error: $currentError)
-            .loadingOverlay(isLoading: premiumManager.isLoading || habitStore.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
+            .loadingOverlay(isLoading: habitStore.isLoading)
             .toast($toast)
-            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.purchase.success.message"))
-            }
             .alert(L10n.t("goalDays.custom.prompt"), isPresented: $viewModel.showingCustomGoalInput) {
                 TextField(L10n.t("goalDays.custom.placeholder"), text: $viewModel.customGoalDays)
                     .keyboardType(.numberPad)
