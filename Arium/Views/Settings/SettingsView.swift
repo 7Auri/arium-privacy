@@ -1631,34 +1631,6 @@ struct SettingsView: View {
                 }
             }
             .loadingOverlay(isLoading: premiumManager.isLoading, message: premiumManager.isLoading ? L10n.t("premium.purchasing") : nil)
-            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.purchase.success.message"))
-            }
-            // Satın alma beklemede (aile onayı vb.)
-            .alert(L10n.t("premium.pending.title"), isPresented: $premiumManager.showingPendingMessage) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.pending.message"))
-            }
-            // Geri yükleme başarılı
-            .alert(L10n.t("premium.restore.success"), isPresented: $premiumManager.showingRestoreSuccess) {
-                Button(L10n.t("button.ok")) { }
-            }
-            // PremiumManager errorMessage alert'i
-            .alert(L10n.t("premium.title"), isPresented: Binding(
-                get: { premiumManager.errorMessage != nil },
-                set: { if !$0 { premiumManager.errorMessage = nil } }
-            )) {
-                Button(L10n.t("button.ok")) {
-                    premiumManager.errorMessage = nil
-                }
-            } message: {
-                if let msg = premiumManager.errorMessage {
-                    Text(msg)
-                }
-            }
             .alert(L10n.t("update.available.title"), isPresented: $showingUpdateAlert) {
                 Button(L10n.t("update.available.update")) {
                     versionChecker.openAppStore()

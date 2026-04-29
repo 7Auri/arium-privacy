@@ -158,8 +158,8 @@ struct MeasurementsListView: View {
                     try? viewModel.addGoal(goal)
                 }
             }
-            .alert(L10n.t("measurement.premium_locked"), isPresented: $showingPremiumAlert) {
-                Button("OK", role: .cancel) {}
+            .sheet(isPresented: $showingPremiumAlert) {
+                PaywallView()
             }
         }
     }

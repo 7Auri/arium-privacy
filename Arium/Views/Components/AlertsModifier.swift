@@ -31,30 +31,6 @@ struct AlertsModifier: ViewModifier {
             }
             .errorAlert(error: $viewModel.currentError)
             .loadingOverlay(isLoading: habitStore.isLoading)
-            .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.purchase.success.message"))
-            }
-            // Satın alma beklemede
-            .alert(L10n.t("premium.pending.title"), isPresented: $premiumManager.showingPendingMessage) {
-                Button(L10n.t("button.ok")) { }
-            } message: {
-                Text(L10n.t("premium.pending.message"))
-            }
-            // PremiumManager errorMessage alert'i
-            .alert(L10n.t("premium.title"), isPresented: Binding(
-                get: { premiumManager.errorMessage != nil },
-                set: { if !$0 { premiumManager.errorMessage = nil } }
-            )) {
-                Button(L10n.t("button.ok")) {
-                    premiumManager.errorMessage = nil
-                }
-            } message: {
-                if let msg = premiumManager.errorMessage {
-                    Text(msg)
-                }
-            }
             .alert(
                 "🏆 " + (achievementManager.latestUnlockedAchievement?.title ?? L10n.t("achievement.unlocked.title")),
                 isPresented: $achievementManager.showingUnlockAlert

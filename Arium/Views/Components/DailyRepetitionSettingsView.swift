@@ -54,10 +54,8 @@ struct DailyRepetitionSettingsView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color(.separator), lineWidth: 1)
         )
-        .alert(L10n.t("repetition.premium.title"), isPresented: $showingPremiumAlert) {
-            Button(L10n.t("button.ok"), role: .cancel) {}
-        } message: {
-            Text(L10n.t("repetition.premium.message"))
+        .sheet(isPresented: $showingPremiumAlert) {
+            PaywallView()
         }
         .onAppear {
             // Initialize custom labels if needed
