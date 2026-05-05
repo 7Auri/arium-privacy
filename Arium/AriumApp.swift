@@ -56,6 +56,10 @@ struct AriumApp: App {
                 Task {
                     await habitStore.updateTodayStatus()
                     await NotificationManager.shared.clearBadge()
+                    // Re-verify premium entitlement with Apple on each foreground —
+                    // this is the authoritative source and catches refunds, expirations,
+                    // or any local-storage tampering.
+                    await PremiumManager.shared.checkPremiumStatus()
                 }
                 
                 // Note: iCloud sync is now manual-only for better user control and privacy

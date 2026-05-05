@@ -7,6 +7,7 @@
 
 import Foundation
 import UserNotifications
+import OSLog
 
 @MainActor
 class NotificationManager: NSObject, ObservableObject {
@@ -15,7 +16,12 @@ class NotificationManager: NSObject, ObservableObject {
     @Published var isAuthorized = false
     @Published var notificationSettings: UNNotificationSettings?
     
+    /// Surfaces the last scheduling error so the UI can show a toast/alert.
+    /// Reset to nil after the user sees it.
+    @Published var lastSchedulingError: String?
+    
     private let notificationCenter = UNUserNotificationCenter.current()
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "Notifications")
     
     // Date formatter for daily notificiation IDs
     private let dateFormatter: DateFormatter = {
@@ -64,7 +70,7 @@ class NotificationManager: NSObject, ObservableObject {
     
     func scheduleHabitReminder(for habit: Habit, at time: Date? = nil) async {
         guard isAuthorized else {
-            print("⚠️ Notifications not authorized")
+            logger.warning("⚠️ Notifications not authorized")
             return
         }
         
@@ -127,12 +133,13 @@ class NotificationManager: NSObject, ObservableObject {
                 do {
                     try await notificationCenter.add(request)
                 } catch {
-                    print("❌ Failed to schedule notification for \(dateString) index \(index): \(error)")
+                    logger.error("❌ Failed to schedule notification for \(dateString) index \(index): \(error.localizedDescription)")
+                    lastSchedulingError = L10n.t("notification.error.scheduleFailed")
                 }
             }
         }
         
-        print("✅ Scheduled \(timesToSchedule.count) reminders for \(habit.title) for next 14 days")
+        logger.info("✅ Scheduled \(timesToSchedule.count) reminders for \(habit.title) for next 14 days")
     }
     
     // MARK: - Smart Reminder (Best Time Analysis)
@@ -180,11 +187,12 @@ class NotificationManager: NSObject, ObservableObject {
             do {
                 try await notificationCenter.add(request)
             } catch {
-                print("❌ Failed to schedule smart reminder for \(dateString): \(error)")
+                logger.error("❌ Failed to schedule smart reminder for \(dateString): \(error.localizedDescription)")
+                lastSchedulingError = L10n.t("notification.error.scheduleFailed")
             }
         }
         
-        print("✅ Scheduled smart reminders for \(habit.title) for next 14 days")
+        logger.info("✅ Scheduled smart reminders for \(habit.title) for next 14 days")
     }
     
     private func analyzeBestCompletionTime(for habit: Habit) -> Int {
@@ -228,7 +236,7 @@ class NotificationManager: NSObject, ObservableObject {
             
             if !idsToRemove.isEmpty {
                 notificationCenter.removePendingNotificationRequests(withIdentifiers: idsToRemove)
-                print("🗑️ Cancelled \(idsToRemove.count) reminders for habit \(habitId)")
+                logger.info("🗑️ Cancelled \(idsToRemove.count) reminders for habit \(habitId)")
             }
         }
     }
@@ -268,14 +276,14 @@ class NotificationManager: NSObject, ObservableObject {
             notificationCenter.removeDeliveredNotifications(withIdentifiers: deliveredIdentifiers)
         }
         
-        print("🗑️ Cancelled today's reminder for habit \(habitId)")
+        logger.info("🗑️ Cancelled today's reminder for habit \(habitId)")
     }
     
     // MARK: - Reschedule All (Maintenance)
     
     func rescheduleAllRequests(habits: [Habit]) async {
         guard isAuthorized else { return }
-        print("🔄 Rescheduling all habit reminders...")
+        logger.info("🔄 Rescheduling all habit reminders...")
         
         for habit in habits {
             if habit.isReminderEnabled, let time = habit.reminderTime {
@@ -326,9 +334,9 @@ class NotificationManager: NSObject, ObservableObject {
         
         if !identifiersToRemove.isEmpty {
             notificationCenter.removePendingNotificationRequests(withIdentifiers: identifiersToRemove)
-            print("🧹 Removed \(identifiersToRemove.count) orphaned notifications")
+            logger.info("🧹 Removed \(identifiersToRemove.count) orphaned notifications")
         } else {
-            print("✨ No orphaned notifications found")
+            logger.debug("✨ No orphaned notifications found")
         }
     }
     
@@ -359,9 +367,9 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("🎉 Sent completion celebration for \(habit.title)")
+            logger.info("🎉 Sent completion celebration for \(habit.title)")
         } catch {
-            print("❌ Failed to send completion celebration: \(error)")
+            logger.error("❌ Failed to send completion celebration: \(error.localizedDescription)")
         }
     }
     
@@ -399,9 +407,10 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("✅ Scheduled streak warning for \(habit.title) at \(warningHour):00")
+            logger.info("✅ Scheduled streak warning for \(habit.title) at \(warningHour):00")
         } catch {
-            print("❌ Failed to schedule streak warning: \(error)")
+            logger.error("❌ Failed to schedule streak warning: \(error.localizedDescription)")
+            lastSchedulingError = L10n.t("notification.error.scheduleFailed")
         }
     }
     
@@ -453,15 +462,16 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("✅ Scheduled weekly summary notification")
+            logger.info("✅ Scheduled weekly summary notification")
         } catch {
-            print("❌ Failed to schedule weekly summary: \(error)")
+            logger.error("❌ Failed to schedule weekly summary: \(error.localizedDescription)")
+            lastSchedulingError = L10n.t("notification.error.scheduleFailed")
         }
     }
     
     func cancelWeeklySummary() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["weekly-summary"])
-        print("🗑️ Cancelled weekly summary")
+        logger.info("🗑️ Cancelled weekly summary")
     }
     
     // MARK: - Milestone Celebration (Enhanced)
@@ -517,9 +527,9 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("🎉 Scheduled milestone notification: \(milestone) days for \(habit.title)")
+            logger.info("🎉 Scheduled milestone notification: \(milestone) days for \(habit.title)")
         } catch {
-            print("❌ Failed to schedule milestone notification: \(error)")
+            logger.error("❌ Failed to schedule milestone notification: \(error.localizedDescription)")
         }
     }
     
@@ -558,9 +568,9 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("✅ Scheduled daily motivation")
+            logger.info("✅ Scheduled daily motivation")
         } catch {
-            print("❌ Failed to schedule daily motivation: \(error)")
+            logger.error("❌ Failed to schedule daily motivation: \(error.localizedDescription)")
         }
     }
     
@@ -568,7 +578,7 @@ class NotificationManager: NSObject, ObservableObject {
     
     func cancelDailyMotivation() {
         notificationCenter.removePendingNotificationRequests(withIdentifiers: ["daily-motivation"])
-        print("🗑️ Cancelled daily motivation")
+        logger.info("🗑️ Cancelled daily motivation")
     }
     
     // MARK: - Check Incomplete Habits
@@ -599,14 +609,15 @@ class NotificationManager: NSObject, ObservableObject {
         let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: true)
         let request = UNNotificationRequest(identifier: measurementReminderID, content: content, trigger: trigger)
         
-        notificationCenter.add(request) { error in
-            #if DEBUG
-            if let error = error {
-                print("❌ Measurement reminder scheduling failed: \(error)")
-            } else {
-                print("✅ Measurement reminder scheduled at \(hour):\(String(format: "%02d", minute))")
+        notificationCenter.add(request) { [weak self] error in
+            Task { @MainActor in
+                if let error = error {
+                    self?.logger.error("❌ Measurement reminder scheduling failed: \(error.localizedDescription)")
+                    self?.lastSchedulingError = L10n.t("notification.error.scheduleFailed")
+                } else {
+                    self?.logger.info("✅ Measurement reminder scheduled at \(hour):\(String(format: "%02d", minute))")
+                }
             }
-            #endif
         }
     }
     
@@ -622,7 +633,7 @@ class NotificationManager: NSObject, ObservableObject {
             do {
                 try await UNUserNotificationCenter.current().setBadgeCount(incompleteCount)
             } catch {
-                print("❌ Failed to update badge count: \(error)")
+                logger.error("❌ Failed to update badge count: \(error.localizedDescription)")
             }
         }
     }
@@ -640,7 +651,7 @@ class NotificationManager: NSObject, ObservableObject {
         do {
             try await UNUserNotificationCenter.current().setBadgeCount(0)
         } catch {
-            print("❌ Failed to clear badge: \(error)")
+            logger.error("❌ Failed to clear badge: \(error.localizedDescription)")
         }
     }
     
@@ -652,9 +663,9 @@ class NotificationManager: NSObject, ObservableObject {
         Task {
             do {
                 try await UNUserNotificationCenter.current().setBadgeCount(0)
-                print("🗑️ Removed all notifications")
+                logger.info("🗑️ Removed all notifications")
             } catch {
-                print("❌ Failed to clear badge: \(error)")
+                logger.error("❌ Failed to clear badge: \(error.localizedDescription)")
             }
         }
     }
@@ -679,7 +690,7 @@ class NotificationManager: NSObject, ObservableObject {
     
     func sendAchievementNotification(for achievement: Achievement) async {
         guard isAuthorized else {
-            print("⚠️ Notifications not authorized, skipping achievement notification")
+            logger.warning("⚠️ Notifications not authorized, skipping achievement notification")
             return
         }
         
@@ -706,9 +717,9 @@ class NotificationManager: NSObject, ObservableObject {
         
         do {
             try await notificationCenter.add(request)
-            print("🎉 Sent achievement notification: \(achievement.title)")
+            logger.info("🎉 Sent achievement notification: \(achievement.title)")
         } catch {
-            print("❌ Failed to send achievement notification: \(error)")
+            logger.error("❌ Failed to send achievement notification: \(error.localizedDescription)")
         }
     }
 }
@@ -731,12 +742,17 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
            let notificationType = userInfo["type"] as? String,
            notificationType != "completion_celebration" {
             
-            // Check if habit is already completed today
+            // Check if habit is already completed today by reading shared
+            // storage directly — instantiating a full HabitStore here would
+            // needlessly activate the Watch session and decode all persistence
+            // on every incoming notification.
             Task { @MainActor in
-                let habitStore = HabitStore()
-                if let habit = habitStore.habits.first(where: { $0.id == habitId }),
-                   habit.isCompletedToday {
-                    // Habit is already completed, cancel this notification and send celebration instead
+                guard let data = SharedDefaults.store.data(forKey: "SavedHabits"),
+                      let habits = try? CodingCache.decoder.decode([Habit].self, from: data),
+                      let habit = habits.first(where: { $0.id == habitId }) else {
+                    return
+                }
+                if habit.isCompletedToday {
                     center.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
                     await sendCompletionCelebration(for: habit)
                     completionHandler([]) // Don't show the reminder
