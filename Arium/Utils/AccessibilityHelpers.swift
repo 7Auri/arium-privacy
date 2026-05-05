@@ -43,7 +43,9 @@ extension Font {
     static func dancingScript(size: CGFloat) -> Font {
         // Check if font file is in bundle
         if let fontPath = Bundle.main.path(forResource: "DancingScript-VariableFont_wght", ofType: "ttf") {
+            #if DEBUG
             print("✅ Font file found in bundle: \(fontPath)")
+            #endif
             
             // Try to load font using CoreText
             if let fontData = NSData(contentsOfFile: fontPath) as Data?,
@@ -57,9 +59,11 @@ extension Font {
                     if let fontURL = URL(fileURLWithPath: fontPath) as CFURL? {
                         var errorRef: Unmanaged<CFError>?
                         registered = CTFontManagerRegisterFontsForURL(fontURL, .process, &errorRef)
+                        #if DEBUG
                         if !registered, let error = errorRef?.takeRetainedValue() {
                             print("❌ Failed to register font with new API: \(error)")
                         }
+                        #endif
                     } else {
                         registered = false
                     }
@@ -69,21 +73,28 @@ extension Font {
                 }
                 
                 if registered {
+                    #if DEBUG
                     print("✅ Font registered successfully via CoreText")
+                    #endif
                     // Get the font name from the CGFont
                     if let fontName = cgFont.postScriptName as String? {
+                        #if DEBUG
                         print("✅ Font PostScript name: \(fontName)")
+                        #endif
                         if UIFont(name: fontName, size: size) != nil {
                             return .custom(fontName, size: size)
                         }
                     }
                 } else {
+                    #if DEBUG
                     if let error = error?.takeRetainedValue() {
                         print("❌ Failed to register font: \(error)")
                     }
+                    #endif
                 }
             }
         } else {
+            #if DEBUG
             print("❌ Font file NOT found in bundle!")
             print("   Expected: DancingScript-VariableFont_wght.ttf")
             print("   Bundle path: \(Bundle.main.bundlePath)")
@@ -95,8 +106,10 @@ extension Font {
                     contents.prefix(20).forEach { print("      - \($0)") }
                 }
             }
+            #endif
         }
         
+        #if DEBUG
         // Print ALL font families to find Dancing Script
         print("🔍 Searching for Dancing Script font...")
         print("📋 All font families containing 'Dancing' or 'Script':")
@@ -114,6 +127,7 @@ extension Font {
         if !foundDancing {
             print("⚠️ No font family found with 'Dancing' or 'Script' in name")
         }
+        #endif
         
         // Try different possible font names for Dancing Script
         // Variable fonts use different naming conventions
@@ -128,7 +142,9 @@ extension Font {
         
         for fontName in fontNames {
             if UIFont(name: fontName, size: size) != nil {
+                #if DEBUG
                 print("✅ Found Dancing Script font: \(fontName)")
+                #endif
                 return .custom(fontName, size: size)
             }
         }
@@ -138,14 +154,18 @@ extension Font {
             if family.lowercased().contains("dancing") {
                 let fontNames = UIFont.fontNames(forFamilyName: family)
                 if let firstFont = fontNames.first {
+                    #if DEBUG
                     print("✅ Found Dancing Script font family: \(family), using: \(firstFont)")
+                    #endif
                     return .custom(firstFont, size: size)
                 }
             }
         }
         
         // Fallback to system serif italic if font not loaded
+        #if DEBUG
         print("⚠️ Using fallback font: system serif italic")
+        #endif
         return .system(size: size, weight: .ultraLight, design: .serif).italic()
     }
 }

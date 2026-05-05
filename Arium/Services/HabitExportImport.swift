@@ -154,7 +154,9 @@ class HabitExportImport: ObservableObject {
         }
         
         try data.write(to: fileURL)
+        #if DEBUG
         print("✅ Export file created at: \(fileURL.path)")
+        #endif
         return fileURL
     }
 }

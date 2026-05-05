@@ -7,12 +7,14 @@
 
 import Foundation
 import EventKit
+import OSLog
 
 @MainActor
 class CalendarIntegrationManager: ObservableObject {
     static let shared = CalendarIntegrationManager()
     
     private let eventStore = EKEventStore()
+    private let logger = Logger(subsystem: Bundle.main.bundleIdentifier ?? "Arium", category: "Calendar")
     @Published var isAuthorized = false
     
     private init() {}
@@ -24,14 +26,14 @@ class CalendarIntegrationManager: ObservableObject {
                 isAuthorized = granted
                 
                 if granted {
-                    print("✅ Calendar access granted")
+                    logger.info("✅ Calendar access granted")
                 } else {
-                    print("❌ Calendar access denied")
+                    logger.warning("❌ Calendar access denied")
                 }
                 
                 return granted
             } catch {
-                print("❌ Calendar authorization error: \(error)")
+                logger.error("❌ Calendar authorization error: \(error.localizedDescription)")
                 return false
             }
         } else {
@@ -41,14 +43,14 @@ class CalendarIntegrationManager: ObservableObject {
                 isAuthorized = granted
                 
                 if granted {
-                    print("✅ Calendar access granted")
+                    logger.info("✅ Calendar access granted")
                 } else {
-                    print("❌ Calendar access denied")
+                    logger.warning("❌ Calendar access denied")
                 }
                 
                 return granted
             } catch {
-                print("❌ Calendar authorization error: \(error)")
+                logger.error("❌ Calendar authorization error: \(error.localizedDescription)")
                 return false
             }
         }
@@ -73,12 +75,11 @@ class CalendarIntegrationManager: ObservableObject {
         
         do {
             try eventStore.save(event, span: .thisEvent)
-            print("✅ Added \(habit.title) to calendar")
+            logger.info("✅ Added \(habit.title) to calendar")
             return true
         } catch {
-            print("❌ Failed to save to calendar: \(error)")
+            logger.error("❌ Failed to save to calendar: \(error.localizedDescription)")
             return false
         }
     }
 }
-

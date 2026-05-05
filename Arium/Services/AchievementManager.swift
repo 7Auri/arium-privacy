@@ -222,7 +222,9 @@ class AchievementManager: ObservableObject {
         
         saveUnlockedAchievements()
         
+        #if DEBUG
         print("🏆 Achievement Unlocked: \(achievement.title) (+\(achievement.xpReward) XP)")
+        #endif
     }
     
     // MARK: - Helpers
