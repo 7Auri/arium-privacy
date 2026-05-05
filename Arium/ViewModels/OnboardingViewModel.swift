@@ -38,7 +38,8 @@ class OnboardingViewModel: ObservableObject {
     
     /// Whether the current page is the notification permission page
     var isNotificationPage: Bool {
-        currentPage == 3
+        guard currentPage < pages.count else { return false }
+        return pages[currentPage].isNotificationRequest
     }
     
     func nextPage() {

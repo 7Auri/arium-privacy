@@ -62,7 +62,9 @@ struct OnboardingView: View {
                     ForEach(viewModel.pages) { page in
                         OnboardingPageView(
                             page: page,
-                            selectedTheme: $viewModel.selectedTheme
+                            selectedTheme: $viewModel.selectedTheme,
+                            selectedTemplateIndex: $viewModel.selectedTemplateIndex,
+                            quickStartTemplates: viewModel.quickStartTemplates
                         )
                         .tag(page.id)
                     }
