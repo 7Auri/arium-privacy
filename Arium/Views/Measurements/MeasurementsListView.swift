@@ -19,6 +19,9 @@ struct MeasurementsListView: View {
     @State private var showingGoalSheet = false
     @State private var showingPremiumAlert = false
     @State private var entryToEdit: MeasurementEntry?
+    @State private var entryToDelete: MeasurementEntry?
+    @State private var showingClearAllAlert = false
+    @State private var exportError: String?
     @AppStorage("isMeasurementReminderEnabled") private var isMeasurementReminderEnabled = false
     
     var body: some View {
@@ -126,6 +129,16 @@ struct MeasurementsListView: View {
                                 Label(L10n.t("measurement.export"), systemImage: "square.and.arrow.up")
                             }
                         }
+                        
+                        if !viewModel.filteredEntries.isEmpty {
+                            Divider()
+                            
+                            Button(role: .destructive) {
+                                showingClearAllAlert = true
+                            } label: {
+                                Label(L10n.t("measurement.clearAll"), systemImage: "trash")
+                            }
+                        }
                     } label: {
                         Image(systemName: "ellipsis.circle")
                     }
@@ -160,6 +173,45 @@ struct MeasurementsListView: View {
             }
             .sheet(isPresented: $showingPremiumAlert) {
                 PaywallView()
+            }
+            .alert(L10n.t("measurement.delete.confirm.title"), isPresented: Binding(
+                get: { entryToDelete != nil },
+                set: { if !$0 { entryToDelete = nil } }
+            ), presenting: entryToDelete) { entry in
+                Button(L10n.t("measurement.delete"), role: .destructive) {
+                    viewModel.deleteEntry(entry)
+                    entryToDelete = nil
+                }
+                Button(L10n.t("measurement.cancel"), role: .cancel) {
+                    entryToDelete = nil
+                }
+            } message: { entry in
+                Text(String(
+                    format: L10n.t("measurement.delete.confirm.message"),
+                    viewModel.displayValue(entry.value),
+                    viewModel.displayUnit
+                ))
+            }
+            .alert(L10n.t("measurement.clearAll.confirm.title"), isPresented: $showingClearAllAlert) {
+                Button(L10n.t("measurement.clearAll.confirm.button"), role: .destructive) {
+                    clearAllForType()
+                }
+                Button(L10n.t("measurement.cancel"), role: .cancel) {}
+            } message: {
+                Text(String(
+                    format: L10n.t("measurement.clearAll.confirm.message"),
+                    viewModel.selectedType.displayName
+                ))
+            }
+            .alert(L10n.t("measurement.export.error.title"), isPresented: Binding(
+                get: { exportError != nil },
+                set: { if !$0 { exportError = nil } }
+            )) {
+                Button("OK", role: .cancel) { exportError = nil }
+            } message: {
+                if let message = exportError {
+                    Text(message)
+                }
             }
         }
     }
@@ -451,7 +503,7 @@ struct MeasurementsListView: View {
     // MARK: - Entry Row
     
     private func entryRow(entry: MeasurementEntry) -> some View {
-        HStack {
+        HStack(spacing: 12) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(alignment: .firstTextBaseline, spacing: 4) {
                     Text(String(format: "%.1f", viewModel.displayValue(entry.value)))
@@ -463,19 +515,49 @@ struct MeasurementsListView: View {
                         .foregroundColor(AriumTheme.textSecondary)
                 }
                 
+                Text(entry.date, style: .date)
+                    .applyAppFont(size: 12, weight: .regular)
+                    .foregroundColor(AriumTheme.textTertiary)
+                
                 if let note = entry.note, !note.isEmpty {
                     Text(note)
                         .applyAppFont(size: 13, weight: .regular)
                         .foregroundColor(AriumTheme.textTertiary)
-                        .lineLimit(1)
+                        .lineLimit(2)
                 }
             }
             
             Spacer()
             
-            Text(entry.date, style: .date)
-                .applyAppFont(size: 13, weight: .regular)
-                .foregroundColor(AriumTheme.textTertiary)
+            // Edit button
+            Button {
+                HapticManager.light()
+                entryToEdit = entry
+            } label: {
+                Image(systemName: "pencil")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(appThemeManager.accentColor.color)
+                    .frame(width: 36, height: 36)
+                    .background(appThemeManager.accentColor.color.opacity(0.12))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.t("measurement.edit"))
+            
+            // Delete button
+            Button {
+                HapticManager.warning()
+                entryToDelete = entry
+            } label: {
+                Image(systemName: "trash")
+                    .font(.system(size: 15, weight: .semibold))
+                    .foregroundColor(.red)
+                    .frame(width: 36, height: 36)
+                    .background(Color.red.opacity(0.12))
+                    .clipShape(Circle())
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel(L10n.t("measurement.delete"))
         }
         .padding()
         .background(AriumTheme.cardBackground)
@@ -487,13 +569,6 @@ struct MeasurementsListView: View {
                 Label(L10n.t("measurement.edit"), systemImage: "pencil")
             }
             
-            Button(role: .destructive) {
-                viewModel.deleteEntry(entry)
-            } label: {
-                Label(L10n.t("measurement.delete"), systemImage: "trash")
-            }
-        }
-        .swipeActions(edge: .trailing, allowsFullSwipe: true) {
             Button(role: .destructive) {
                 viewModel.deleteEntry(entry)
             } label: {
@@ -540,7 +615,15 @@ struct MeasurementsListView: View {
                   let rootVC = windowScene.windows.first?.rootViewController else { return }
             DataExportManager.shared.shareExport(url: url, from: rootVC)
         } catch {
-            // Error handled silently
+            exportError = error.localizedDescription
+        }
+    }
+    
+    private func clearAllForType() {
+        HapticManager.warning()
+        let entries = viewModel.filteredEntries
+        for entry in entries {
+            viewModel.deleteEntry(entry)
         }
     }
 }

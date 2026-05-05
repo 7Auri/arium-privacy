@@ -28,6 +28,7 @@ struct HomeView: View {
     @State private var currentCelebrationType: ConfettiManager.CelebrationType = .allHabitsCompleted
     @State private var celebrationStats: (habitsCount: Int, maxStreak: Int)?
     @State private var toast: ToastItem?
+    @StateObject private var notificationManager = NotificationManager.shared
     
     // Günlük kutlama ekranı kontrolü için
     @AppStorage("lastCelebrationShownDate") private var lastCelebrationShownDate: String = ""
@@ -302,6 +303,13 @@ struct HomeView: View {
                 viewModel.selectedCategory = nil
             }
         }
+        .onChange(of: notificationManager.lastSchedulingError) { _, newValue in
+            if let message = newValue {
+                toast = ToastItem(message: message, type: .error)
+                // Reset so subsequent identical errors still trigger
+                notificationManager.lastSchedulingError = nil
+            }
+        }
         .onChange(of: premiumManager.isPremium) { oldValue, newValue in
             // Premium durumu değiştiğinde kategori filtresini sıfırla
             if !newValue {
@@ -357,18 +365,21 @@ struct HomeView: View {
         // Calculate completion rate for selected date
         let rate = viewModel.completionRate(for: viewModel.selectedDate, habits: habits)
         
-        // Debug: Completion rate'i kontrol et (her zaman göster)
+        #if DEBUG
         print("🎉 Celebration check - Rate: \(rate), showingConfetti: \(showingConfetti), habits: \(habits.count)")
         print("   Selected date: \(viewModel.selectedDate)")
         print("   Last celebration date: \(lastCelebrationShownDate)")
         print("   Last checked rate: \(lastCheckedCompletionRate)")
+        #endif
         
         // Sadece yeni bir başarı olduğunda kutlama göster (günde bir kez)
         // rate >= 0.99 kullan (floating point karşılaştırması için)
         // Yeni completion kontrolü: Eğer completion rate yeni 1.0'a ulaştıysa, lastCelebrationShownDate'i sıfırla
         let isNewCompletion = lastCheckedCompletionRate < 0.99 && rate >= 0.99
         if isNewCompletion {
+            #if DEBUG
             print("   ⚠️ Completion rate yeni 1.0'a ulaştı - lastCelebrationShownDate sıfırlanıyor")
+            #endif
             // State değişikliğini view update dışında yap
             DispatchQueue.main.async {
                 self.lastCelebrationShownDate = ""
@@ -430,7 +441,9 @@ struct HomeView: View {
             
             // Kutlama gösterildiğini işaretle (sadece gerçekten gösterildiğinde)
             // State değişikliğini async yap - view update dışında
+            #if DEBUG
             print("✅ Celebration gösteriliyor! Type: \(celebrationType)")
+            #endif
             DispatchQueue.main.async {
                 self.markCelebrationShown()
             }
@@ -454,8 +467,9 @@ struct HomeView: View {
         // Eğer bugün daha önce gösterilmediyse, göster
         let shouldShow = lastCelebrationShownDate != todayString
         
-        // Debug
+        #if DEBUG
         print("   shouldShowCelebration: \(shouldShow), lastCelebrationShownDate: '\(lastCelebrationShownDate)', todayString: '\(todayString)'")
+        #endif
         
         return shouldShow
     }
@@ -1093,6 +1107,8 @@ struct SwipeableHabitCard: View {
                                         .foregroundStyle(.white)
                                 }
                             }
+                            .accessibilityLabel(L10n.t("habit.complete"))
+                            .accessibilityHint(L10n.t("habit.complete.hint"))
                         }
                         
                         Button(action: {
@@ -1156,6 +1172,8 @@ struct SwipeableHabitCard: View {
                                         .foregroundStyle(.white)
                                 }
                             }
+                            .accessibilityLabel(L10n.t("habit.complete"))
+                            .accessibilityHint(L10n.t("habit.complete.hint"))
                         }
                     }
                     .padding(.leading, 20)
@@ -1373,6 +1391,19 @@ struct ModernHabitCard: View {
                 Label(L10n.t("button.delete"), systemImage: "trash")
             }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(accessibilityCardLabel)
+        .accessibilityHint(habit.isCompletedToday ? L10n.t("habit.tapToUndo") : L10n.t("habit.tapToComplete"))
+        .accessibilityAddTraits(.isButton)
+    }
+    
+    private var accessibilityCardLabel: String {
+        let status = habit.isCompletedToday ? L10n.t("habit.completed") : L10n.t("habit.notCompleted")
+        var parts: [String] = [habit.title, status, habit.category.localizedName]
+        if habit.streak > 0 {
+            parts.append(String(format: L10n.t("habit.streak.accessibility"), habit.streak))
+        }
+        return parts.joined(separator: ", ")
     }
 }
 

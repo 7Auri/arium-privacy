@@ -523,7 +523,9 @@ struct SettingsView: View {
                             try await habitStore.syncWithiCloud()
                             showingiCloudSyncSuccess = true
                         } catch {
+                            #if DEBUG
                             print("❌ iCloud sync error: \(error)")
+                            #endif
                             showingiCloudSyncError = true
                             
                             if let ckError = error as? CKError {
@@ -1061,7 +1063,9 @@ struct SettingsView: View {
                             try await habitStore.syncWithiCloud()
                             showingiCloudSyncSuccess = true
                         } catch {
+                            #if DEBUG
                             print("❌ iCloud sync error: \(error)")
+                            #endif
                             showingiCloudSyncError = true
                             
                             if let ckError = error as? CKError {
