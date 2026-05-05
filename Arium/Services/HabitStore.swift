@@ -28,6 +28,7 @@ class HabitStore: NSObject, ObservableObject {
     @AppStorage("iCloudSyncEnabled") var iCloudSyncEnabled: Bool = false // Disabled for free Apple account
     
     private let saveKey = "SavedHabits"
+    private let pendingDeletionsKey = "PendingiCloudDeletions"
     let maxFreeHabits = 3
     private let session: WCSession? = WCSession.isSupported() ? WCSession.default : nil
     private lazy var cloudSync: CloudSyncManager? = {
@@ -35,6 +36,20 @@ class HabitStore: NSObject, ObservableObject {
         return CloudSyncManager.shared
     }()
     private let notificationManager = NotificationManager.shared
+    
+    /// UUIDs that we failed to delete from iCloud (offline, transient error, etc).
+    /// Retried on the next sync. Persisted across launches so an offline delete is
+    /// never lost.
+    private var pendingiCloudDeletions: Set<UUID> {
+        get {
+            let strings = UserDefaults.standard.stringArray(forKey: pendingDeletionsKey) ?? []
+            return Set(strings.compactMap { UUID(uuidString: $0) })
+        }
+        set {
+            let strings = newValue.map { $0.uuidString }
+            UserDefaults.standard.set(strings, forKey: pendingDeletionsKey)
+        }
+    }
     
     override init() {
         super.init()
@@ -134,10 +149,16 @@ class HabitStore: NSObject, ObservableObject {
             await notificationManager.cancelNotifications(for: habit.id.uuidString)
         }
         
-        // Delete from iCloud
+        // Delete from iCloud (with retry queue for offline resilience)
         if iCloudSyncEnabled, let cloudSync = cloudSync {
-            Task {
-                try? await cloudSync.deleteHabit(id: habit.id)
+            let habitId = habit.id
+            Task { @MainActor in
+                do {
+                    try await cloudSync.deleteHabit(id: habitId)
+                } catch {
+                    self.logger.warning("⚠️ iCloud delete failed for \(habitId), queueing for retry: \(error.localizedDescription)")
+                    self.pendingiCloudDeletions.insert(habitId)
+                }
             }
         }
         
@@ -312,12 +333,11 @@ class HabitStore: NSObject, ObservableObject {
             SharedDefaults.store.set(encoded, forKey: saveKey)
             logger.debug("✅ Saved \(optimizedHabits.count) habits to SharedDefaults")
             
-            // Sync to iCloud (Delta Sync)
-            if iCloudSyncEnabled, let cloudSync = cloudSync {
-                Task {
-                    try? await cloudSync.uploadHabits(habits)
-                }
-            }
+            // Note: iCloud upload intentionally NOT triggered here. Auto-sync was
+            // removed in favour of explicit "Sync Now" / "Load from iCloud" buttons
+            // and foreground sync. Uploading on every save created noisy failures
+            // that were silently swallowed. Deletions are queued in
+            // pendingiCloudDeletions and flushed on the next manual sync.
             
             // Notify Watch
             sendUpdateToWatch()
@@ -462,6 +482,9 @@ class HabitStore: NSObject, ObservableObject {
             throw NetworkError.noConnection
         }
         
+        // First, flush any pending deletions queued from offline delete operations
+        await flushPendingDeletions(using: cloudSync)
+        
         let syncedHabits = try await cloudSync.syncHabits(localHabits: habits)
         await MainActor.run {
             let oldCount = habits.count
@@ -471,6 +494,29 @@ class HabitStore: NSObject, ObservableObject {
             saveHabits()
             saveHabits()
         }
+    }
+    
+    /// Retries iCloud deletions that failed during offline delete operations.
+    /// Called at the start of each sync. Successfully-deleted UUIDs are dropped
+    /// from the queue; still-failing ones remain for the next attempt.
+    private func flushPendingDeletions(using cloudSync: CloudSyncManager) async {
+        let queue = pendingiCloudDeletions
+        guard !queue.isEmpty else { return }
+        
+        logger.info("🗑️ Retrying \(queue.count) queued iCloud deletion(s)")
+        
+        var remaining = queue
+        for habitId in queue {
+            do {
+                try await cloudSync.deleteHabit(id: habitId)
+                remaining.remove(habitId)
+                logger.info("✅ Flushed queued deletion for \(habitId)")
+            } catch {
+                logger.warning("⚠️ Queued deletion still failing for \(habitId): \(error.localizedDescription)")
+            }
+        }
+        
+        pendingiCloudDeletions = remaining
     }
     
     // Sadece iCloud'dan indir (merge yapmadan)

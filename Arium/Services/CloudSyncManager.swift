@@ -163,7 +163,26 @@ class CloudSyncManager: ObservableObject {
         
         logger.info("📤 Uploading \(habitsToUpload.count) changed habits...")
         
-        let records = habitsToUpload.map { habitToRecord($0) }
+        var records: [CKRecord] = []
+        var encodingFailureCount = 0
+        for habit in habitsToUpload {
+            do {
+                let record = try habitToRecord(habit)
+                records.append(record)
+            } catch {
+                encodingFailureCount += 1
+                logger.error("❌ Skipping upload for habit '\(habit.title)' (id: \(habit.id)) — encoding failed: \(error.localizedDescription)")
+            }
+        }
+        
+        if encodingFailureCount > 0 {
+            logger.warning("⚠️ \(encodingFailureCount) habit(s) skipped due to encoding errors; local data is preserved and retained server data is untouched.")
+        }
+        
+        guard !records.isEmpty else {
+            logger.warning("⚠️ Nothing to upload after filtering out encoding failures.")
+            return
+        }
         
         do {
             let saveResults = try await privateDatabase.modifyRecords(saving: records, deleting: [])
@@ -265,11 +284,15 @@ class CloudSyncManager: ObservableObject {
         record["isReminderEnabled"] = (habit.isReminderEnabled ? 1 : 0) as CKRecordValue
         record["updatedAt"] = (habit.updatedAt ?? habit.createdAt) as CKRecordValue
         
-        if let completionDatesData = try? JSONEncoder().encode(habit.completionDates) {
-            record["completionDates"] = completionDatesData as CKRecordValue
+        do {
+            record["completionDates"] = try JSONEncoder().encode(habit.completionDates) as CKRecordValue
+        } catch {
+            logger.error("❌ Failed to encode completionDates for habit '\(habit.title)': \(error.localizedDescription). Preserving existing server value to avoid data loss.")
         }
-        if let completionNotesData = try? JSONEncoder().encode(habit.completionNotes) {
-            record["completionNotes"] = completionNotesData as CKRecordValue
+        do {
+            record["completionNotes"] = try JSONEncoder().encode(habit.completionNotes) as CKRecordValue
+        } catch {
+            logger.error("❌ Failed to encode completionNotes for habit '\(habit.title)': \(error.localizedDescription). Preserving existing server value to avoid data loss.")
         }
         if let startDate = habit.startDate {
             record["startDate"] = startDate as CKRecordValue
@@ -524,7 +547,7 @@ class CloudSyncManager: ObservableObject {
     
     // MARK: - Conversion Methods
     
-    private func habitToRecord(_ habit: Habit) -> CKRecord {
+    private func habitToRecord(_ habit: Habit) throws -> CKRecord {
         let recordID = CKRecord.ID(recordName: habit.id.uuidString)
         let record = CKRecord(recordType: recordType, recordID: recordID)
         
@@ -537,14 +560,10 @@ class CloudSyncManager: ObservableObject {
         record["goalDays"] = habit.goalDays as CKRecordValue
         record["isReminderEnabled"] = (habit.isReminderEnabled ? 1 : 0) as CKRecordValue
         
-        // Encode complex types as Data
-        if let completionDatesData = try? JSONEncoder().encode(habit.completionDates) {
-            record["completionDates"] = completionDatesData as CKRecordValue
-        }
-        
-        if let completionNotesData = try? JSONEncoder().encode(habit.completionNotes) {
-            record["completionNotes"] = completionNotesData as CKRecordValue
-        }
+        // Encode complex types as Data — throw on failure so we never upload a
+        // partial record that could overwrite good server data with blanks.
+        record["completionDates"] = try JSONEncoder().encode(habit.completionDates) as CKRecordValue
+        record["completionNotes"] = try JSONEncoder().encode(habit.completionNotes) as CKRecordValue
         
         if let startDate = habit.startDate {
             record["startDate"] = startDate as CKRecordValue
@@ -573,16 +592,28 @@ class CloudSyncManager: ObservableObject {
         let goalDays = record["goalDays"] as? Int ?? 21
         let isReminderEnabled = (record["isReminderEnabled"] as? Int ?? 0) == 1
         
+        // If encoded fields exist but fail to decode, treat the whole record as
+        // corrupt and skip it. Returning a partial habit (empty completions) here
+        // would let the merge overwrite good local data with blanks and silently
+        // erase the user's history.
         var completionDates: [Date] = []
-        if let data = record["completionDates"] as? Data,
-           let dates = try? JSONDecoder().decode([Date].self, from: data) {
-            completionDates = dates
+        if let data = record["completionDates"] as? Data {
+            do {
+                completionDates = try JSONDecoder().decode([Date].self, from: data)
+            } catch {
+                logger.error("❌ Skipping habit '\(title)' (id: \(record.recordID.recordName)) — completionDates decode failed: \(error.localizedDescription). Local data preserved.")
+                return nil
+            }
         }
         
         var completionNotes: [String: String] = [:]
-        if let data = record["completionNotes"] as? Data,
-           let notes = try? JSONDecoder().decode([String: String].self, from: data) {
-            completionNotes = notes
+        if let data = record["completionNotes"] as? Data {
+            do {
+                completionNotes = try JSONDecoder().decode([String: String].self, from: data)
+            } catch {
+                logger.error("❌ Skipping habit '\(title)' (id: \(record.recordID.recordName)) — completionNotes decode failed: \(error.localizedDescription). Local data preserved.")
+                return nil
+            }
         }
         
         let startDate = record["startDate"] as? Date

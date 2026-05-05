@@ -127,21 +127,32 @@ struct Habit: Identifiable, Codable, Equatable {
         }
         
         let calendar = Calendar.current
-        let sortedDates = completionDates
-            .map { calendar.startOfDay(for: $0) }
-            .sorted(by: >)
         
-        guard let mostRecent = sortedDates.first else {
+        // Unique days (DST-safe via inSameDayAs), sorted newest first
+        var uniqueDays: [Date] = []
+        for rawDate in completionDates {
+            let startOfDay = calendar.startOfDay(for: rawDate)
+            if !uniqueDays.contains(where: { calendar.isDate($0, inSameDayAs: startOfDay) }) {
+                uniqueDays.append(startOfDay)
+            }
+        }
+        uniqueDays.sort(by: >)
+        
+        guard let mostRecent = uniqueDays.first else {
             streak = 0
             return
         }
         
-        // Check if most recent is today or yesterday
         let today = calendar.startOfDay(for: Date())
-        // Safe fallback if calendar calculation fails (unlikely)
-        let yesterday = calendar.date(byAdding: .day, value: -1, to: today) ?? Date(timeInterval: -86400, since: today)
         
-        guard mostRecent == today || mostRecent == yesterday else {
+        // Most recent completion must be today or yesterday (DST-safe)
+        let isToday = calendar.isDate(mostRecent, inSameDayAs: today)
+        let isYesterday: Bool = {
+            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return false }
+            return calendar.isDate(mostRecent, inSameDayAs: yesterday)
+        }()
+        
+        guard isToday || isYesterday else {
             streak = 0
             return
         }
@@ -149,11 +160,17 @@ struct Habit: Identifiable, Codable, Equatable {
         var currentStreak = 1
         var previousDate = mostRecent
         
-        for date in sortedDates.dropFirst() {
-            if let dayDifference = calendar.dateComponents([.day], from: date, to: previousDate).day,
-               dayDifference == 1 {
+        for day in uniqueDays.dropFirst() {
+            // DST-safe: check whether `day` is exactly one calendar day before `previousDate`
+            // by walking the calendar rather than using raw day-count arithmetic (which can
+            // produce 0 or 2 across DST transitions).
+            guard let expectedPrevious = calendar.date(byAdding: .day, value: -1, to: previousDate) else {
+                break
+            }
+            
+            if calendar.isDate(day, inSameDayAs: expectedPrevious) {
                 currentStreak += 1
-                previousDate = date
+                previousDate = day
             } else {
                 break
             }
