@@ -88,6 +88,9 @@ struct PrivacyPolicyView: View {
                             
                             Apple's privacy policy applies to these services.
                             
+                            **AI Habit Creation (Premium, Optional):**
+                            If you use the "Create with AI" feature, the short text you enter (max 200 characters) is sent to our Cloudflare Workers proxy and to Google Gemini to generate a habit suggestion. Only the text you typed and your app language are sent — no habit history, name, email, or device identifier. We do not store your input. Cloudflare may keep transient request logs up to 7 days for abuse prevention. The feature is fully optional; every other feature runs on-device.
+                            
                             **No Other Third Parties:**
                             We do not use any third-party analytics, advertising, or tracking services.
                             """

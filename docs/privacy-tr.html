@@ -144,7 +144,7 @@
         
         <div class="header">
             <h1>Gizlilik Politikası</h1>
-            <p class="last-updated">Son Güncelleme: Aralık 2024</p>
+            <p class="last-updated">Son Güncelleme: Mayıs 2026</p>
         </div>
         
         <h2>Giriş</h2>
@@ -207,7 +207,17 @@
         <ul>
             <li><strong>StoreKit:</strong> Premium satın almaları işlemek için (Apple'ın gizlilik politikası geçerlidir)</li>
             <li><strong>CloudKit:</strong> İsteğe bağlı iCloud senkronizasyonu için (Apple'ın gizlilik politikası geçerlidir)</li>
+            <li><strong>WidgetKit ve WatchConnectivity:</strong> Widget ve Apple Watch senkronizasyonu için (veriler Apple ekosisteminizde kalır)</li>
             <li><strong>HealthKit:</strong> İsteğe bağlı sağlık verisi entegrasyonu için (açık izin gerektirir)</li>
+        </ul>
+        
+        <h3>AI ile Alışkanlık Oluştur (Premium, İsteğe Bağlı)</h3>
+        <p>"AI ile oluştur" özelliğini kullanırsanız (yalnızca premium), girdiğiniz kısa metin bir alışkanlık önerisi üretmek için bizim çalıştırdığımız sunucusuz proxy'ye ve oradan Google'ın Gemini API'sine gönderilir. Detaylar:</p>
+        <ul>
+            <li><strong>Ne gönderilir:</strong> Yalnızca AI giriş alanına yazdığınız metin (en fazla 200 karakter) ve uygulama dil tercihiniz. Hiçbir alışkanlık geçmişi, isim, e-posta veya cihaz tanımlayıcısı gönderilmez.</li>
+            <li><strong>Nereye gider:</strong> Bizim çalıştırdığımız bir Cloudflare Workers proxy'si metni Google Gemini'ye iletir ve sonucu cihazınıza geri gönderir.</li>
+            <li><strong>Saklama:</strong> Girdinizi saklamıyoruz. Cloudflare, kötüye kullanımı önlemek için geçici istek loglarını 7 güne kadar tutabilir. Google'ın Gemini API verilerini nasıl işlediği <a href="https://ai.google.dev/gemini-api/terms">API Şartları</a> kapsamındadır.</li>
+            <li><strong>Vazgeçme:</strong> Bu özellik tamamen isteğe bağlıdır. AI butonuna hiç dokunmadan Arium'u kullanabilirsiniz — standart alışkanlık oluşturma dahil her özellik tamamen cihaz üzerinde çalışır.</li>
         </ul>
         
         <h3>Başka Üçüncü Taraf Yok</h3>

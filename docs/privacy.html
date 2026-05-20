@@ -144,7 +144,7 @@
         
         <div class="header">
             <h1>Privacy Policy</h1>
-            <p class="last-updated">Last Updated: December 2024</p>
+            <p class="last-updated">Last Updated: May 2026</p>
         </div>
         
         <h2>Introduction</h2>
@@ -207,7 +207,17 @@
         <ul>
             <li><strong>StoreKit:</strong> For processing premium purchases (Apple's privacy policy applies)</li>
             <li><strong>CloudKit:</strong> For optional iCloud sync (Apple's privacy policy applies)</li>
+            <li><strong>WidgetKit & WatchConnectivity:</strong> For widgets and Apple Watch sync (data stays within your Apple ecosystem)</li>
             <li><strong>HealthKit:</strong> For optional health data integration (requires explicit permission)</li>
+        </ul>
+        
+        <h3>AI Habit Creation (Premium, Optional)</h3>
+        <p>If you use the "Create with AI" feature (premium-only), the short text you enter is sent to our serverless proxy and to Google's Gemini API to generate a habit suggestion. Specifically:</p>
+        <ul>
+            <li><strong>What is sent:</strong> Only the text you type into the AI input field (max 200 characters) and your app language preference. No habit history, no name, no email, no device identifier.</li>
+            <li><strong>Where it goes:</strong> A Cloudflare Workers proxy we operate, which forwards the text to Google Gemini and returns the structured suggestion to your device.</li>
+            <li><strong>Storage:</strong> We do not store your input. Cloudflare may retain transient request logs for up to 7 days for abuse prevention. Google's data handling for the Gemini API is governed by their <a href="https://ai.google.dev/gemini-api/terms">API Terms</a>.</li>
+            <li><strong>Opt-out:</strong> This feature is entirely optional. You can use Arium without ever using the AI button — every other feature, including standard habit creation, runs fully on-device.</li>
         </ul>
         
         <h3>No Other Third Parties</h3>
