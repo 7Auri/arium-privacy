@@ -225,6 +225,13 @@ struct AIHabitCreatorSheet: View {
                     value: String(format: "%02d:00", suggestion.reminderHour),
                     label: L10n.t("ai.habit.reminderTime")
                 )
+                if suggestion.dailyRepetitions > 1 {
+                    metricTile(
+                        icon: "repeat",
+                        value: "\(suggestion.dailyRepetitions)×",
+                        label: L10n.t("ai.habit.repetitions")
+                    )
+                }
             }
             
             if !suggestion.encouragement.isEmpty {
@@ -380,22 +387,42 @@ struct AIHabitCreatorSheet: View {
         guard let suggestion = suggestion else { return }
         
         // Build a Habit from the suggestion. Reminder time defaults to the
-        // suggested hour, but only if the user hasn't disabled reminders
-        // overall — we don't auto-enable a sensitive permission.
+        // suggested hour. We auto-enable reminders only if the user already
+        // granted notification permission system-wide — otherwise saving
+        // would silently fail to schedule (no permission) and frustrate
+        // the user. If they haven't, we leave it disabled and they can
+        // toggle it from habit detail later.
         let reminderTime = Calendar.current.date(
             bySettingHour: suggestion.reminderHour,
             minute: 0,
             second: 0,
             of: Date()
         )
+        let shouldEnableReminder = NotificationManager.shared.isAuthorized
+        
+        // Daily repetitions: only honour the model's suggestion for premium
+        // users, since multi-rep is a paid feature. Free users get a single
+        // rep regardless. We're already gating this whole flow behind
+        // premium so this is mostly defence-in-depth.
+        let isPremium = PremiumManager.shared.isPremium
+        let repetitions = isPremium ? suggestion.dailyRepetitions : 1
+        
+        // For multi-rep habits, replicate the reminder time so each rep
+        // fires at the same hour by default. The user can fan them out in
+        // habit detail if they want.
+        let reminderTimes: [Date]? = (repetitions > 1 && reminderTime != nil)
+            ? Array(repeating: reminderTime!, count: repetitions)
+            : nil
         
         let habit = Habit(
             title: suggestion.title,
             notes: suggestion.encouragement,
             goalDays: suggestion.goalDays,
             reminderTime: reminderTime,
-            isReminderEnabled: false,
-            category: suggestion.category
+            reminderTimes: reminderTimes,
+            isReminderEnabled: shouldEnableReminder,
+            category: suggestion.category,
+            dailyRepetitions: repetitions
         )
         
         do {

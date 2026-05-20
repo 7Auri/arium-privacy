@@ -75,14 +75,15 @@ function buildPrompt(userInput, language) {
 Respond with the JSON object only. No prose, no markdown, no code fences.
 
 Example
-Input (English): "I want to start running every morning"
+Input (English): "I want to drink water 3 times a day"
 Output:
-{"title":"Morning Run","category":"health","icon":"figure.run","goalDays":30,"reminderHour":7,"encouragement":"Every morning makes you stronger."}
+{"title":"Drink Water","category":"health","icon":"drop.fill","goalDays":21,"reminderHour":9,"dailyRepetitions":3,"encouragement":"Stay hydrated, stay sharp."}
 
 Categories: work, health, learning, personal, finance, social
 Icon: SF Symbol name like figure.run, book.fill, drop.fill, dumbbell.fill, leaf.fill
 goalDays: 7 to 90
-reminderHour: 5 to 22
+reminderHour: 5 to 22 (single time of day; pick the most natural moment for the habit)
+dailyRepetitions: 1 to 5 (how many times per day; default to 1 unless the user says multiple times, several, every X hours, etc.)
 
 Now do the same for this input. All text fields must be in ${langName}.
 
@@ -149,6 +150,7 @@ function parseGeminiResponse(geminiJson) {
     icon: String(parsed.icon || "star.fill").slice(0, 40),
     goalDays: Math.min(90, Math.max(7, Math.round(Number(parsed.goalDays) || 21))),
     reminderHour: Math.min(22, Math.max(5, Math.round(Number(parsed.reminderHour) || 9))),
+    dailyRepetitions: Math.min(5, Math.max(1, Math.round(Number(parsed.dailyRepetitions) || 1))),
     encouragement: String(parsed.encouragement || "").trim().slice(0, 120),
   };
 }

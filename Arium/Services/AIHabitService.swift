@@ -24,6 +24,7 @@ struct AIHabitSuggestion: Equatable, Decodable {
     let iconSymbol: String
     let goalDays: Int
     let reminderHour: Int
+    let dailyRepetitions: Int
     let encouragement: String
     
     enum CodingKeys: String, CodingKey {
@@ -32,6 +33,7 @@ struct AIHabitSuggestion: Equatable, Decodable {
         case iconSymbol = "icon"
         case goalDays
         case reminderHour
+        case dailyRepetitions
         case encouragement
     }
     
@@ -43,15 +45,19 @@ struct AIHabitSuggestion: Equatable, Decodable {
         iconSymbol = try c.decodeIfPresent(String.self, forKey: .iconSymbol) ?? "star.fill"
         goalDays = try c.decode(Int.self, forKey: .goalDays)
         reminderHour = try c.decode(Int.self, forKey: .reminderHour)
+        // Older worker versions don't return dailyRepetitions; default to 1
+        // so the app keeps working through any deploy lag.
+        dailyRepetitions = try c.decodeIfPresent(Int.self, forKey: .dailyRepetitions) ?? 1
         encouragement = try c.decodeIfPresent(String.self, forKey: .encouragement) ?? ""
     }
     
-    init(title: String, category: HabitCategory, iconSymbol: String, goalDays: Int, reminderHour: Int, encouragement: String) {
+    init(title: String, category: HabitCategory, iconSymbol: String, goalDays: Int, reminderHour: Int, dailyRepetitions: Int = 1, encouragement: String) {
         self.title = title
         self.category = category
         self.iconSymbol = iconSymbol
         self.goalDays = goalDays
         self.reminderHour = reminderHour
+        self.dailyRepetitions = dailyRepetitions
         self.encouragement = encouragement
     }
 }
