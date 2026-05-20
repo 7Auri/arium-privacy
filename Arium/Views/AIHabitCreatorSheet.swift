@@ -16,6 +16,11 @@ struct AIHabitCreatorSheet: View {
     @ObservedObject private var appThemeManager = AppThemeManager.shared
     @StateObject private var aiService = AIHabitService.shared
     
+    /// Called after a habit is successfully saved. The owning view uses this
+    /// to dismiss its own sheet (e.g. AddHabit) so the user lands back on
+    /// home with the new habit visible, not stuck inside two stacked sheets.
+    var onSaved: (() -> Void)?
+    
     @State private var inputText = ""
     @State private var suggestion: AIHabitSuggestion?
     @State private var errorMessage: String?
@@ -396,6 +401,9 @@ struct AIHabitCreatorSheet: View {
         do {
             try habitStore.addHabit(habit)
             dismiss()
+            // Tell whoever opened us — typically AddHabit — to also close
+            // so the user ends up back on home with the new habit visible.
+            onSaved?()
         } catch {
             errorMessage = error.localizedDescription
         }

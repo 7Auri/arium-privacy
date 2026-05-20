@@ -185,7 +185,12 @@ struct AddHabitView: View {
                     .frame(height: AIHabitService.shared.isConfigured ? nil : 0)
                     .clipped()
                     .sheet(isPresented: $showingAICreator) {
-                        AIHabitCreatorSheet()
+                        AIHabitCreatorSheet(onSaved: {
+                            // AI sheet has dismissed itself; close AddHabit
+                            // too so the user lands on home with the new
+                            // habit instead of inside an empty form.
+                            dismiss()
+                        })
                             .environmentObject(habitStore)
                     }
                     

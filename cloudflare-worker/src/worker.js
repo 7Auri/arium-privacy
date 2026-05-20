@@ -68,25 +68,26 @@ function buildPrompt(userInput, language) {
     fr: "French", es: "Spanish", it: "Italian",
   }[language] || "English";
   
-  return `You are a habit-tracking assistant. The user wants to create a habit. Respond ONLY with a single JSON object, no markdown, no commentary.
+  // Example-driven prompts beat schema-driven ones for small models like
+  // Gemini Flash. Showing one input/output pair gets us cleaner JSON than
+  // any amount of "respond with EXACTLY one JSON object" pleading.
+  return `Convert a habit description into a structured habit object.
+Respond with the JSON object only. No prose, no markdown, no code fences.
 
-User input (in ${langName}): "${userInput}"
+Example
+Input (English): "I want to start running every morning"
+Output:
+{"title":"Morning Run","category":"health","icon":"figure.run","goalDays":30,"reminderHour":7,"encouragement":"Every morning makes you stronger."}
 
-Output schema:
-{
-  "title": string,         // short, action-oriented, max 4 words, in ${langName}
-  "category": string,      // one of: work, health, learning, personal, finance, social
-  "icon": string,          // SF Symbol name (e.g. "figure.run", "book.fill", "drop.fill")
-  "goalDays": number,      // suggested goal duration, integer between 7 and 90
-  "reminderHour": number,  // suggested 24h hour for reminder, integer 5-22
-  "encouragement": string  // one short sentence of encouragement in ${langName}, max 12 words
-}
+Categories: work, health, learning, personal, finance, social
+Icon: SF Symbol name like figure.run, book.fill, drop.fill, dumbbell.fill, leaf.fill
+goalDays: 7 to 90
+reminderHour: 5 to 22
 
-Rules:
-- title: imperative or noun phrase, NOT a full sentence
-- category: pick the best fit
-- icon: must be a real SF Symbol; use commonly available ones
-- If user input is unclear or unsafe, set title to a sensible default and category to "personal"`;
+Now do the same for this input. All text fields must be in ${langName}.
+
+Input (${langName}): "${userInput}"
+Output:`;
 }
 
 async function callGemini(apiKey, prompt) {
@@ -96,7 +97,7 @@ async function callGemini(apiKey, prompt) {
     contents: [{ parts: [{ text: prompt }] }],
     generationConfig: {
       temperature: 0.4,
-      maxOutputTokens: 256,
+      maxOutputTokens: 1024,
       responseMimeType: "application/json",
     },
     safetySettings: [
@@ -127,11 +128,16 @@ function parseGeminiResponse(geminiJson) {
     throw new Error("empty Gemini response");
   }
   
+  // Even with responseMimeType: application/json the model occasionally
+  // wraps the payload in markdown fences or adds a preamble like
+  // "Here is the JSON requested:". Strip both before parsing.
+  const cleaned = extractJSONObject(text);
+  
   let parsed;
   try {
-    parsed = JSON.parse(text);
+    parsed = JSON.parse(cleaned);
   } catch (e) {
-    throw new Error(`Gemini returned non-JSON: ${text.slice(0, 100)}`);
+    throw new Error(`Gemini returned non-JSON. Raw: ${text.slice(0, 500)} | Cleaned: ${cleaned.slice(0, 200)}`);
   }
   
   // Sanitize before handing back to the client. Trust nothing from the
@@ -145,6 +151,24 @@ function parseGeminiResponse(geminiJson) {
     reminderHour: Math.min(22, Math.max(5, Math.round(Number(parsed.reminderHour) || 9))),
     encouragement: String(parsed.encouragement || "").trim().slice(0, 120),
   };
+}
+
+function extractJSONObject(text) {
+  // Strip ```json ... ``` or ``` ... ``` code fences
+  const fenceMatch = text.match(/```(?:json)?\s*([\s\S]*?)```/i);
+  if (fenceMatch) {
+    return fenceMatch[1].trim();
+  }
+  
+  // Find the first {...} block. Handles preambles like
+  // "Here is the JSON:\n{...}" — most common Gemini failure mode.
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace !== -1 && lastBrace > firstBrace) {
+    return text.slice(firstBrace, lastBrace + 1);
+  }
+  
+  return text.trim();
 }
 
 export default {
