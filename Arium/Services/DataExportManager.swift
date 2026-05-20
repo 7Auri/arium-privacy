@@ -417,6 +417,15 @@ class DataExportManager {
     // MARK: - Share
     
     func shareExport(url: URL, from viewController: UIViewController) {
+        // Walk up to the top-most presented controller. This matters when the
+        // caller passed the window's root VC but a sheet (e.g. Measurements)
+        // is already on top — calling present on the root is silently ignored
+        // because it's already presenting something.
+        var presenter = viewController
+        while let presented = presenter.presentedViewController {
+            presenter = presented
+        }
+        
         let activityVC = UIActivityViewController(
             activityItems: [url],
             applicationActivities: nil
@@ -424,17 +433,17 @@ class DataExportManager {
         
         // For iPad
         if let popover = activityVC.popoverPresentationController {
-            popover.sourceView = viewController.view
+            popover.sourceView = presenter.view
             popover.sourceRect = CGRect(
-                x: viewController.view.bounds.midX,
-                y: viewController.view.bounds.midY,
+                x: presenter.view.bounds.midX,
+                y: presenter.view.bounds.midY,
                 width: 0,
                 height: 0
             )
             popover.permittedArrowDirections = []
         }
         
-        viewController.present(activityVC, animated: true)
+        presenter.present(activityVC, animated: true)
     }
     
     // MARK: - Helpers
