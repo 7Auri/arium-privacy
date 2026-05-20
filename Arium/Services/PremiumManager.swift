@@ -317,6 +317,44 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
         return max(0, Int(truncating: savings as NSDecimalNumber))
     }
     
+    // MARK: - Introductory Offer Detection
+    
+    /// Returns the introductory offer for a product if the user is eligible.
+    /// This drives the "7-day free trial" copy on the paywall — but only when
+    /// StoreKit confirms the user actually qualifies (Apple gates trials per
+    /// subscription group, not per product, so a user who already trialled
+    /// monthly cannot trial yearly again).
+    func eligibleIntroductoryOffer(for plan: PremiumPlan) async -> Product.SubscriptionOffer? {
+        guard let product = product(for: plan),
+              let subscription = product.subscription,
+              let offer = subscription.introductoryOffer else {
+            return nil
+        }
+        
+        let isEligible = await subscription.isEligibleForIntroOffer
+        return isEligible ? offer : nil
+    }
+    
+    /// Convenience: number of free-trial days for a plan if the user is
+    /// eligible. Nil otherwise. Used by the paywall to render localized copy.
+    func freeTrialDays(for plan: PremiumPlan) async -> Int? {
+        guard let offer = await eligibleIntroductoryOffer(for: plan),
+              offer.paymentMode == .freeTrial else {
+            return nil
+        }
+        return daysInPeriod(offer.period)
+    }
+    
+    private func daysInPeriod(_ period: Product.SubscriptionPeriod) -> Int {
+        switch period.unit {
+        case .day: return period.value
+        case .week: return period.value * 7
+        case .month: return period.value * 30
+        case .year: return period.value * 365
+        @unknown default: return period.value
+        }
+    }
+    
     // MARK: - Subscription Management
     
     /// Opens Apple's native subscription management

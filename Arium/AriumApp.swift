@@ -14,8 +14,10 @@ struct AriumApp: App {
     @StateObject private var habitStore = HabitStore()
     @StateObject private var appThemeManager = AppThemeManager.shared
     @AppStorage("hasSeenOnboarding") private var hasSeenOnboarding = false
+    @AppStorage("hasSeenOnboardingPaywall") private var hasSeenOnboardingPaywall = false
     @Environment(\.scenePhase) private var scenePhase
     @State private var quickAction: QuickAction?
+    @State private var showingOnboardingPaywall = false
     
     var body: some Scene {
         WindowGroup {
@@ -37,11 +39,26 @@ struct AriumApp: App {
                         // Setup Quick Actions
                         QuickActionManager.shared.setupQuickActions()
                         
+                        // Surface the soft onboarding paywall once, after the
+                        // user has finished onboarding. We delay one tick so
+                        // ContentView is on screen — presenting on the same
+                        // run loop as a top-level view swap looks janky.
+                        if !hasSeenOnboardingPaywall && !PremiumManager.shared.isPremium {
+                            try? await Task.sleep(nanoseconds: 600_000_000)
+                            showingOnboardingPaywall = true
+                        }
+                        
                         // Note: iCloud sync is now manual-only for better user control and privacy
                         // Users can sync via "Sync Now" or "Load from iCloud" buttons in Settings
                     }
                     .onOpenURL { url in
                         handleQuickAction(url: url)
+                    }
+                    .sheet(isPresented: $showingOnboardingPaywall, onDismiss: {
+                        hasSeenOnboardingPaywall = true
+                    }) {
+                        PaywallView(trigger: "onboarding")
+                            .environmentObject(appThemeManager)
                     }
             } else {
                 OnboardingView()

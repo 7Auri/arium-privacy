@@ -15,6 +15,7 @@ struct PaywallView: View {
     @State private var selectedPlan: PremiumPlan = .yearly
     @State private var showingPrivacyPolicy = false
     @State private var showingTermsOfService = false
+    @State private var trialDaysByPlan: [PremiumPlan: Int] = [:]
     
     var trigger: String = "generic"
     
@@ -63,6 +64,10 @@ struct PaywallView: View {
             }
             .onAppear {
                 premiumManager.analyticsPaywallShown(trigger: trigger)
+                Task { await refreshTrialEligibility() }
+            }
+            .onChange(of: premiumManager.products.map(\.id)) { _, _ in
+                Task { await refreshTrialEligibility() }
             }
             .alert(L10n.t("premium.purchase.success.title"), isPresented: $premiumManager.showingPurchaseSuccess) {
                 Button(L10n.t("button.ok")) { dismiss() }
@@ -267,6 +272,9 @@ struct PaywallView: View {
         switch plan {
         case .monthly: return L10n.t("paywall.plan.monthly.subtitle")
         case .yearly:
+            if let trialDays = trialDaysByPlan[.yearly], trialDays > 0 {
+                return String(format: L10n.t("paywall.plan.yearly.trial"), trialDays, product.displayPrice)
+            }
             if let savings = premiumManager.yearlySavingsPercent, savings > 0 {
                 return String(format: L10n.t("paywall.plan.yearly.savings"), savings)
             }
@@ -274,6 +282,25 @@ struct PaywallView: View {
         case .lifetime: return L10n.t("paywall.plan.lifetime.subtitle")
         case .none: return ""
         }
+    }
+    
+    private func refreshTrialEligibility() async {
+        var result: [PremiumPlan: Int] = [:]
+        for plan in [PremiumPlan.monthly, .yearly] {
+            if let days = await premiumManager.freeTrialDays(for: plan) {
+                result[plan] = days
+            }
+        }
+        trialDaysByPlan = result
+    }
+    
+    /// CTA copy switches to "Start Free Trial" when the selected plan offers
+    /// one and the user is eligible. Falls back to the generic "Continue".
+    private var purchaseButtonTitle: String {
+        if let trialDays = trialDaysByPlan[selectedPlan], trialDays > 0 {
+            return String(format: L10n.t("paywall.startTrial"), trialDays)
+        }
+        return L10n.t("paywall.subscribe")
     }
     
     // MARK: - Purchase Button
@@ -290,7 +317,7 @@ struct PaywallView: View {
                     ProgressView()
                         .tint(.white)
                 } else {
-                    Text(L10n.t("paywall.subscribe"))
+                    Text(purchaseButtonTitle)
                         .applyAppFont(size: 17, weight: .bold)
                 }
             }

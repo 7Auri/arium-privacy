@@ -98,7 +98,11 @@
           "familyShareable" : false,
           "groupNumber" : 1,
           "internalID" : "YEARLY_001",
-          "introductoryOffer" : null,
+          "introductoryOffer" : {
+            "internalID" : "YEARLY_TRIAL_001",
+            "paymentMode" : "free",
+            "subscriptionPeriod" : "P1W"
+          },
           "localizations" : [
             {
               "description" : "Unlimited habits, AI insights, custom themes, and more. Best value — save over 50%.",
