@@ -138,23 +138,93 @@ struct PaywallView: View {
     // MARK: - Features
     
     private var featuresSection: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            featureRow(icon: "infinity", text: L10n.t("paywall.feature.unlimited"))
-            featureRow(icon: "ruler", text: L10n.t("paywall.feature.measurements"))
-            featureRow(icon: "brain.head.profile", text: L10n.t("paywall.feature.ai"))
-            featureRow(icon: "chart.bar.fill", text: L10n.t("paywall.feature.stats"))
-            featureRow(icon: "paintbrush.fill", text: L10n.t("paywall.feature.themes"))
-            featureRow(icon: "repeat", text: L10n.t("paywall.feature.repetitions"))
-            featureRow(icon: "doc.text.fill", text: L10n.t("paywall.feature.templates"))
-            featureRow(icon: "trophy.fill", text: L10n.t("paywall.feature.achievements"))
-            featureRow(icon: "leaf.fill", text: L10n.t("paywall.feature.garden"))
-            featureRow(icon: "square.and.arrow.up", text: L10n.t("paywall.feature.export"))
+        VStack(spacing: 14) {
+            heroFeatureCard(
+                icon: "brain.head.profile",
+                gradient: [.purple, .pink],
+                titleKey: "paywall.hero.ai.title",
+                bodyKey: "paywall.hero.ai.body"
+            )
+            heroFeatureCard(
+                icon: "infinity",
+                gradient: [.orange, .red],
+                titleKey: "paywall.hero.unlimited.title",
+                bodyKey: "paywall.hero.unlimited.body"
+            )
+            heroFeatureCard(
+                icon: "icloud.and.arrow.up",
+                gradient: [.blue, .cyan],
+                titleKey: "paywall.hero.sync.title",
+                bodyKey: "paywall.hero.sync.body"
+            )
+            
+            // Secondary features as compact chips
+            secondaryFeaturesChips
         }
-        .padding(20)
+    }
+    
+    private func heroFeatureCard(icon: String, gradient: [Color], titleKey: String, bodyKey: String) -> some View {
+        HStack(alignment: .top, spacing: 14) {
+            ZStack {
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(
+                        LinearGradient(
+                            colors: gradient.map { $0.opacity(0.18) },
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 44, height: 44)
+                
+                Image(systemName: icon)
+                    .font(.system(size: 20, weight: .semibold))
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: gradient,
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+            }
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(L10n.t(titleKey))
+                    .applyAppFont(size: 16, weight: .semibold)
+                    .foregroundStyle(.primary)
+                Text(L10n.t(bodyKey))
+                    .applyAppFont(size: 13)
+                    .foregroundStyle(.secondary)
+                    .lineSpacing(2)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+            
+            Spacer()
+        }
+        .padding(14)
         .background(
             RoundedRectangle(cornerRadius: 16)
                 .fill(Color(uiColor: .secondarySystemGroupedBackground))
         )
+    }
+    
+    private var secondaryFeaturesChips: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(L10n.t("paywall.alsoIncluded"))
+                .applyAppFont(size: 13, weight: .medium)
+                .foregroundStyle(.secondary)
+                .padding(.horizontal, 4)
+            
+            FlexibleChipsView(items: [
+                (icon: "chart.bar.fill", textKey: "paywall.feature.stats"),
+                (icon: "paintbrush.fill", textKey: "paywall.feature.themes"),
+                (icon: "repeat", textKey: "paywall.feature.repetitions"),
+                (icon: "doc.text.fill", textKey: "paywall.feature.templates"),
+                (icon: "trophy.fill", textKey: "paywall.feature.achievements"),
+                (icon: "leaf.fill", textKey: "paywall.feature.garden"),
+                (icon: "square.and.arrow.up", textKey: "paywall.feature.export")
+            ])
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
     
     private func featureRow(icon: String, text: String) -> some View {
@@ -380,6 +450,83 @@ struct PaywallView: View {
                         .foregroundStyle(.secondary)
                 }
             }
+        }
+    }
+}
+
+// MARK: - Flexible Chips Layout
+//
+// SwiftUI'in built-in `FlowLayout` iOS 17 öncesi yok. 6+ chip'i zarif
+// şekilde yerleştirmek için minimal bir wrap'lı layout. Her chip kendi
+// genişliği kadar yer kaplar, satır sığmazsa alta taşar.
+private struct FlexibleChipsView: View {
+    let items: [(icon: String, textKey: String)]
+    
+    var body: some View {
+        WrapHStack(spacing: 8, lineSpacing: 8) {
+            ForEach(items.indices, id: \.self) { index in
+                let item = items[index]
+                HStack(spacing: 6) {
+                    Image(systemName: item.icon)
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundStyle(.orange)
+                    Text(L10n.t(item.textKey))
+                        .applyAppFont(size: 12, weight: .medium)
+                        .foregroundStyle(.primary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 6)
+                .background(
+                    Capsule()
+                        .fill(Color(uiColor: .tertiarySystemGroupedBackground))
+                )
+            }
+        }
+    }
+}
+
+private struct WrapHStack: Layout {
+    var spacing: CGFloat = 8
+    var lineSpacing: CGFloat = 8
+    
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let maxWidth = proposal.width ?? .infinity
+        var x: CGFloat = 0
+        var y: CGFloat = 0
+        var lineHeight: CGFloat = 0
+        var totalHeight: CGFloat = 0
+        var totalWidth: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > maxWidth, x > 0 {
+                y += lineHeight + lineSpacing
+                x = 0
+                lineHeight = 0
+            }
+            x += size.width + spacing
+            lineHeight = max(lineHeight, size.height)
+            totalWidth = max(totalWidth, min(x, maxWidth))
+            totalHeight = y + lineHeight
+        }
+        return CGSize(width: totalWidth, height: totalHeight)
+    }
+    
+    func placeSubviews(in bounds: CGRect, proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) {
+        var x: CGFloat = bounds.minX
+        var y: CGFloat = bounds.minY
+        var lineHeight: CGFloat = 0
+        
+        for subview in subviews {
+            let size = subview.sizeThatFits(.unspecified)
+            if x + size.width > bounds.maxX, x > bounds.minX {
+                y += lineHeight + lineSpacing
+                x = bounds.minX
+                lineHeight = 0
+            }
+            subview.place(at: CGPoint(x: x, y: y), proposal: ProposedViewSize(size))
+            x += size.width + spacing
+            lineHeight = max(lineHeight, size.height)
         }
     }
 }
