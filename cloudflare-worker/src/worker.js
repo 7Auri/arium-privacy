@@ -79,15 +79,28 @@ Input (English): "I want to start running every morning"
 Output:
 {"title":"Morning Run","category":"health","icon":"figure.run","goalDays":30,"reminderHours":[7],"dailyRepetitions":1,"encouragement":"Every morning makes you stronger."}
 
-Example 2
+Example 2 (multi-rep, specific times)
 Input (English): "Take antibiotics at noon and midnight"
 Output:
 {"title":"Take Antibiotic","category":"health","icon":"pills.fill","goalDays":7,"reminderHours":[12,0],"dailyRepetitions":2,"encouragement":"Stay consistent for full recovery."}
 
+Example 3 (Turkish, multi-rep, specific times)
+Input (Turkish): "Antibiyotik iç 12 ve 24"
+Output:
+{"title":"Antibiyotik İç","category":"health","icon":"pills.fill","goalDays":7,"reminderHours":[12,0],"dailyRepetitions":2,"encouragement":"İyileşme için tutarlı kal."}
+
+Example 4 (multi-rep, no times)
+Input (English): "Drink water 3 times a day"
+Output:
+{"title":"Drink Water","category":"health","icon":"drop.fill","goalDays":21,"reminderHours":[8,14,20],"dailyRepetitions":3,"encouragement":"Stay hydrated, stay sharp."}
+
 Categories: work, health, learning, personal, finance, social
 Icon: SF Symbol name like figure.run, book.fill, drop.fill, pills.fill, dumbbell.fill, leaf.fill
 goalDays: 7 to 90
-reminderHours: array of integers 0-23, one per repetition. If user names specific times use those exactly. If user just says "X times a day" with no times, spread them across the day.
+reminderHours: array of integers 0-23, one entry per repetition.
+  - If the user names specific times, use them exactly. "24" or "midnight" or "gece 12" all mean 0.
+  - Times like 13, 14, 18, 22 stay as-is.
+  - If the user just says "X times a day" with no specific times, spread evenly (8, 14, 20 for 3×).
 dailyRepetitions: 1 to 5, must equal reminderHours.length
 
 Now do the same for this input. All text fields must be in ${langName}.
@@ -163,7 +176,13 @@ function parseGeminiResponse(geminiJson) {
     : (parsed.reminderHour != null ? [parsed.reminderHour] : []);
   
   hours = hours
-    .map(h => Math.min(23, Math.max(0, Math.round(Number(h) || 9))))
+    .map(h => {
+      // Normalise "24" → 0 (midnight). Some users write 24 instead of 0.
+      const num = Math.round(Number(h));
+      if (Number.isNaN(num)) return 9;
+      if (num === 24) return 0;
+      return Math.min(23, Math.max(0, num));
+    })
     .slice(0, repetitions);
   
   // If the model returned fewer hours than reps, spread defaults evenly

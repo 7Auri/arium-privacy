@@ -140,22 +140,28 @@ struct PaywallView: View {
     private var featuresSection: some View {
         VStack(spacing: 14) {
             heroFeatureCard(
-                icon: "brain.head.profile",
+                icon: "sparkles",
                 gradient: [.purple, .pink],
+                titleKey: "paywall.hero.aiCreate.title",
+                bodyKey: "paywall.hero.aiCreate.body"
+            )
+            heroFeatureCard(
+                icon: "brain.head.profile",
+                gradient: [.indigo, .purple],
                 titleKey: "paywall.hero.ai.title",
                 bodyKey: "paywall.hero.ai.body"
+            )
+            heroFeatureCard(
+                icon: "chart.bar.xaxis",
+                gradient: [.green, .mint],
+                titleKey: "paywall.hero.stats.title",
+                bodyKey: "paywall.hero.stats.body"
             )
             heroFeatureCard(
                 icon: "infinity",
                 gradient: [.orange, .red],
                 titleKey: "paywall.hero.unlimited.title",
                 bodyKey: "paywall.hero.unlimited.body"
-            )
-            heroFeatureCard(
-                icon: "icloud.and.arrow.up",
-                gradient: [.blue, .cyan],
-                titleKey: "paywall.hero.sync.title",
-                bodyKey: "paywall.hero.sync.body"
             )
             
             // Secondary features as compact chips
@@ -215,7 +221,7 @@ struct PaywallView: View {
                 .padding(.horizontal, 4)
             
             FlexibleChipsView(items: [
-                (icon: "chart.bar.fill", textKey: "paywall.feature.stats"),
+                (icon: "icloud", textKey: "paywall.feature.sync"),
                 (icon: "paintbrush.fill", textKey: "paywall.feature.themes"),
                 (icon: "repeat", textKey: "paywall.feature.repetitions"),
                 (icon: "doc.text.fill", textKey: "paywall.feature.templates"),
