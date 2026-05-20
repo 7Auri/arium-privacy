@@ -222,7 +222,7 @@ struct AIHabitCreatorSheet: View {
                 )
                 metricTile(
                     icon: "clock",
-                    value: String(format: "%02d:00", suggestion.reminderHour),
+                    value: reminderTilePreview(suggestion.reminderHours),
                     label: L10n.t("ai.habit.reminderTime")
                 )
                 if suggestion.dailyRepetitions > 1 {
@@ -386,40 +386,34 @@ struct AIHabitCreatorSheet: View {
     private func save() {
         guard let suggestion = suggestion else { return }
         
-        // Build a Habit from the suggestion. Reminder time defaults to the
-        // suggested hour. We auto-enable reminders only if the user already
-        // granted notification permission system-wide — otherwise saving
-        // would silently fail to schedule (no permission) and frustrate
-        // the user. If they haven't, we leave it disabled and they can
-        // toggle it from habit detail later.
-        let reminderTime = Calendar.current.date(
-            bySettingHour: suggestion.reminderHour,
-            minute: 0,
-            second: 0,
-            of: Date()
-        )
+        // Build reminder times from the AI's per-rep hours so each
+        // repetition fires at the moment the user actually meant — taking
+        // antibiotics at noon vs midnight should be two different times,
+        // not the same one duplicated.
+        let calendar = Calendar.current
+        let reminderTimes: [Date] = suggestion.reminderHours.compactMap { hour in
+            calendar.date(bySettingHour: hour, minute: 0, second: 0, of: Date())
+        }
+        
+        // We auto-enable reminders only if the user already granted
+        // notification permission system-wide — otherwise saving would
+        // silently fail to schedule and frustrate the user. They can
+        // still toggle it from habit detail later.
         let shouldEnableReminder = NotificationManager.shared.isAuthorized
         
-        // Daily repetitions: only honour the model's suggestion for premium
-        // users, since multi-rep is a paid feature. Free users get a single
-        // rep regardless. We're already gating this whole flow behind
-        // premium so this is mostly defence-in-depth.
+        // Premium guard: free users can't get multi-rep through the back
+        // door even if the model returns it. The whole flow is already
+        // gated behind premium so this is defence-in-depth.
         let isPremium = PremiumManager.shared.isPremium
         let repetitions = isPremium ? suggestion.dailyRepetitions : 1
-        
-        // For multi-rep habits, replicate the reminder time so each rep
-        // fires at the same hour by default. The user can fan them out in
-        // habit detail if they want.
-        let reminderTimes: [Date]? = (repetitions > 1 && reminderTime != nil)
-            ? Array(repeating: reminderTime!, count: repetitions)
-            : nil
+        let trimmedReminderTimes = Array(reminderTimes.prefix(repetitions))
         
         let habit = Habit(
             title: suggestion.title,
             notes: suggestion.encouragement,
             goalDays: suggestion.goalDays,
-            reminderTime: reminderTime,
-            reminderTimes: reminderTimes,
+            reminderTime: trimmedReminderTimes.first,
+            reminderTimes: trimmedReminderTimes.count > 1 ? trimmedReminderTimes : nil,
             isReminderEnabled: shouldEnableReminder,
             category: suggestion.category,
             dailyRepetitions: repetitions
@@ -434,5 +428,15 @@ struct AIHabitCreatorSheet: View {
         } catch {
             errorMessage = error.localizedDescription
         }
+    }
+    
+    /// Compact reminder preview for the metric tile. Single rep shows
+    /// "07:00"; multi-rep shows the first time + "+N" badge so the tile
+    /// stays narrow.
+    private func reminderTilePreview(_ hours: [Int]) -> String {
+        guard let first = hours.first else { return "—" }
+        let firstStr = String(format: "%02d:00", first)
+        if hours.count <= 1 { return firstStr }
+        return "\(firstStr) +\(hours.count - 1)"
     }
 }

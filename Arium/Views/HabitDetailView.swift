@@ -213,7 +213,9 @@ struct HabitDetailView: View {
     
     private var successScopeView: some View {
         Group {
-            if let probability = viewModel.successProbability, !viewModel.habit.isCompletedToday {
+            if let probability = viewModel.successProbability,
+               !viewModel.habit.isCompletedToday,
+               hasEnoughHistoryForSuccessScore {
                 HStack(spacing: 16) {
                     // Gauge / Circle
                     ZStack {
@@ -268,6 +270,22 @@ struct HabitDetailView: View {
                 .transition(.opacity.combined(with: .move(edge: .top)))
             }
         }
+    }
+    
+    /// A score on a habit with no history is meaningless — the rule-based
+    /// fallback ends up reporting ~10% on a brand-new habit because the
+    /// streak/completion features are zero, which reads as a discouraging
+    /// "you'll probably fail" badge. Hide the indicator until there's
+    /// enough signal for it to mean something.
+    private var hasEnoughHistoryForSuccessScore: Bool {
+        let habit = viewModel.habit
+        let calendar = Calendar.current
+        let daysSinceCreation = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: habit.effectiveStartDate),
+            to: calendar.startOfDay(for: Date())
+        ).day ?? 0
+        return habit.completionDates.count >= 3 || daysSinceCreation >= 7
     }
 
     // MARK: - Weekly Progress View

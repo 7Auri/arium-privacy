@@ -74,16 +74,21 @@ function buildPrompt(userInput, language) {
   return `Convert a habit description into a structured habit object.
 Respond with the JSON object only. No prose, no markdown, no code fences.
 
-Example
-Input (English): "I want to drink water 3 times a day"
+Example 1
+Input (English): "I want to start running every morning"
 Output:
-{"title":"Drink Water","category":"health","icon":"drop.fill","goalDays":21,"reminderHour":9,"dailyRepetitions":3,"encouragement":"Stay hydrated, stay sharp."}
+{"title":"Morning Run","category":"health","icon":"figure.run","goalDays":30,"reminderHours":[7],"dailyRepetitions":1,"encouragement":"Every morning makes you stronger."}
+
+Example 2
+Input (English): "Take antibiotics at noon and midnight"
+Output:
+{"title":"Take Antibiotic","category":"health","icon":"pills.fill","goalDays":7,"reminderHours":[12,0],"dailyRepetitions":2,"encouragement":"Stay consistent for full recovery."}
 
 Categories: work, health, learning, personal, finance, social
-Icon: SF Symbol name like figure.run, book.fill, drop.fill, dumbbell.fill, leaf.fill
+Icon: SF Symbol name like figure.run, book.fill, drop.fill, pills.fill, dumbbell.fill, leaf.fill
 goalDays: 7 to 90
-reminderHour: 5 to 22 (single time of day; pick the most natural moment for the habit)
-dailyRepetitions: 1 to 5 (how many times per day; default to 1 unless the user says multiple times, several, every X hours, etc.)
+reminderHours: array of integers 0-23, one per repetition. If user names specific times use those exactly. If user just says "X times a day" with no times, spread them across the day.
+dailyRepetitions: 1 to 5, must equal reminderHours.length
 
 Now do the same for this input. All text fields must be in ${langName}.
 
@@ -144,13 +149,38 @@ function parseGeminiResponse(geminiJson) {
   // Sanitize before handing back to the client. Trust nothing from the
   // model — clamp each field to known-safe values so the iOS side can't
   // be poisoned by a hallucinated category or wild number.
+  
+  // Daily repetitions, clamped first so we know how many reminder hours
+  // to expect.
+  const repetitions = Math.min(5, Math.max(1, Math.round(Number(parsed.dailyRepetitions) || 1)));
+  
+  // Reminder hours: prefer the new array shape, fall back to the legacy
+  // single reminderHour if the model emits the older form. Pad/truncate
+  // to match repetitions so the iOS side can rely on the invariant
+  // reminderHours.length === dailyRepetitions.
+  let hours = Array.isArray(parsed.reminderHours)
+    ? parsed.reminderHours
+    : (parsed.reminderHour != null ? [parsed.reminderHour] : []);
+  
+  hours = hours
+    .map(h => Math.min(23, Math.max(0, Math.round(Number(h) || 9))))
+    .slice(0, repetitions);
+  
+  // If the model returned fewer hours than reps, spread defaults evenly
+  // across the day (e.g. 3 reps with no times → 8, 14, 20).
+  while (hours.length < repetitions) {
+    const idx = hours.length;
+    const defaultHour = Math.round(8 + (idx * 12 / repetitions));
+    hours.push(Math.min(22, defaultHour));
+  }
+  
   return {
     title: String(parsed.title || "").trim().slice(0, 60) || "New habit",
     category: ALLOWED_CATEGORIES.has(parsed.category) ? parsed.category : "personal",
     icon: String(parsed.icon || "star.fill").slice(0, 40),
     goalDays: Math.min(90, Math.max(7, Math.round(Number(parsed.goalDays) || 21))),
-    reminderHour: Math.min(22, Math.max(5, Math.round(Number(parsed.reminderHour) || 9))),
-    dailyRepetitions: Math.min(5, Math.max(1, Math.round(Number(parsed.dailyRepetitions) || 1))),
+    reminderHours: hours,
+    dailyRepetitions: repetitions,
     encouragement: String(parsed.encouragement || "").trim().slice(0, 120),
   };
 }

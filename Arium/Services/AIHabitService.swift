@@ -23,16 +23,23 @@ struct AIHabitSuggestion: Equatable, Decodable {
     let category: HabitCategory
     let iconSymbol: String
     let goalDays: Int
-    let reminderHour: Int
+    let reminderHours: [Int]
     let dailyRepetitions: Int
     let encouragement: String
+    
+    /// Convenience: the first reminder hour, used by single-rep habits and
+    /// preview UI that only shows one time.
+    var primaryReminderHour: Int {
+        reminderHours.first ?? 9
+    }
     
     enum CodingKeys: String, CodingKey {
         case title
         case category
         case iconSymbol = "icon"
         case goalDays
-        case reminderHour
+        case reminderHours
+        case reminderHour // Legacy single-hour fallback
         case dailyRepetitions
         case encouragement
     }
@@ -44,19 +51,28 @@ struct AIHabitSuggestion: Equatable, Decodable {
         category = HabitCategory(rawValue: categoryRaw) ?? .personal
         iconSymbol = try c.decodeIfPresent(String.self, forKey: .iconSymbol) ?? "star.fill"
         goalDays = try c.decode(Int.self, forKey: .goalDays)
-        reminderHour = try c.decode(Int.self, forKey: .reminderHour)
-        // Older worker versions don't return dailyRepetitions; default to 1
-        // so the app keeps working through any deploy lag.
         dailyRepetitions = try c.decodeIfPresent(Int.self, forKey: .dailyRepetitions) ?? 1
+        
+        // Prefer the new array shape, fall back to the legacy single-hour
+        // form if an older Worker is still deployed. Always end up with
+        // reminderHours.count == dailyRepetitions.
+        if let hours = try c.decodeIfPresent([Int].self, forKey: .reminderHours), !hours.isEmpty {
+            reminderHours = hours
+        } else if let single = try c.decodeIfPresent(Int.self, forKey: .reminderHour) {
+            reminderHours = Array(repeating: single, count: dailyRepetitions)
+        } else {
+            reminderHours = Array(repeating: 9, count: dailyRepetitions)
+        }
+        
         encouragement = try c.decodeIfPresent(String.self, forKey: .encouragement) ?? ""
     }
     
-    init(title: String, category: HabitCategory, iconSymbol: String, goalDays: Int, reminderHour: Int, dailyRepetitions: Int = 1, encouragement: String) {
+    init(title: String, category: HabitCategory, iconSymbol: String, goalDays: Int, reminderHours: [Int], dailyRepetitions: Int = 1, encouragement: String) {
         self.title = title
         self.category = category
         self.iconSymbol = iconSymbol
         self.goalDays = goalDays
-        self.reminderHour = reminderHour
+        self.reminderHours = reminderHours
         self.dailyRepetitions = dailyRepetitions
         self.encouragement = encouragement
     }
