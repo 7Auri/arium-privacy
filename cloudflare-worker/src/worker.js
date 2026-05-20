@@ -75,27 +75,27 @@ function buildPrompt(userInput, language) {
 Respond with the JSON object only. No prose, no markdown, no code fences.
 
 Example 1 (single rep, English)
-Input (English): "I want to start running every morning"
+Input: "I want to start running every morning"
 Output:
 {"title":"Morning Run","category":"health","icon":"figure.run","goalDays":30,"reminderHours":[7],"dailyRepetitions":1,"encouragement":"Every morning makes you stronger."}
 
 Example 2 (multi-rep, named times — English)
-Input (English): "Take antibiotics at noon and midnight"
+Input: "Take antibiotics at noon and midnight"
 Output:
 {"title":"Take Antibiotic","category":"health","icon":"pills.fill","goalDays":7,"reminderHours":[12,0],"dailyRepetitions":2,"encouragement":"Stay consistent for full recovery."}
 
 Example 3 (multi-rep, numeric times — Turkish)
-Input (Turkish): "Antibiyotik iç 12 ve 24"
+Input: "Antibiyotik iç 12 ve 24"
 Output:
 {"title":"Antibiyotik İç","category":"health","icon":"pills.fill","goalDays":7,"reminderHours":[12,0],"dailyRepetitions":2,"encouragement":"İyileşme için tutarlı kal."}
 
 Example 4 (multi-rep, numeric times — German)
-Input (German): "Medikament um 8 und 20 Uhr nehmen"
+Input: "Medikament um 8 und 20 Uhr nehmen"
 Output:
 {"title":"Medikament Nehmen","category":"health","icon":"pills.fill","goalDays":14,"reminderHours":[8,20],"dailyRepetitions":2,"encouragement":"Bleib regelmäßig dran."}
 
-Example 5 (multi-rep, no times specified — any language)
-Input (English): "Drink water 3 times a day"
+Example 5 (multi-rep, no times specified)
+Input: "Drink water 3 times a day"
 Output:
 {"title":"Drink Water","category":"health","icon":"drop.fill","goalDays":21,"reminderHours":[8,14,20],"dailyRepetitions":3,"encouragement":"Stay hydrated, stay sharp."}
 
@@ -115,9 +115,15 @@ reminderHours: array of integers 0-23, one entry per repetition.
 
 dailyRepetitions: 1 to 5, must equal reminderHours.length.
 
-Now do the same for this input. All text fields must be in ${langName}.
+CRITICAL — language: detect the language of the user's input and respond in that same language for title and encouragement. The app UI is in ${langName} but the user may write in any language; always honour what they actually typed. Examples:
+  - User writes "ich will jeden Morgen laufen" → respond in German
+  - User writes "voglio correre ogni mattina" → respond in Italian
+  - User writes Turkish → respond in Turkish, even if the app's UI is English
+If the input is ambiguous or mixed, fall back to ${langName}.
 
-Input (${langName}): "${userInput}"
+Now do the same for this input.
+
+Input: "${userInput}"
 Output:`;
 }
 
