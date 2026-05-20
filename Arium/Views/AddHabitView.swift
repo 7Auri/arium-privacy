@@ -16,6 +16,7 @@ struct AddHabitView: View {
     @State private var showingPremiumAlert = false
     @State private var premiumAlertMessage = ""
     @State private var showingTemplates = false
+    @State private var showingAICreator = false
     @State private var showingError = false
     @State private var currentError: AppError?
     @State private var toast: ToastItem?
@@ -99,6 +100,94 @@ struct AddHabitView: View {
             ImprovedTemplatesView(viewModel: viewModel)
                 .environmentObject(habitStore)
         }
+                    
+                    // AI Habit Creator Button (Premium-only)
+                    Button(action: {
+                        if !premiumManager.isPremium {
+                            premiumManager.showingPaywall = true
+                            return
+                        }
+                        if !AIHabitService.shared.isConfigured {
+                            // Build doesn't have the worker URL/secret wired up.
+                            // Hide the button instead of showing a useless one.
+                            return
+                        }
+                        showingAICreator = true
+                    }) {
+                        HStack(spacing: 12) {
+                            ZStack {
+                                Circle()
+                                    .fill(
+                                        LinearGradient(
+                                            colors: [Color.purple.opacity(0.22), Color.pink.opacity(0.15)],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                                    .frame(width: 44, height: 44)
+                                
+                                Image(systemName: "sparkles")
+                                    .applyAppFont(size: 18, weight: .semibold)
+                                    .foregroundStyle(
+                                        LinearGradient(
+                                            colors: [.purple, .pink],
+                                            startPoint: .topLeading,
+                                            endPoint: .bottomTrailing
+                                        )
+                                    )
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 4) {
+                                HStack(spacing: 6) {
+                                    Text(L10n.t("ai.habit.openButton"))
+                                        .applyAppFont(size: 16, weight: .semibold)
+                                        .foregroundStyle(.primary)
+                                    
+                                    if !premiumManager.isPremium {
+                                        Image(systemName: "crown.fill")
+                                            .font(.system(size: 11, weight: .bold))
+                                            .foregroundStyle(.orange)
+                                    }
+                                }
+                                
+                                Text(L10n.t("ai.habit.subtitle"))
+                                    .applyAppFont(size: 13, weight: .regular)
+                                    .foregroundStyle(.secondary)
+                                    .lineLimit(2)
+                            }
+                            
+                            Spacer()
+                            
+                            Image(systemName: "chevron.right")
+                                .font(.system(size: 14, weight: .semibold))
+                                .foregroundStyle(.tertiary)
+                        }
+                        .frame(maxWidth: .infinity)
+                        .padding(16)
+                        .background(
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color(.secondarySystemBackground))
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .stroke(
+                                    LinearGradient(
+                                        colors: [.purple.opacity(0.35), .pink.opacity(0.25)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                        .shadow(color: .purple.opacity(0.1), radius: 8, x: 0, y: 4)
+                    }
+                    .opacity(AIHabitService.shared.isConfigured ? 1 : 0)
+                    .frame(height: AIHabitService.shared.isConfigured ? nil : 0)
+                    .clipped()
+                    .sheet(isPresented: $showingAICreator) {
+                        AIHabitCreatorSheet()
+                            .environmentObject(habitStore)
+                    }
                     
                     // Title Input
                     VStack(alignment: .leading, spacing: 8) {

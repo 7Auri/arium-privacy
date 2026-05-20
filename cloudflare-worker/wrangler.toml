@@ -1,0 +1,9 @@
+name = "arium-ai"
+main = "src/worker.js"
+compatibility_date = "2024-11-01"
+
+# Set GEMINI_API_KEY and SHARED_SECRET as secrets via:
+#   wrangler secret put GEMINI_API_KEY
+#   wrangler secret put SHARED_SECRET
+#
+# Free plan limits: 100k requests/day, 10ms CPU/request. Plenty for our usage.
