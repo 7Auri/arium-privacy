@@ -88,3 +88,13 @@ test_app_groups.swift
 Network Trash Folder
 Temporary Items
 .apdisk
+
+# Cloudflare Wrangler local state
+cloudflare-worker/.wrangler/
+
+# Info.plist contains AI Worker URL + shared secret used to authenticate
+# the iOS client against our Cloudflare proxy. The secret is never safe to
+# commit — even in a private repo a leak risks free-tier quota abuse and
+# requires a wrangler secret rotation + new TestFlight build to recover.
+# Keep a local copy on the dev machine instead.
+Arium/Info.plist

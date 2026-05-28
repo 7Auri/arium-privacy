@@ -202,6 +202,13 @@
 			);
 			target = 6C6718622ED11E2700E3660F /* AriumWatch Watch App */;
 		};
+		6C9EB7742FBE20D000734A9B /* Exceptions for "Arium" folder in "Arium" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 6C6717B62ED0FC7800E3660F /* Arium */;
+		};
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -216,6 +223,7 @@
 		6C6717B92ED0FC7800E3660F /* Arium */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				6C9EB7742FBE20D000734A9B /* Exceptions for "Arium" folder in "Arium" target */,
 				6C1E973F2ED3995C00CEA9D9 /* Exceptions for "Arium" folder in "AriumWidgetExtension" target */,
 				6C671E8A2ED2584200E3660F /* Exceptions for "Arium" folder in "AriumWatch Watch App" target */,
 				6C23B0892ED4E12D008036DF /* Exceptions for "Arium" folder in "AriumWatchWidgetExtension" target */,
@@ -1047,6 +1055,7 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Arium/Info.plist;
 				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_CFBundleDisplayName = Arium;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1088,6 +1097,7 @@
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Arium/Info.plist;
 				INFOPLIST_KEY_APP_STORE_ID = "";
 				INFOPLIST_KEY_CFBundleDisplayName = Arium;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
@@ -1204,7 +1214,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0.3;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.AriumWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1236,7 +1246,7 @@
 					"@executable_path/Frameworks",
 					"@executable_path/../../Frameworks",
 				);
-				MARKETING_VERSION = 2.0.3;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.AriumWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -1268,7 +1278,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.3;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1299,7 +1309,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 2.0.3;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = zorbey.Arium.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1388,7 +1398,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "zorbey.Arium.AriumWatch-Watch-AppUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
@@ -1407,7 +1417,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = M3CJJTMW7W;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 2.0.2;
+				MARKETING_VERSION = 2.0.4;
 				PRODUCT_BUNDLE_IDENTIFIER = "zorbey.Arium.AriumWatch-Watch-AppUITests";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = watchos;
