@@ -38,14 +38,14 @@ struct AddMeasurementEntrySheet: View {
         if let entry = existingEntry {
             let system = UnitSystem(rawValue: UserDefaults.standard.string(forKey: "measurementUnitSystem") ?? "metric") ?? .metric
             let displayVal = UnitConversion.fromMetric(entry.value, type: measurementType, system: system)
-            _valueText = State(initialValue: String(format: "%.1f", displayVal))
+            _valueText = State(initialValue: DecimalInput.format(displayVal))
             _date = State(initialValue: entry.date)
             _note = State(initialValue: entry.note ?? "")
         }
     }
     
     private var isValid: Bool {
-        guard let value = Double(valueText), value > 0 else { return false }
+        guard let value = DecimalInput.parse(valueText), value > 0 else { return false }
         return true
     }
     
@@ -130,7 +130,7 @@ struct AddMeasurementEntrySheet: View {
     // MARK: - Save
     
     private func save() {
-        guard let displayValue = Double(valueText), displayValue > 0 else {
+        guard let displayValue = DecimalInput.parse(valueText), displayValue > 0 else {
             showingValidationError = true
             return
         }
