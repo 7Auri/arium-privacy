@@ -13,8 +13,6 @@ struct PaywallView: View {
     @StateObject private var premiumManager = PremiumManager.shared
     @StateObject private var appThemeManager = AppThemeManager.shared
     @State private var selectedPlan: PremiumPlan = .yearly
-    @State private var showingPrivacyPolicy = false
-    @State private var showingTermsOfService = false
     @State private var trialDaysByPlan: [PremiumPlan: Int] = [:]
     
     var trigger: String = "generic"
@@ -91,14 +89,6 @@ struct PaywallView: View {
                 if let msg = premiumManager.errorMessage {
                     Text(msg)
                 }
-            }
-            .sheet(isPresented: $showingPrivacyPolicy) {
-                PrivacyPolicyView()
-                    .environmentObject(appThemeManager)
-            }
-            .sheet(isPresented: $showingTermsOfService) {
-                TermsOfServiceView()
-                    .environmentObject(appThemeManager)
             }
         }
     }
@@ -435,11 +425,10 @@ struct PaywallView: View {
                     .padding(.horizontal, 20)
             }
             
-            // Legal links
+            // Legal links (Guideline 3.1.2): functional EULA + Privacy Policy.
+            // URLs come from the single-source `Legal` enum; labels are localized.
             HStack(spacing: 16) {
-                Button {
-                    showingTermsOfService = true
-                } label: {
+                Link(destination: Legal.eula) {
                     Text(L10n.t("settings.termsOfService"))
                         .applyAppFont(size: 12)
                         .foregroundStyle(.secondary)
@@ -448,9 +437,7 @@ struct PaywallView: View {
                 Text("•")
                     .foregroundStyle(.secondary)
                 
-                Button {
-                    showingPrivacyPolicy = true
-                } label: {
+                Link(destination: Legal.privacyPolicy) {
                     Text(L10n.t("settings.privacyPolicy"))
                         .applyAppFont(size: 12)
                         .foregroundStyle(.secondary)
