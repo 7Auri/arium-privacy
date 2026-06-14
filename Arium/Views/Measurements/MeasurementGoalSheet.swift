@@ -24,13 +24,13 @@ struct MeasurementGoalSheet: View {
     @State private var showingPremiumAlert = false
     
     private var isValid: Bool {
-        guard let value = Double(targetValueText), value > 0 else { return false }
+        guard let value = DecimalInput.parse(targetValueText), value > 0 else { return false }
         return targetDate > Date()
     }
     
     private var progress: Double? {
         guard let current = currentValue,
-              let target = Double(targetValueText),
+              let target = DecimalInput.parse(targetValueText),
               target > 0 else { return nil }
         
         if target > current {
@@ -102,7 +102,7 @@ struct MeasurementGoalSheet: View {
                                 
                                 Spacer()
                                 
-                                if let target = Double(targetValueText) {
+                                if let target = DecimalInput.parse(targetValueText) {
                                     Text(String(format: "%.1f %@", target, measurementType.unit))
                                         .font(.caption)
                                         .foregroundColor(AriumTheme.textTertiary)
@@ -149,7 +149,7 @@ struct MeasurementGoalSheet: View {
     // MARK: - Save
     
     private func save() {
-        guard let targetValue = Double(targetValueText), targetValue > 0 else { return }
+        guard let targetValue = DecimalInput.parse(targetValueText), targetValue > 0 else { return }
         
         let goal = MeasurementGoal(
             typeId: measurementType.id,
