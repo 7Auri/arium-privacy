@@ -68,12 +68,19 @@ struct TermsOfServiceView: View {
                             
                             **Premium Tier:**
                             • Unlimited habits
+                            • AI habit creation and AI insights
                             • Advanced features (daily repetitions, custom goals)
-                            • 30-day statistics and insights
-                            • Premium templates and themes
+                            • 30-day statistics, habit chains, and body measurements
+                            • Premium templates, themes, and iCloud sync
                             
-                            **Payment:**
-                            Premium is a one-time purchase (non-consumable) charged to your Apple ID account. Refund requests are handled by Apple.
+                            **Subscriptions & Payment:**
+                            Arium Premium is offered as an auto-renewable subscription (monthly or yearly) and, optionally, as a one-time Lifetime purchase.
+                            • Payment is charged to your Apple ID account at confirmation of purchase.
+                            • A subscription automatically renews for the same period unless it is cancelled at least 24 hours before the end of the current period.
+                            • Your account is charged for renewal within 24 hours prior to the end of the current period.
+                            • You can manage or cancel your subscription in Settings → Apple ID → Subscriptions after purchase.
+                            • The Lifetime option is a one-time non-consumable purchase and does not renew.
+                            • Prices are shown on the purchase screen in your local currency. Refund requests are handled by Apple.
                             """
                         )
                         

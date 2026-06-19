@@ -122,14 +122,10 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     // MARK: - Premium Durumu
     
     private func loadPremiumStatus() {
-        let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
-        let savedPremium = UserDefaults.standard.bool(forKey: "isPremium")
-        
-        if isTestPremium && savedPremium {
-            isPremium = true
-        } else {
-            isPremium = savedPremium
-        }
+        // Cached entitlement state for instant UI before the async StoreKit
+        // reconciliation in `checkPremiumStatus()` runs. The cache is written
+        // only from verified transactions (or, in DEBUG, the test toggle).
+        isPremium = UserDefaults.standard.bool(forKey: "isPremium")
     }
     
     private func savePremiumStatus(_ status: Bool) {
@@ -138,11 +134,17 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     }
     
     // MARK: - Test Helper
-    
+
+    #if DEBUG
+    /// DEBUG-only entitlement override used by the in-app debug toggle and
+    /// unit tests. Compiled out of Release builds entirely so there is no way
+    /// to unlock Premium without a verified StoreKit transaction in the
+    /// shipping app (App Store Guideline 3.1.2).
     func setPremiumStatus(_ status: Bool) {
         UserDefaults.standard.set(true, forKey: "isTestPremium")
         savePremiumStatus(status)
     }
+    #endif
     
     // MARK: - Ürün Yükleme
     
@@ -186,11 +188,14 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
     // MARK: - Entitlement Kontrolü
     
     func checkPremiumStatus() async {
-        let isTestPremium = UserDefaults.standard.bool(forKey: "isTestPremium")
-        if isTestPremium && UserDefaults.standard.bool(forKey: "isPremium") {
+        #if DEBUG
+        // DEBUG-only override (see `setPremiumStatus`). Compiled out of Release.
+        if UserDefaults.standard.bool(forKey: "isTestPremium") &&
+           UserDefaults.standard.bool(forKey: "isPremium") {
             isPremium = true
             return
         }
+        #endif
         
         var foundEntitlement = false
         for await result in Transaction.currentEntitlements {
@@ -216,7 +221,7 @@ class PremiumManager: ObservableObject, PurchaseServiceProtocol {
             }
         }
         
-        if !foundEntitlement && !isTestPremium {
+        if !foundEntitlement {
             savePremiumStatus(false)
             subscriptionStatus = .none
         }
